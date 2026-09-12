@@ -62,10 +62,27 @@ is the workflow used to build it, so its own issues and PRs are teaching exhibit
 
 **Work Dependency**
 : A blocking relation between two units of work — ticket B cannot start until ticket A
-  lands. Expressed as a `/to-tickets` blocking edge, a GitHub sub-issue relation, or a
-  Mermaid graph. This is what this course means by "dependency."
+  lands. Declared as a `/to-tickets` blocking edge, recorded on GitHub as an **Issue
+  Dependency**, and drawn as a Mermaid graph. This is what this course means by
+  "dependency."
   _Avoid_: "dependency" unqualified when the supply-chain graph is meant — say
   **package dependency** for that; it is out of scope.
+  _Avoid_: calling it a Sub-Issue. The two are different features and the difference is
+  load-bearing — see below.
+
+**Issue Dependency**
+: GitHub's mechanism for recording that one issue blocks another. A **graph**: an issue may
+  be blocked by many issues and block many. This is where a Work Dependency lives.
+  There is no `gh issue edit` flag for it as of `gh` 2.92.0; it is reached through
+  `gh api repos/O/R/issues/N/dependencies/blocked_by`, whose payload takes the blocker's
+  **database id**, not its issue number.
+
+**Sub-Issue**
+: GitHub's mechanism for breaking one issue into children. A **hierarchy**: an issue has at
+  most one parent, up to eight levels deep. Good for decomposition, and structurally unable
+  to express a Work Dependency where a ticket has two blockers — the Seed Repo's backlog
+  has five such joins, which is the concrete reason the two mechanisms are not
+  interchangeable. Reached with `gh issue edit --add-sub-issue`.
 
 **Tracer-Bullet Ticket**
 : A ticket that crosses every layer of the app and emits observable feedback, rather

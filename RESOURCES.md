@@ -14,6 +14,7 @@ GitHub is the subject of this course, so its docs are primary here, not ancillar
 | About comparing branches in pull requests | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-comparing-branches-in-pull-requests | M03 |
 | About issues | https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues | M07 |
 | Adding sub-issues | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues | M11 |
+| REST API endpoints for issue dependencies | https://docs.github.com/en/rest/issues/issue-dependencies | M11 |
 | Linking a pull request to an issue | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue | M15 |
 | Changing the base branch of a pull request | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-base-branch-of-a-pull-request | M16 |
 | Reviewing proposed changes in a pull request | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request | M19, M20 |
