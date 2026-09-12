@@ -1,0 +1,236 @@
+"""Build the mastery-objectives workbook (and its markdown mirror) from one source list.
+
+Run: python objectives/build_objectives.py
+"""
+
+from pathlib import Path
+
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
+
+HERE = Path(__file__).resolve().parent
+
+UNITS = {
+    1: "The machine you work in",
+    2: "Issues as units of agent work",
+    3: "Branches and the shape of a diff",
+    4: "Owning the diff",
+    5: "Gates and automation",
+    6: "The maintainer seat, PM integration, and capstone",
+}
+
+# (id, week, category, objective, bloom, assessed_by, primary_source)
+OBJECTIVES = [
+    # --- Week 1 ---
+    ("M01", 1, "Setup",
+     "Join the course GitHub org, authenticate the gh CLI with the scopes the course needs, and instantiate a personal Instance from the flashcards-seed template.",
+     "Apply", "A1 (checker)", "GitHub Docs: Creating a repository from a template"),
+    ("M02", 1, "The PR model",
+     "Explain a pull request as a request to merge one ref into another, naming base and head, and identify both for any open PR.",
+     "Understand", "Quiz 1; Self-Check", "GitHub Docs: About pull requests"),
+    ("M03", 1, "Diffs",
+     "Distinguish two-dot from three-dot diffs and explain why a PR's Files-changed view is computed from the merge base.",
+     "Understand", "Quiz 1; Self-Check", "GitHub Docs: About comparing branches in pull requests"),
+    ("M04", 1, "Tooling",
+     "Inspect issues and PRs from the terminal with gh issue/pr list, view, and diff, including --json field selection.",
+     "Apply", "A1 (checker)", "GitHub CLI manual: gh pr, gh issue"),
+    ("M05", 1, "Agent config",
+     "Configure an Instance for the engineering skills with /setup-matt-pocock-skills: issue tracker, triage label vocabulary, and domain docs.",
+     "Apply", "A1 (checker)", "mattpocock/skills: setup-matt-pocock-skills"),
+    ("M06", 1, "Evidence",
+     "Read the course repo's own issue graph and PR history as an exhibit and describe the workflow that produced it.",
+     "Analyze", "A1 (written)", "Course Repo: gh-pr-mastery"),
+
+    # --- Week 2 ---
+    ("M07", 2, "Issues",
+     "Write an issue body a fresh agent session can execute without asking a question: context, acceptance criteria, and explicit out-of-scope.",
+     "Create", "A2 (rubric)", "GitHub Docs: About issues"),
+    ("M08", 2, "Issues",
+     "Apply labels, issue types, and issue templates so a backlog is filterable and ready work is findable.",
+     "Apply", "A2 (checker)", "GitHub Docs: Labels; Issue types; Issue templates"),
+    ("M09", 2, "Specification",
+     "Turn a design conversation into a published spec issue with /to-spec, and check the result before filing.",
+     "Apply", "A2 (checker)", "mattpocock/skills: to-spec"),
+    ("M10", 2, "Decomposition",
+     "Decompose a spec into 6-10 tracer-bullet tickets with declared blocking edges using /to-tickets.",
+     "Create", "A2 (rubric)", "mattpocock/skills: to-tickets"),
+    ("M11", 2, "Work dependencies",
+     "Express work dependencies as sub-issues and blocking relations via the gh CLI, and render the resulting graph as a Mermaid diagram.",
+     "Apply", "A2 (checker)", "GitHub Docs: Adding sub-issues"),
+    ("M12", 2, "PM integration",
+     "Connect Linear to the Instance and verify that issues and PRs appear and update without manual touching.",
+     "Apply", "A2 (checker)", "Linear Docs: GitHub integration"),
+
+    # --- Week 3 ---
+    ("M13", 3, "Branching",
+     "Create a branch bound to an issue with gh issue develop, and follow a branch-naming convention that auto-links in both GitHub and Linear.",
+     "Apply", "A3 (checker)", "GitHub CLI manual: gh issue develop"),
+    ("M14", 3, "Diff craft",
+     "Judge whether a diff is reviewable - single purpose, bounded size, no drive-by changes - and split one that is not.",
+     "Evaluate", "A3 (rubric); Quiz 1", "Course exercise"),
+    ("M15", 3, "PR authoring",
+     "Write a PR body that states intent, scope, verification, and risk, and closes its issue on merge with a linking keyword.",
+     "Create", "A3 (checker + rubric)", "GitHub Docs: Linking a pull request to an issue"),
+    ("M16", 3, "Stacking",
+     "Build a stacked PR on a dependent branch, set its base correctly, and retarget it after its parent merges.",
+     "Apply", "A3 (checker)", "GitHub Docs: Changing the base branch of a pull request"),
+    ("M17", 3, "Conflicts",
+     "Resolve a merge conflict on a stacked branch with /resolving-merge-conflicts and explain what caused it.",
+     "Apply", "A3 (checker)", "mattpocock/skills: resolving-merge-conflicts"),
+    ("M18", 3, "Toolbelt",
+     "Choose the right skill for a situation using /ask-matt, and say what wayfinder, request-refactor-plan, grill-me, tdd, handoff, and git-guardrails each do.",
+     "Understand", "Quiz 1; Self-Check", "mattpocock/skills repo"),
+
+    # --- Week 4 ---
+    ("M19", 4, "Review mechanics",
+     "Distinguish a single comment, a review, and a suggested change; batch comments and submit a review with a verdict.",
+     "Apply", "A4 (checker)", "GitHub Docs: Reviewing proposed changes in a pull request"),
+    ("M20", 4, "Review mechanics",
+     "Resolve conversations, re-request review, and read a PR's review state correctly.",
+     "Apply", "A4 (checker)", "GitHub Docs: Commenting on a pull request"),
+    ("M21", 4, "Agentic review",
+     "Run /code-review on a branch and separate verified findings from noise across its Standards and Spec axes.",
+     "Analyze", "A4 (written)", "code.claude.com: Code Review"),
+    ("M22", 4, "Communication",
+     "Write review comments a peer can act on without asking a clarifying question: located, specific, and severity-marked.",
+     "Create", "A4 paired (rubric)", "Course exercise"),
+    ("M23", 4, "Authoring",
+     "Respond to review as the author: direct Claude to address findings, push, and re-request review without losing the thread.",
+     "Apply", "A4 paired (checker)", "Course exercise"),
+    ("M24", 4, "Bug capture",
+     "Turn what review uncovers into filed issues with /qa rather than fixing out of scope in the open PR.",
+     "Apply", "A4 (checker)", "mattpocock/skills: qa"),
+
+    # --- Week 5 ---
+    ("M25", 5, "CI",
+     "Write a GitHub Actions workflow that runs pytest and ruff on every pull request, and diagnose a failing run from its logs.",
+     "Apply", "A5 (checker)", "GitHub Docs: About continuous integration with GitHub Actions"),
+    ("M26", 5, "Gates",
+     "Configure a ruleset requiring status checks, review approval, and conversation resolution - and explain why a Free org must use a public repo for it to apply.",
+     "Apply", "A5 (checker)", "GitHub Docs: About rulesets; About protected branches"),
+    ("M27", 5, "Gates",
+     "Route review with CODEOWNERS and org teams, and predict which reviewers a given PR will request.",
+     "Apply", "A5 (checker)", "GitHub Docs: About code owners"),
+    ("M28", 5, "Merging",
+     "Choose merge vs squash vs rebase for a given situation and justify it in terms of history, revert, and bisect.",
+     "Evaluate", "Quiz 2; A5 (rubric)", "GitHub Docs: About merge methods on GitHub"),
+    ("M29", 5, "Merging",
+     "Enable and use a merge queue, explaining what it protects against that required status checks alone do not.",
+     "Understand", "Quiz 2; A5 (checker)", "GitHub Docs: Managing a merge queue"),
+    ("M30", 5, "Agentic CI",
+     "Read a working Claude Code GitHub Action workflow - triggers, permissions, secret, actor checks - and explain why it cannot run on a pull request from a fork.",
+     "Analyze", "Quiz 2; A5 (written)", "code.claude.com: GitHub Actions; GitHub Docs: Using secrets in GitHub Actions"),
+
+    # --- Week 6 ---
+    ("M31", 6, "Forks",
+     "Contribute to the Upstream Repo from a fork: sync the fork, open a cross-repo PR, and follow the repo's contribution etiquette.",
+     "Apply", "A6 (checker)", "GitHub Docs: About forks; Contributing to a project"),
+    ("M32", 6, "Maintainer seat",
+     "Triage incoming external PRs and issues through the five-label state machine with /triage, writing agent-ready briefs.",
+     "Apply", "A6 (rubric)", "mattpocock/skills: triage"),
+    ("M33", 6, "PM integration",
+     "Contrast Linear's model - teams, projects, cycles - with GitHub's repos, issues, and milestones, and name where the two disagree.",
+     "Understand", "Quiz 2", "Linear Docs; GitHub Docs: About milestones"),
+    ("M34", 6, "PM integration",
+     "Drive issue status from git activity: branch names, magic words, and PR state transitions, with no manual status changes.",
+     "Apply", "A6 (checker)", "Linear Docs: GitHub integration"),
+    ("M35", 6, "Judgment",
+     "Decide where the source of truth for work should live for a given team, and defend it against duplication, sync lag, and permissions.",
+     "Evaluate", "Quiz 2; Capstone", "Course exercise"),
+    ("M36", 6, "Synthesis",
+     "Ship one complete loop end to end and write a Personal PR Workflow Playbook naming the gates and defaults you will carry to your own work.",
+     "Create", "Capstone", "Course project"),
+]
+
+HEADERS = ["ID", "Week", "Unit", "Category", "Mastery Objective",
+           "Bloom Level", "Assessed By", "Primary Source"]
+WIDTHS = [7, 7, 34, 18, 82, 13, 22, 46]
+
+HEADER_FILL = PatternFill("solid", fgColor="1F3864")
+WEEK_FILLS = ["EDF2FA", "FFFFFF"]
+BLOOM_ORDER = ["Understand", "Apply", "Analyze", "Evaluate", "Create"]
+
+
+def rows():
+    for oid, week, category, objective, bloom, assessed, source in OBJECTIVES:
+        yield [oid, week, UNITS[week], category, objective, bloom, assessed, source]
+
+
+def build_xlsx(path: Path) -> None:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Mastery Objectives"
+
+    ws.append(HEADERS)
+    for cell in ws[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(vertical="center", wrap_text=True)
+
+    for row in rows():
+        ws.append(row)
+
+    for row in ws.iter_rows(min_row=2):
+        fill = PatternFill("solid", fgColor=WEEK_FILLS[row[1].value % 2])
+        for cell in row:
+            cell.fill = fill
+            cell.alignment = Alignment(vertical="top", wrap_text=True)
+
+    for i, width in enumerate(WIDTHS, start=1):
+        ws.column_dimensions[get_column_letter(i)].width = width
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+
+    wb.save(path)
+
+
+def bloom_counts() -> dict:
+    counts = {}
+    for obj in OBJECTIVES:
+        bloom = obj[4]
+        counts[bloom] = counts.get(bloom, 0) + 1
+    return counts
+
+
+def build_md(path: Path) -> None:
+    lines = [
+        "# Mastery Objectives - GitHub Pull Requests for Agentic Coders",
+        "",
+        "Generated by `objectives/build_objectives.py`. Edit the Python, not this file.",
+        "",
+    ]
+    for week, unit in UNITS.items():
+        lines += [
+            f"## Week {week} - {unit}",
+            "",
+            "| ID | Category | Objective | Bloom | Assessed By | Primary Source |",
+            "|---|---|---|---|---|---|",
+        ]
+        for oid, w, category, objective, bloom, assessed, source in OBJECTIVES:
+            if w == week:
+                lines.append(
+                    f"| {oid} | {category} | {objective} | {bloom} | {assessed} | {source} |"
+                )
+        lines.append("")
+
+    counts = bloom_counts()
+    lines += ["## Bloom distribution", "", "| Level | Count |", "|---|---|"]
+    for level in BLOOM_ORDER:
+        lines.append(f"| {level} | {counts.get(level, 0)} |")
+    lines.append("")
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    assert len(OBJECTIVES) == 36, f"expected 36 objectives, found {len(OBJECTIVES)}"
+    ids = [o[0] for o in OBJECTIVES]
+    expected = [f"M{n:02d}" for n in range(1, 37)]
+    assert ids == expected, "objective IDs are not M01..M36 in order"
+    unknown = {o[4] for o in OBJECTIVES} - set(BLOOM_ORDER)
+    assert not unknown, f"unknown Bloom levels: {unknown}"
+    build_xlsx(HERE / "mastery-objectives.xlsx")
+    build_md(HERE / "mastery-objectives.md")
+    print(f"wrote {len(OBJECTIVES)} objectives to mastery-objectives.xlsx and .md")
+    print("bloom:", bloom_counts())

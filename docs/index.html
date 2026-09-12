@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Pull Requests for Agentic Coders — Course Home</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb">Course home</span>
+  </div>
+</header>
+
+<main>
+  <h1>GitHub Pull Requests for Agentic Coders</h1>
+  <p class="lede">Six weeks on running real development work through pull requests while Claude Code does the typing. The subject is the workflow — issues, dependencies, branches, diffs, review, gates — not the app you build with it.</p>
+
+  <p>Your bottleneck is no longer writing code. It is <strong>specifying work small enough to hand over, and reviewing what comes back</strong>. Pull requests are where both of those happen. Over six weeks you will decompose a spec into tickets with honest dependency edges, hand one ticket at a time to a fresh agent session, own the diff that comes back, and configure the gates that stop bad work from landing — then sit on the other side of the table and maintain a repo other people contribute to.</p>
+
+  <div class="callout note">
+    <span class="label">How these pages work</span>
+    <p>Each week has a hub listing that week's <strong>mastery objectives</strong>, with one learning page per objective. Every page is self-contained — you can reach the objective from the page alone — and ends with a self-check matched to the objective's Bloom level, plus a hands-on checklist where the objective is something you <em>do</em>. Assignments are graded from your repository's actual state, so the work itself is the evidence.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Before you enrol: your coursework is public</span>
+    <p>Every repository in this course is a <strong>public</strong> repository. This is a requirement, not a preference — merge queue, which Week 5 depends on, is available in any public repository owned by an organization but requires GitHub Enterprise Cloud for private ones. Public repositories also run Actions for free, so the CI you configure costs nothing to re-run. Nothing personal goes in these repos; the practice application is a flashcard CLI chosen for exactly that reason.</p>
+  </div>
+
+  <h2>What you need</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Requirement</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>A <strong>Claude Pro</strong> subscription with Claude Code installed</td><td>You direct an agent all six weeks. Student-provided, about $20/month.</td></tr>
+        <tr><td>A <strong>GitHub account</strong>, added to the course organization</td><td>Teams, CODEOWNERS routing, and peer review need a shared org.</td></tr>
+        <tr><td>A <strong>Linear</strong> account</td><td>Wired to your repository at the end of Week 2 and used for the rest of the course.</td></tr>
+        <tr><td>The <strong><code>gh</code> CLI</strong>, authenticated</td><td>Almost everything in this course is faster from the terminal, and agents drive it there too.</td></tr>
+        <tr><td>Familiarity with clone, commit, push, and roughly what a branch is</td><td>The starting line. Branches get re-taught properly in Week 3.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Weeks</h2>
+  <ul class="card-grid">
+    <li class="card">
+      <div class="meta"><span class="chip">Week 1</span><span class="chip bloom">M01–M06</span></div>
+      <a class="title" href="week-01/index.html">The Machine You Work In</a>
+      <p>What a pull request actually is, the merge base and why your diff looks the way it does, reading work from the terminal, configuring your repo for the engineering skills, and reading this course's own repository as evidence.</p>
+    </li>
+    <li class="card locked">
+      <div class="meta"><span class="chip">Week 2</span><span class="chip bloom">M07–M12</span></div>
+      <span class="title">Issues as Units of Agent Work</span>
+      <p>Issue bodies an agent can execute, labels and issue types, <code>/to-spec</code>, tracer-bullet decomposition with <code>/to-tickets</code>, dependency edges as sub-issues and Mermaid graphs, and wiring Linear to your repo.</p>
+    </li>
+    <li class="card locked">
+      <div class="meta"><span class="chip">Week 3</span><span class="chip bloom">M13–M18</span></div>
+      <span class="title">Branches and the Shape of a Diff</span>
+      <p>Branch-per-issue, what makes a diff reviewable, the PR body as a contract, stacked PRs and retargeting, resolving the conflict that follows, and the rest of the skill toolbelt.</p>
+    </li>
+    <li class="card locked">
+      <div class="meta"><span class="chip">Week 4</span><span class="chip bloom">M19–M24</span></div>
+      <span class="title">Owning the Diff</span>
+      <p>Comments versus reviews versus suggestions, <code>/code-review</code> and separating findings from noise, writing comments a peer can act on, answering review as the author, and filing what review uncovers with <code>/qa</code>.</p>
+    </li>
+    <li class="card locked">
+      <div class="meta"><span class="chip">Week 5</span><span class="chip bloom">M25–M30</span></div>
+      <span class="title">Gates and Automation</span>
+      <p>CI with Actions, rulesets and required checks, CODEOWNERS and teams, merge versus squash versus rebase, merge queues, and reading a working Claude GitHub Action workflow.</p>
+    </li>
+    <li class="card locked">
+      <div class="meta"><span class="chip">Week 6</span><span class="chip bloom">M31–M36</span></div>
+      <span class="title">The Maintainer Seat</span>
+      <p>Contributing from a fork, triaging other people's PRs, Linear's model against GitHub's, driving status from git activity, deciding where truth lives, and your Personal PR Workflow Playbook.</p>
+    </li>
+  </ul>
+
+  <h2>The three repositories</h2>
+  <div class="refmap">
+    <div class="ref">
+      <span class="role">Course repo</span>
+      <span class="name">gh-pr-mastery</span>
+      <p>These pages. Built using the workflow it teaches, so its own issues and pull requests are exhibits you will read in Week 1.</p>
+    </div>
+    <div class="ref">
+      <span class="role">Your instance</span>
+      <span class="name">flashcards-seed</span>
+      <p>A Python spaced-repetition flashcard CLI. You create your own copy from this template in Week 1 and work in it all course.</p>
+    </div>
+    <div class="ref">
+      <span class="role">Shared</span>
+      <span class="name">flashcards-upstream</span>
+      <p>One repository the whole cohort contributes to, and takes turns maintaining, in Weeks 5 and 6.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — course home. Source links verified 2026-09-12.</div>
+</footer>
+<script src="assets/app.js"></script>
+</body>
+</html>

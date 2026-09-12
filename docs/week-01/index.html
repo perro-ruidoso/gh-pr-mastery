@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 1 · The Machine You Work In — GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb">Week 1</span>
+  </div>
+</header>
+
+<main>
+  <h1>Week 1 — The Machine You Work In</h1>
+  <p class="lede">Before you can run work through pull requests, you need an accurate model of what a pull request <em>is</em> — and a repository, a terminal, and an agent configured to work in it.</p>
+
+  <p>Most people who have used GitHub for a year still hold a fuzzy model of the pull request: something like "a request to merge my branch." That model is close enough to open a PR and wrong enough to produce the three most common confusions in this course — <em>why does my PR show a file I never touched?</em>, <em>why did my PR change when someone else merged?</em>, and <em>what exactly am I comparing against?</em> This week replaces the fuzzy model with a precise one, then gets your tooling into a state where the rest of the course can be hands-on.</p>
+
+  <div class="callout note">
+    <span class="label">Suggested order</span>
+    <p>Do <strong>M01</strong> first — it gives you a real repository to point the next two pages at. M02 and M03 are the conceptual core of the whole course; take them slowly. M04 and M05 are tooling. M06 asks you to turn the week's model on a real artifact and write up what you see.</p>
+  </div>
+
+  <h2>Objectives</h2>
+  <div class="table-wrap">
+    <table class="objtable">
+      <thead><tr><th>ID</th><th>Objective</th><th>Bloom</th><th>Assessed by</th></tr></thead>
+      <tbody>
+        <tr><td class="id">M01</td><td><a href="m01-instance-and-toolchain.html">Join the course GitHub org, authenticate the <code>gh</code> CLI with the scopes the course needs, and instantiate a personal Instance from the <code>flashcards-seed</code> template.</a></td><td class="bloom">Apply</td><td class="bloom">A1</td></tr>
+        <tr><td class="id">M02</td><td><a href="m02-what-a-pull-request-is.html">Explain a pull request as a request to merge one ref into another, naming base and head, and identify both for any open PR.</a></td><td class="bloom">Understand</td><td class="bloom">Quiz 1</td></tr>
+        <tr><td class="id">M03</td><td><a href="m03-the-merge-base.html">Distinguish two-dot from three-dot diffs and explain why a PR's Files-changed view is computed from the merge base.</a></td><td class="bloom">Understand</td><td class="bloom">Quiz 1</td></tr>
+        <tr><td class="id">M04</td><td><a href="m04-reading-work-from-the-terminal.html">Inspect issues and PRs from the terminal with <code>gh issue</code>/<code>pr list</code>, <code>view</code>, and <code>diff</code>, including <code>--json</code> field selection.</a></td><td class="bloom">Apply</td><td class="bloom">A1</td></tr>
+        <tr><td class="id">M05</td><td><a href="m05-configuring-the-skills.html">Configure an Instance for the engineering skills with <span class="skill">/setup-matt-pocock-skills</span>: issue tracker, triage label vocabulary, and domain docs.</a></td><td class="bloom">Apply</td><td class="bloom">A1</td></tr>
+        <tr><td class="id">M06</td><td><a href="m06-reading-the-exhibit.html">Read the course repo's own issue graph and PR history as an exhibit and describe the workflow that produced it.</a></td><td class="bloom">Analyze</td><td class="bloom">A1 (written)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Learning pages</h2>
+  <ul class="card-grid">
+    <li class="card">
+      <div class="meta"><span class="chip">M01</span><span class="chip bloom">Apply</span></div>
+      <a class="title" href="m01-instance-and-toolchain.html">Your Instance and Your Toolchain</a>
+      <p>Join the org, refresh your <code>gh</code> scopes, and create your own copy of the flashcard CLI from the course template — and see why it is a template, not a fork.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M02</span><span class="chip bloom">Understand</span></div>
+      <a class="title" href="m02-what-a-pull-request-is.html">What a Pull Request Actually Is</a>
+      <p>Two refs and a conversation. Base and head, why head can live in someone else's repository, and what draft state really changes.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M03</span><span class="chip bloom">Understand</span></div>
+      <a class="title" href="m03-the-merge-base.html">The Merge Base, and Why Your Diff Looks Like That</a>
+      <p>Three dots versus two. The single idea that explains most "why is that file in my PR?" confusion — and why your diff stays stable when <code>main</code> moves.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M04</span><span class="chip bloom">Apply</span></div>
+      <a class="title" href="m04-reading-work-from-the-terminal.html">Reading Work From the Terminal</a>
+      <p><code>gh issue list</code>, <code>gh pr view --json</code>, <code>gh pr diff</code>. Structured output you can pipe, script, and hand to an agent.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M05</span><span class="chip bloom">Apply</span></div>
+      <a class="title" href="m05-configuring-the-skills.html">Teaching Your Repo to the Skills</a>
+      <p>Three decisions — issue tracker, triage labels, domain docs — that every engineering skill you use for the next five weeks will read.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M06</span><span class="chip bloom">Analyze</span></div>
+      <a class="title" href="m06-reading-the-exhibit.html">Reading the Exhibit</a>
+      <p>This course's own repository was built with the workflow it teaches. Read its issues and PRs and reconstruct the process from the evidence.</p>
+    </li>
+  </ul>
+
+  <h2>Assignment A1</h2>
+  <p>Due before the Week 2 meeting. The full brief is in <a href="../../assignments/a1.md"><code>assignments/a1.md</code></a>; in short:</p>
+  <ol>
+    <li>Instance created from the template, named <code>flashcards-&lt;your-github-handle&gt;</code>, public, in the course org.</li>
+    <li><code>gh</code> authenticated with the required scopes; a <code>gh pr view --json</code> command run against a real PR and its output pasted into your write-up.</li>
+    <li><span class="skill">/setup-matt-pocock-skills</span> run and its three output files committed.</li>
+    <li>A short written analysis (roughly 300 words) of one pull request in the course repository: what it changed, what it was blocked by, and how you can tell.</li>
+  </ol>
+  <p>Most of A1 is graded by a script that reads your repository's actual state — see the checker in <code>checkers/check_a1.py</code>. The written analysis is graded by a human against a rubric. Nothing is graded on whether you typed the code yourself.</p>
+
+  <h2>Assigned sources</h2>
+  <ul>
+    <li><a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests">GitHub Docs: About pull requests</a></li>
+    <li><a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-comparing-branches-in-pull-requests">GitHub Docs: About comparing branches in pull requests</a> — the important one</li>
+    <li><a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template">GitHub Docs: Creating a repository from a template</a></li>
+    <li><a href="https://cli.github.com/manual/">GitHub CLI manual</a> — skim <code>gh pr</code> and <code>gh issue</code></li>
+  </ul>
+  <p><strong>Time estimate:</strong> 3.5–4.5 hours including the assignment.</p>
+
+  <nav class="pager">
+    <a href="../index.html"><span class="dir">Up</span>Course home</a>
+    <a class="next" href="m01-instance-and-toolchain.html"><span class="dir">Start · M01</span>Your Instance and Your Toolchain</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 hub. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

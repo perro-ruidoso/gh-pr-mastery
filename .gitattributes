@@ -1,0 +1,5 @@
+# The site and checkers are read on every platform; keep one line ending in the repo.
+* text=auto eol=lf
+*.xlsx binary
+*.png binary
+docs/assets/mermaid.min.js -diff linguist-vendored

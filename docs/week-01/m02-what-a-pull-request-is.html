@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What a Pull Request Actually Is — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="index.html">Week 1</a> · Objective M02</span>
+  </div>
+</header>
+
+<main>
+  <h1>What a Pull Request Actually Is</h1>
+  <p class="lede">Two refs and a conversation. Everything else — reviews, checks, labels, merge buttons — hangs off that.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M02 · The PR model</span>
+      <span class="chip bloom">Bloom: Understand</span>
+      <span class="chip assessed">Assessed by: Quiz 1</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Explain a pull request as a request to merge one ref into another, naming base and head, and identify both for any open PR.</p>
+  </div>
+
+  <h2>The definition, and the part people skip</h2>
+  <p>GitHub's own words: <strong>"Pull requests are proposals to merge code changes into a project."</strong> The documentation calls them "GitHub's key collaboration feature, letting you discuss and review changes before merging them."</p>
+
+  <p>That is accurate but incomplete in a way that causes real confusion. A pull request is a proposal to merge <em>one specific ref into one specific other ref</em>, and it names both:</p>
+
+  <div class="refmap">
+    <div class="ref">
+      <span class="role">Where it would go</span>
+      <span class="name">base</span>
+      <p>The branch you are asking to change. Often <code>main</code> — but very often not, and in Week 3 you will deliberately point a PR at another PR's branch.</p>
+    </div>
+    <div class="ref">
+      <span class="role">What you are offering</span>
+      <span class="name">head</span>
+      <p>The branch holding your work. It does not have to live in the same repository as the base — that is what makes fork contributions possible.</p>
+    </div>
+  </div>
+
+  <p>A pull request is not a bundle of changes. It is a <strong>live comparison between two moving refs</strong>. Push to the head branch and the PR updates itself; nobody re-uploads anything. This is why a PR can "change" while you are asleep, and why <a href="m03-the-merge-base.html">M03</a> exists.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+gitGraph
+  commit id: "earlier work"
+  commit id: "merge base"
+  branch issue-12195
+  checkout issue-12195
+  commit id: "fix merged check"
+  checkout main
+  commit id: "someone else's merge"
+  commit id: "another"
+    </pre>
+    <span class="caption">A pull request proposes merging <code>issue-12195</code> (head) into <code>main</code> (base). Both refs keep moving after the PR is opened.</span>
+  </div>
+
+  <h2>Reading base and head off a real pull request</h2>
+  <p>Here is an actual open pull request in the <code>cli/cli</code> repository — the GitHub CLI's own codebase — read from the terminal:</p>
+
+  <span class="code-label">$ gh pr view 14398 -R cli/cli --json number,title,state,isDraft,baseRefName,headRefName,changedFiles</span>
+  <pre><code>{
+  "baseRefName": "trunk",
+  "changedFiles": 1,
+  "headRefName": "issue-12195",
+  "isDraft": false,
+  "number": 14398,
+  "state": "OPEN",
+  "title": "Check for merged state when viewing a PR via the issues command"
+}</code></pre>
+
+  <p>Read it as a sentence: <em>pull request 14398 proposes merging <code>issue-12195</code> into <code>trunk</code>.</em></p>
+
+  <div class="callout warn">
+    <span class="label">The base is not always <code>main</code></span>
+    <p>Note <code>"baseRefName": "trunk"</code>. The <code>cli/cli</code> project's default branch is called <code>trunk</code>, not <code>main</code>. Every habit you build that assumes the word "main" will eventually break on a real repository — and on <em>your own</em> stacked pull requests in Week 3, where the base is another feature branch on purpose. Read the base; never assume it.</p>
+  </div>
+
+  <h2>head can live somewhere else entirely</h2>
+  <p>Listing open PRs on the same repository shows something the single-PR view hides:</p>
+
+  <span class="code-label">$ gh pr list -R cli/cli --limit 3</span>
+  <pre><code>14398  Check for merged state when viewing a PR via the issues command  <span class="dim">timmattison:issue-12195</span>  OPEN   2026-09-08T18:25:17Z
+14373  docs: Add step to install working version on Ubuntu Pro          <span class="dim">acoulton:patch-1</span>        OPEN   2026-09-07T10:43:26Z
+14355  Remove obsolete Git test seams                                   <span class="dim">williammartin-clean-git-test-seams</span>  DRAFT  2026-09-04T15:50:28Z</code></pre>
+
+  <p>Look at the third column. Two of these heads are written <code>owner:branch</code> — <code>timmattison:issue-12195</code> — and one is a bare branch name. That is the difference between a <strong>cross-repository</strong> pull request, whose head branch lives in a contributor's fork, and a <strong>same-repository</strong> one, whose head branch lives in <code>cli/cli</code> itself.</p>
+
+  <p>The base repository still owns the pull request. GitHub creates temporary git references in the base repository that point at the head branch, which is how CI, reviews, and the merge button can operate on code that lives in somebody else's copy.</p>
+
+  <div class="callout note">
+    <span class="label">This distinction returns, and it bites</span>
+    <p>In Week 5 you will learn that a pull request from a fork cannot read the base repository's Actions secrets — so agentic review in CI cannot run on it. That limit is a direct consequence of what you just read: the head branch is untrusted code from outside the repository. Same-repo PR, secrets available. Fork PR, no secrets. Remember where you first saw the distinction.</p>
+  </div>
+
+  <h2>Draft is a state, not a folder</h2>
+  <p>PR 14355 above is <code>DRAFT</code>. GitHub's docs describe two states — draft and ready for review — and draft means two concrete things:</p>
+  <ul>
+    <li>It <strong>cannot be merged</strong>, regardless of approvals or green checks.</li>
+    <li>Code owners are <strong>not automatically requested</strong> for review (Week 5's CODEOWNERS routing simply does not fire).</li>
+  </ul>
+  <p>Drafts let you "share work-in-progress without formally requesting reviews," and you can flip between draft and ready at any time. For an agentic workflow this is more useful than it looks: opening a draft PR the moment the branch exists gives you a stable URL, a running CI signal, and a place to accumulate notes while the agent works — without putting a reviewer on the hook.</p>
+
+  <h2>What a pull request is <em>not</em></h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Not this</th><th>Actually</th></tr></thead>
+      <tbody>
+        <tr><td>A snapshot of your changes, uploaded</td><td>A live comparison of two refs that both keep moving</td></tr>
+        <tr><td>Owned by your branch</td><td>Owned by the base repository — that is where it is numbered and stored</td></tr>
+        <tr><td>A git concept</td><td>A GitHub concept. Git has no pull requests; it has branches and merges</td></tr>
+        <tr><td>Always <code>something → main</code></td><td>Any ref into any ref, including one PR's branch into another's</td></tr>
+        <tr><td>Closed by merging, only</td><td>Closeable without merging; merging is one of two exits</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. A pull request says its base is <code>release-2.4</code> and its head is <code>fix/token-refresh</code>. What is being proposed?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Merge <code>release-2.4</code> into <code>fix/token-refresh</code></button></li>
+        <li><button data-opt="b">Merge <code>fix/token-refresh</code> into <code>release-2.4</code></button></li>
+        <li><button data-opt="c">Merge both into <code>main</code></button></li>
+        <li><button data-opt="d">Cannot tell without knowing the default branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Head is what you are offering; base is where it would go. The default branch is irrelevant — a PR names its own base, and here that base is a release branch rather than <code>main</code>.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">2. In <code>gh pr list</code>, one PR's head shows as <code>acoulton:patch-1</code> and another as <code>clean-git-test-seams</code>. What does the difference tell you?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The first is a draft and the second is ready for review</button></li>
+        <li><button data-opt="b">The first has been approved and the second has not</button></li>
+        <li><button data-opt="c">The first's head branch lives in a fork; the second's lives in the base repository</button></li>
+        <li><button data-opt="d">The first targets a non-default base branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The <code>owner:branch</code> form marks a cross-repository pull request whose head lives in a contributor's fork. A bare branch name means the head branch is in the base repository itself. Draft state, approvals, and the base branch are all shown elsewhere.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. You open a PR, then push three more commits to your branch. What must you do to update the pull request?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Nothing — the PR tracks the head ref and updates itself</button></li>
+        <li><button data-opt="b">Close it and open a new one against the newer commits</button></li>
+        <li><button data-opt="c">Run <code>gh pr sync</code></button></li>
+        <li><button data-opt="d">Re-request review, which re-reads the branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> A pull request is a live comparison between two refs, not an uploaded snapshot. Pushing to the head branch updates the PR by definition. (Re-requesting review is a social act — it tells a human to look again — and does not change what the PR contains.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">4. Which statement about draft pull requests is correct?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Drafts do not run CI</button></li>
+        <li><button data-opt="b">Drafts are private until marked ready</button></li>
+        <li><button data-opt="c">A draft can be merged if it has an approval and green checks</button></li>
+        <li><button data-opt="d">A draft cannot be merged, and code owners are not automatically requested</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Those are exactly the two behaviours GitHub's docs attach to draft state. CI still runs (that is much of the point of opening a draft early), and a draft on a public repository is as visible as any other PR.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this lesson</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests">GitHub Docs: About pull requests</a> — the definition, draft versus ready, temporary refs for the head branch</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a></li>
+      <li>Live data: open pull requests in <a href="https://github.com/cli/cli">cli/cli</a>, read 2026-09-12. Numbers and branch names will have moved on; the shapes will not.</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="m01-instance-and-toolchain.html"><span class="dir">Previous · M01</span>Your Instance and Your Toolchain</a>
+    <a class="next" href="m03-the-merge-base.html"><span class="dir">Next · M03</span>The Merge Base</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../assets/mermaid.min.js"></script>
+<script src="../assets/app.js"></script>
+</body>
+</html>
