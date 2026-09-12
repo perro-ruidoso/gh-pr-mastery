@@ -1,0 +1,275 @@
+"""Build roadmap.docx from the single task list below.
+
+Run: python roadmap/build_roadmap.py
+
+Edit the Python, never the .docx -- same rule as objectives/build_objectives.py.
+Status values are DONE, NEXT, TODO, BLOCKED, DECIDE.
+"""
+
+from pathlib import Path
+
+from docx import Document
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Inches, Pt, RGBColor
+
+HERE = Path(__file__).resolve().parent
+
+TITLE = "GitHub Pull Requests for Agentic Coders"
+SUBTITLE = "Build roadmap"
+AS_OF = "2026-09-12"
+
+ACCENT = RGBColor(0x6D, 0x4A, 0xB8)
+MUTED = RGBColor(0x66, 0x66, 0x66)
+
+STATUS_COLOR = {
+    "DONE": RGBColor(0x1B, 0x7F, 0x3B),
+    "NEXT": RGBColor(0x6D, 0x4A, 0xB8),
+    "TODO": RGBColor(0x44, 0x44, 0x44),
+    "BLOCKED": RGBColor(0xB3, 0x2D, 0x2D),
+    "DECIDE": RGBColor(0xA5, 0x6A, 0x00),
+}
+
+INTRO = (
+    "What is built, what is not, and what has to be decided before a cohort can run. "
+    "Generated from roadmap/build_roadmap.py -- edit the script, not this document. "
+    "The authoritative detail lives in NOTES.md (verified facts, open questions, build "
+    "log); this is the map above it."
+)
+
+# (section, blurb, [(status, item, detail)])
+SECTIONS = [
+    (
+        "Done",
+        "Shipped and verified against real GitHub, not asserted.",
+        [
+            ("DONE", "Course backbone",
+             "MISSION.md, CONTEXT.md, NOTES.md, RESOURCES.md, ADRs 0001-0004, and the "
+             "M01-M36 mastery-objectives workbook with its generator."),
+            ("DONE", "Week 1 vertical slice",
+             "Course Home, the Week 1 hub, six Learning Pages (M01-M06), assignment A1 "
+             "with its rubric, and two checkers. Every terminal transcript was captured "
+             "from a real command run against a real repository."),
+            ("DONE", "Seed Repo: perro-ruidoso/flashcards-seed",
+             "Public, template flag set, CI green in 24s on Python 3.12. Tracer bullet "
+             "only -- Card/Deck, json_store, `flashcards list` -- so the backlog is "
+             "genuinely open work. 20 tests, ruff and mypy --strict clean, zero runtime "
+             "dependencies."),
+            ("DONE", "Seed Repo backlog",
+             "15 issues, 19 blocking edges recorded as real GitHub issue dependencies. "
+             "Graph re-derived from what GitHub stores: 5 waves, max parallel width 4, "
+             "five two-parent joins -- matches the spec's answer key."),
+            ("DONE", "Course repo under version control",
+             "perro-ruidoso/gh-pr-mastery is public, with the site live at "
+             "perro-ruidoso.github.io/gh-pr-mastery from main /docs. Dogfooding has "
+             "begun: three merged PRs, each closing its issue by keyword, one recorded "
+             "blocking relation. A1 item 6 now has a real exhibit."),
+        ],
+    ),
+    (
+        "Next",
+        "The recommended order. Week 2 repeats a vertical slice already proven end to end; "
+        "the upstream repo is not needed until Week 5.",
+        [
+            ("NEXT", "Week 2 -- M07 to M12",
+             "Week 2 hub plus Learning Pages for M07-M12: issue bodies an agent can "
+             "execute, labels and issue types, /to-spec, tracer-bullet decomposition "
+             "with /to-tickets, issue dependencies and Mermaid graphs, and wiring "
+             "Linear. Assignment A2 with its checker."),
+            ("TODO", "Weeks 3 to 6 -- M13 to M36",
+             "Four more vertical slices, ~24 Learning Pages, assignments A3-A6, two "
+             "graded concept quizzes, and the capstone."),
+            ("TODO", "Upstream Repo: flashcards-upstream",
+             "The shared repo students contribute to and take turns maintaining. Needed "
+             "by Week 5. Two modes, and the difference is taught rather than hidden -- "
+             "see adr/0004."),
+        ],
+    ),
+    (
+        "Infrastructure",
+        "Course machinery that is not a Learning Page.",
+        [
+            ("TODO", "Claude GitHub Action on the upstream repo",
+             "Workflow plus a CLAUDE_CODE_OAUTH_TOKEN repository secret from "
+             "`claude setup-token`. Tied to the instructor's personal subscription: a "
+             "single point of failure to monitor."),
+            ("BLOCKED", "Week 4 planted-bug diff",
+             "The three SM-2 bugs live in scheduler.py, which is ticket T03's output. "
+             "The diff can only be authored on an Instance where T03 has landed, never "
+             "against the template. Also still open: whether it ships as a prepared PR "
+             "per Instance or as a patch."),
+            ("TODO", "Merge-strategy simulator widget",
+             "The one bespoke widget, for Week 5. Vanilla JS, vendored, per adr/0001."),
+            ("TODO", "UI captures",
+             "Rulesets, merge queue configuration, and Linear settings -- the surfaces "
+             "with no CLI equivalent. Stored under docs/assets/shots/ with visible "
+             "capture dates, because they rot."),
+            ("TODO", "Student roster tooling",
+             "handles.txt and a batch run of check_a1.py across the cohort."),
+        ],
+    ),
+    (
+        "Decisions you owe",
+        "None of these are mine to make, and each blocks something concrete.",
+        [
+            ("DECIDE", "Linear Free plan: does it include GitHub Issues Sync?",
+             "Blocks the final wording of M12, the last objective of Week 2. If Sync is "
+             "paid-only, M12 falls back to PR/commit linking alone and Week 6's sync "
+             "content becomes instructor-demoed. Confirm against linear.app/pricing with "
+             "a real Free workspace."),
+            ("DECIDE", "Org plan: pay for Team seats, or downgrade to Free?",
+             "perro-ruidoso is on Team with 2 seats, 1 filled. A cohort of 8-14 plus the "
+             "instructor needs 9-15 at $4/user/month. Downgrading costs the curriculum "
+             "nothing -- every gate the course uses works on a public repo at either "
+             "tier. Decide before inviting students."),
+            ("DECIDE", "The fifth triage label is free",
+             "wontfix is in GitHub's default label set, so A1 item 4 assesses four "
+             "labels, not five, and no change to the template can fix it. Options: "
+             "accept it; rename the fifth role to something outside the defaults; or "
+             "have check_a1.py assert the label was deliberately edited."),
+            ("DECIDE", "Does a Pro subscription absorb the cohort's CI review volume?",
+             "Or is Max needed? Measure during the Week 5 dry run, before it matters."),
+        ],
+    ),
+    (
+        "Before the first cohort",
+        "Operational, once the content exists.",
+        [
+            ("TODO", "Syllabus states that all student work is world-readable",
+             "Required by adr/0003 before enrolment, not after."),
+            ("TODO", "Invite students; each sets org membership to Public",
+             "Private membership silently breaks the Claude GitHub App's write-access "
+             "detection in Week 5."),
+            ("TODO", "Re-verify every vendor-behaviour fact in NOTES.md",
+             "Those are the rows that move. Re-check before each cohort, not once."),
+            ("TODO", "Week 5 dry run",
+             "The first time gates, merge queue, and agentic CI review run together "
+             "under load."),
+        ],
+    ),
+]
+
+
+def _shade(cell, hex_fill):
+    """python-docx has no cell-shading API; drop to the underlying XML."""
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:fill"), hex_fill)
+    cell._tc.get_or_add_tcPr().append(shd)
+
+
+def build(path: Path) -> None:
+    doc = Document()
+
+    normal = doc.styles["Normal"]
+    normal.font.name = "Calibri"
+    normal.font.size = Pt(10.5)
+
+    for section in doc.sections:
+        section.left_margin = section.right_margin = Inches(0.9)
+        section.top_margin = section.bottom_margin = Inches(0.8)
+
+    title = doc.add_paragraph()
+    run = title.add_run(TITLE)
+    run.font.size = Pt(21)
+    run.font.bold = True
+    run.font.color.rgb = ACCENT
+    title.paragraph_format.space_after = Pt(0)
+
+    sub = doc.add_paragraph()
+    run = sub.add_run(f"{SUBTITLE}  ·  as of {AS_OF}")
+    run.font.size = Pt(11)
+    run.font.color.rgb = MUTED
+    sub.paragraph_format.space_after = Pt(10)
+
+    intro = doc.add_paragraph(INTRO)
+    intro.paragraph_format.space_after = Pt(14)
+
+    counts: dict[str, int] = {}
+    for _, _, items in SECTIONS:
+        for status, _, _ in items:
+            counts[status] = counts.get(status, 0) + 1
+
+    legend = doc.add_paragraph()
+    for i, key in enumerate(["DONE", "NEXT", "TODO", "BLOCKED", "DECIDE"]):
+        if key not in counts:
+            continue
+        if i:
+            legend.add_run("    ")
+        run = legend.add_run(f"{key} {counts[key]}")
+        run.font.bold = True
+        run.font.size = Pt(9)
+        run.font.color.rgb = STATUS_COLOR[key]
+    legend.paragraph_format.space_after = Pt(16)
+
+    for name, blurb, items in SECTIONS:
+        head = doc.add_paragraph()
+        run = head.add_run(name)
+        run.font.size = Pt(14)
+        run.font.bold = True
+        run.font.color.rgb = ACCENT
+        head.paragraph_format.space_before = Pt(12)
+        head.paragraph_format.space_after = Pt(2)
+
+        note = doc.add_paragraph()
+        run = note.add_run(blurb)
+        run.font.size = Pt(9.5)
+        run.font.italic = True
+        run.font.color.rgb = MUTED
+        note.paragraph_format.space_after = Pt(8)
+
+        table = doc.add_table(rows=0, cols=2)
+        table.style = "Table Grid"
+        table.alignment = WD_TABLE_ALIGNMENT.LEFT
+        table.autofit = False
+
+        for status, item, detail in items:
+            row = table.add_row()
+            row.cells[0].width = Inches(0.85)
+            row.cells[1].width = Inches(5.85)
+
+            para = row.cells[0].paragraphs[0]
+            para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run = para.add_run(status)
+            run.font.bold = True
+            run.font.size = Pt(8)
+            run.font.color.rgb = STATUS_COLOR[status]
+            _shade(row.cells[0], "F4F2F9")
+
+            cell = row.cells[1]
+            first = cell.paragraphs[0]
+            run = first.add_run(item)
+            run.font.bold = True
+            run.font.size = Pt(10.5)
+            first.paragraph_format.space_after = Pt(1)
+
+            body = cell.add_paragraph()
+            run = body.add_run(detail)
+            run.font.size = Pt(9.5)
+            run.font.color.rgb = RGBColor(0x33, 0x33, 0x33)
+            body.paragraph_format.space_after = Pt(0)
+
+    doc.add_paragraph()
+    foot = doc.add_paragraph()
+    run = foot.add_run(
+        "Regenerate with: python roadmap/build_roadmap.py   ·   "
+        "Detail and sources: NOTES.md"
+    )
+    run.font.size = Pt(8.5)
+    run.font.color.rgb = MUTED
+
+    doc.save(path)
+
+
+if __name__ == "__main__":
+    known = set(STATUS_COLOR)
+    for name, _, items in SECTIONS:
+        for status, item, _ in items:
+            assert status in known, f"{item}: unknown status {status!r}"
+    total = sum(len(items) for _, _, items in SECTIONS)
+    out = HERE / "roadmap.docx"
+    build(out)
+    print(f"wrote {total} items across {len(SECTIONS)} sections to {out.name}")
