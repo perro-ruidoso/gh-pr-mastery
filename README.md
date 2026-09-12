@@ -16,6 +16,7 @@ through GitHub pull requests while directing Claude Code as the implementer.
 | [`checkers/`](checkers/) | `check_a1.py` (grades repo state) and `check_site.py` (validates the site) |
 | [`seed/SPEC.md`](seed/SPEC.md) | Build spec for `flashcards-seed` — layout, SM-2, the 15-issue backlog, planted bugs |
 | [`seed/tools/`](seed/tools/) | `backlog.py` (the 15 tickets + topological check) and `file_backlog.py` (files them as issues with dependency edges) |
+| [`roadmap/`](roadmap/) | `roadmap.docx` — what is built, what is not, what has to be decided — and the script that generates it |
 
 ## Shape
 
@@ -40,14 +41,15 @@ Standalone: assumes generic GitHub familiarity, not the "Agentic Coding with Cla
 All three are **public**; that is a curriculum requirement, not a preference
 (see [`adr/0003`](adr/0003-public-repos.md)).
 
-## Rebuilding the objectives
+## Rebuilding the generated files
 
 ```bash
-python objectives/build_objectives.py
+python objectives/build_objectives.py   # mastery-objectives.xlsx and .md
+python roadmap/build_roadmap.py         # roadmap.docx
 ```
 
-Writes `objectives/mastery-objectives.xlsx` and `objectives/mastery-objectives.md` from the
-single list in the script. Edit the Python, never the outputs.
+Each writes its outputs from a single list inside the script. **Edit the Python, never the
+outputs** — a hand-edit to the `.xlsx` or the `.docx` is silently discarded by the next run.
 
 ## Validating
 
