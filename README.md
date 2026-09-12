@@ -33,7 +33,7 @@ Standalone: assumes generic GitHub familiarity, not the "Agentic Coding with Cla
 
 ## Three repos
 
-- **`gh-pr-mastery`** (this one) — course content and site, dogfooded at unit granularity
+- **`perro-ruidoso/gh-pr-mastery`** (this one) — course content and site, dogfooded at unit granularity
 - **`flashcards-seed`** — Python spaced-repetition CLI template each student instantiates
 - **`flashcards-upstream`** — shared repo students contribute to and take turns maintaining
 

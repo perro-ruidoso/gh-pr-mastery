@@ -39,7 +39,7 @@ is the workflow used to build it, so its own issues and PRs are teaching exhibit
 
 ### The three repos
 
-**Course Repo** (`gh-pr-mastery`)
+**Course Repo** (`perro-ruidoso/gh-pr-mastery`)
 : This repo. Content, objectives, ADRs, site. Dogfooded.
 
 **Seed Repo** (`flashcards-seed`)

@@ -40,7 +40,7 @@ OBJECTIVES = [
      "Apply", "A1 (checker)", "mattpocock/skills: setup-matt-pocock-skills"),
     ("M06", 1, "Evidence",
      "Read the course repo's own issue graph and PR history as an exhibit and describe the workflow that produced it.",
-     "Analyze", "A1 (written)", "Course Repo: gh-pr-mastery"),
+     "Analyze", "A1 (written)", "Course Repo: perro-ruidoso/gh-pr-mastery"),
 
     # --- Week 2 ---
     ("M07", 2, "Issues",
