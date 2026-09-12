@@ -210,10 +210,12 @@ time the Seed Repo build started.
   seats at $4/user/month. Downgrading to Free costs the curriculum **nothing** - every gate
   the course uses works on a public repo at either tier (see `adr/0003`). Decide before
   inviting students.
-- Week 1's M06 assigns students a merged PR in `gh-pr-mastery`. That repo has no PR history
-  until the course repo is pushed and dogfooded, so the assignment target is provisional.
-  The *method* taught on that page is grounded in a real worked example from `cli/cli`, so
-  the lesson stands on its own; only the assignment target needs filling in.
+- ~~Week 1's M06 assigns students a merged PR in `gh-pr-mastery` and that repo has no PR
+  history~~ — **resolved 2026-09-12.** The repo is pushed, public, and has begun being
+  dogfooded; A1 item 6 now has a real target. The history is still short, and both A1 and
+  M06 now say so explicitly rather than implying six units of exemplary process that does
+  not exist. Keep an eye on this as the history grows: M06's claim about what the
+  repository demonstrates has to stay true.
 - Whether instructor's Pro subscription usage limits can absorb CI review volume for
   8–14 students, or whether Max is needed. Measure during the Week 5 dry run.
 
@@ -297,3 +299,31 @@ time the Seed Repo build started.
   - **Still not built:** §7's planted-bug diff. Those bugs live in `scheduler.py`, which
     is T03's output — so the diff can only be authored on an Instance where T03 has
     landed, never against the template. Week 4 work.
+- **2026-09-12** — Course repo put under version control and pushed as
+  `perro-ruidoso/gh-pr-mastery`: public, `main`, 31 files in one squashed initial commit.
+  Nothing before that point had history, and none was invented. Pages enabled from
+  `main /docs` per `adr/0001` and serving at
+  <https://perro-ruidoso.github.io/gh-pr-mastery/>.
+  - Dogfooding started. #1 (org-qualify references) → PR #3, squash-merged. #2 (A1's
+    exhibit target) recorded as **blocked by #1** through the issue-dependencies API — the
+    same mechanism the Seed Repo backlog uses, which means A1 item 6's second question now
+    has a real answer in this repo's own data.
+  - **The course repo now closes its own issues the way M06 teaches.** PR #3 merged at
+    `15:27:45`; issue #1 closed at `15:27:46`. A **one-second gap** — the same evidence as
+    the `cli/cli#14404` two-second gap the lesson is built on, produced here by a `Closes`
+    keyword rather than a human. Both timestamps are quoted in M06.
+  - **M06 was over-claiming.** It said "each of its six units was filed as a spec issue,
+    decomposed into tickets with explicit blocking edges, built on a branch, reviewed, and
+    merged" — false, and trivially falsified by any student who ran `gh pr list`, on a page
+    whose whole subject is not asserting what the artifacts fail to show. Rewritten to
+    describe the history that actually exists, including the fact that the first commit is
+    a squashed import that demonstrates nothing about process. Re-audit this claim as the
+    history grows.
+  - Both `gh` commands now printed in `assignments/a1.md` and M06 were **run as written**
+    against the live repo before shipping, not composed from memory.
+  - Filed #4: `CONTEXT.md`'s Work Dependency entry repeats the sub-issue/dependency
+    conflation already corrected in `seed/SPEC.md` §6. Kept out of PR #3 deliberately —
+    scope-creeping an unrelated fix into a PR is the anti-pattern Week 4 teaches against,
+    and this repo is an exhibit.
+  - Both throwaway repos from the Seed Repo smoke test were deleted by hand; the org now
+    holds `flashcards-seed` and `gh-pr-mastery` only.

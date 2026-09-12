@@ -118,12 +118,23 @@ graph LR
   </div>
 
   <h2>Your target: this course's own repository</h2>
-  <p>The repository holding the pages you are reading was built using the workflow this course teaches. Each of its six units was filed as a spec issue, decomposed into tickets with explicit blocking edges, built on a branch, reviewed, and merged. That was done deliberately so you would have a real, honest example to read in Week 1 — including the parts that went sideways.</p>
+  <p>The repository holding the pages you are reading is being built using the workflow this course teaches: work is filed as an issue, built on a branch, opened as a pull request, and merged, with blocking relations recorded on the issues rather than only described in prose. That was done deliberately so you would have a real example to read in Week 1 — including the parts that went sideways.</p>
+
+  <p><strong>Be honest about how much history is there.</strong> The course is being written as you take it, so the repository's history is short and growing, and it is not uniformly dogfooded — the first commit is a squashed import of everything that existed before the repo had version control at all. That is itself worth reading: a single enormous initial commit tells you nothing about how the work was done, which is exactly why the commits after it are structured differently. Do not describe process the artifacts do not show.</p>
+
+  <p>The course repository closes its issues the same way <code>cli/cli</code> does. Its first merged pull request landed at <code>15:27:45</code> and the issue it named closed at <code>15:27:46</code> — a one-second gap, and the same evidence you read above, produced by the same mechanism.</p>
 
   <div class="exhibit">
     <span class="label">Your assignment target</span>
     <p>Pick <strong>one merged pull request</strong> in <code>perro-ruidoso/gh-pr-mastery</code> and write roughly 300 words answering: what did it change, what was it blocked by, and <em>how can you tell</em>? Every claim must name the artifact that supports it — a field in <code>--json</code> output, a linked issue number, a timestamp, a review thread.</p>
     <p>Some things you might notice: which issues have blocking edges declared; whether a PR's base was <code>main</code> or another feature branch; whether any issue was closed by hand rather than by a merge; how long the gap was between a PR opening and its first review.</p>
+    <p>Start here, and note that a blocking relation is stored on the <em>issue</em>, not on the pull request:</p>
+    <pre><code>$ gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged \
+    --json number,title,mergedAt,headRefName
+
+$ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked_by \
+    --jq '.[] | "#\(.number) [\(.state)] \(.title)"'</code></pre>
+    <p>That second endpoint is <strong>issue dependencies</strong>, which is not the same feature as a sub-issue. A sub-issue is a hierarchy — one parent, many children — so it cannot express a ticket blocked by two others. Naming which mechanism recorded the dependency, and how you checked, is worth more than naming the blocker.</p>
   </div>
 
   <p>You may find decisions in there you disagree with. Say so — a well-argued criticism of the course repository's own process earns full marks, provided it is grounded in what the artifacts show.</p>
