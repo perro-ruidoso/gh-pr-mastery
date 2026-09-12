@@ -13,6 +13,7 @@ through GitHub pull requests while directing Claude Code as the implementer.
 | [`adr/`](adr/) | Architecture decisions, including the two that verification forced |
 | [`docs/`](docs/) | The student-facing site — Course Home, Week Hubs, Learning Pages, shared assets |
 | [`assignments/`](assignments/) | Assignment briefs and rubrics |
+| [`instructors/`](instructors/) | Instructor guide (course + Week 1 setup, teaching notes, grading) and the student setup handout |
 | [`checkers/`](checkers/) | `check_a1.py` (grades repo state) and `check_site.py` (validates the site) |
 | [`seed/SPEC.md`](seed/SPEC.md) | Build spec for `flashcards-seed` — layout, SM-2, the 15-issue backlog, planted bugs |
 | [`seed/tools/`](seed/tools/) | `backlog.py` (the 15 tickets + topological check) and `file_backlog.py` (files them as issues with dependency edges) |
@@ -82,11 +83,10 @@ Not yet built: Weeks 2–6, the Upstream Repo, the Week 4 planted-bug diff (it h
 authored on an Instance where T03 has landed, not against the template), the
 merge-strategy simulator widget (Week 5), and the UI captures.
 
-One thing is waiting on the instructor: two throwaway repositories from the template smoke
-test need deleting, and the build token lacks the scope.
+## Teaching it
 
-```bash
-gh auth refresh -s delete_repo
-gh repo delete perro-ruidoso/flashcards-smoketest --yes
-gh repo delete perro-ruidoso/flashcards-labelprobe --yes
-```
+[`instructors/instructor-guide.md`](instructors/instructor-guide.md) stands the course up
+and teaches Week 1: org and toolchain setup, the four decisions owed before students
+arrive, a 90-minute session plan with verified live demos, and how to run and calibrate A1.
+[`instructors/student-setup.md`](instructors/student-setup.md) is the pre-Week-1 handout,
+written to be sent to students verbatim.
