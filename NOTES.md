@@ -336,6 +336,20 @@ committed issue template). The build token still lacks `delete_repo`; remove it 
 from the web UI. Nothing in the pages depends on it surviving — the transcripts name it as a
 throwaway, and the graph pages use the Seed Repo.
 
+### A stacked PR's closing keyword is ignored until it targets the default branch — verified 2026-09-13
+
+Found by dogfooding this unit. PR #14 (Week 2) was opened with base
+`11-week1-pages-flashcards-learn-more` (the Week 1 branch, PR #12) and `Closes #13` in its
+body; `gh pr view 14 --json closingIssuesReferences` returned `[]`. GitHub's linking page,
+re-fetched: "If the pull request targets *any other branch*, then these keywords are ignored,
+no links are created, and merging the PR has no effect on the issues." So a stacked PR does
+not link its issue until it is retargeted to `main` after its parent merges — at which point
+the keyword takes effect and `closingIssuesReferences` populates. This is the M15/M16
+interaction Week 3 must teach: **retarget, then re-check the link.** Until then, #13's
+relation to #14 is visible only in the PR body and the branch name.
+
+Source: [Linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
+
 ### Linear Free plan and Issues Sync — re-checked 2026-09-13, before writing M12
 
 The pricing page renders its feature table as icons, so the morning's reading ("Issue sync is
@@ -623,7 +637,9 @@ the M12 verification protocol (`gh issue create`, `gh issue close --reason compl
   `seed/tools/waves_from_github.py`. Filed as a stacked unit on top of the Week 1 branch
   (its pages depend on `flashcards.js` and the folder-per-objective checker rules), so the
   PR's base is the Week 1 branch and needs retargeting to `main` after #12 merges — the
-  M16 move, done on the course repo first.
+  M16 move, done on the course repo first. Opening it showed that a stacked PR's `Closes`
+  keyword is ignored until the base is the default branch (verified above); re-check
+  `closingIssuesReferences` on #14 after retargeting.
   - **Every source re-fetched before writing.** Two URLs in `RESOURCES.md` redirected
     (`about-issues` → `learning-about-issues/about-issues`; issue types moved from
     `configuring-issues/` to `using-issues/`); both updated. A user-facing page for
