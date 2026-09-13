@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From Conversation to Spec — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M09 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>From Conversation to Spec</h1>
+  <p class="lede">The design conversation you just had with Claude Code is the most valuable and most perishable thing in the session. <span class="skill">/to-spec</span> turns it into a document that survives the context being cleared.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M09 · Specification</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Turn a design conversation into a published spec issue with <span class="skill">/to-spec</span>, and check the result before filing.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M09 pages</span>
+    <span class="here"><span class="num">1</span>From Conversation to Spec</span>
+    <a href="checking-the-spec.html"><span class="num">2</span>Checking the Spec</a>
+  </nav>
+
+  <h2>What the skill does — and pointedly does not</h2>
+  <p>The skill's own description: "Turn the current conversation into a spec and publish it to the project issue tracker — <strong>no interview, just synthesis</strong> of what you've already discussed." And the first instruction in its body, in capitals: "Do NOT interview the user — just synthesize what you already know."</p>
+
+  <p>That rule tells you when to run it. <span class="skill">/to-spec</span> is not a way to <em>start</em> designing; it is what you run at the <em>end</em> of a design conversation, when the decisions have been made in dialogue and are about to be lost. If you run it cold, it will synthesise a thin spec from nothing, because it is forbidden from asking. The skill that interviews you is <span class="skill">/grill-me</span> (Week 3's toolbelt, M18); the sequence is grill, then spec.</p>
+
+  <div class="loop-diagram">
+    <div class="phase"><strong>Design conversation</strong><br><small>you and Claude Code, in the Instance</small></div>
+    <span class="arrow">→</span>
+    <div class="phase"><strong><span class="skill">/to-spec</span></strong><br><small>synthesise, propose seams, publish</small></div>
+    <span class="arrow">→</span>
+    <div class="phase"><strong>Spec issue</strong><br><small><code>ready-for-agent</code>, type Feature</small></div>
+    <span class="arrow">→</span>
+    <div class="phase"><strong><span class="skill">/to-tickets</span></strong><br><small>M10, next</small></div>
+  </div>
+
+  <h2>The process, in the skill's order</h2>
+  <ol>
+    <li><strong>Explore the repo</strong> "to understand the current state of the codebase, if you haven't already," using "the project's domain glossary vocabulary throughout the spec" and respecting "any ADRs in the area you're touching." This is why M05 had you point the skills at <code>CONTEXT.md</code> and <code>docs/adr/</code>: the spec will say <em>Card</em>, <em>Deck</em>, <em>Grade</em>, and <em>Due</em> in the Seed Repo's sense, and it will not propose <code>freezegun</code> because <code>docs/adr/0001</code> already decided against it.</li>
+    <li><strong>Sketch the seams</strong> — "the seams at which you're going to test the feature." The skill prefers existing seams, wants "the highest seam possible," and says "the fewer seams across the codebase, the better — the ideal number is one." Then it stops: "Check with the user that these seams match their expectations." This is the one place it does talk to you, and it is a yes/no on a proposal, not an interview.</li>
+    <li><strong>Write and publish.</strong> The spec follows a fixed template (below), is published to the tracker <code>docs/agents/issue-tracker.md</code> names — <code>gh issue create</code> for you — and gets the <code>ready-for-agent</code> triage label: "no need for additional triage."</li>
+  </ol>
+
+  <h2>The spec template</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Section</th><th>What the skill puts there</th><th>What you check for (page 2)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Problem Statement</strong></td><td>"The problem that the user is facing, from the user's perspective."</td><td>Is it the learner's problem, or the code's?</td></tr>
+        <tr><td><strong>Solution</strong></td><td>"The solution to the problem, from the user's perspective."</td><td>Does it describe behaviour, not modules?</td></tr>
+        <tr><td><strong>User Stories</strong></td><td>"A LONG, numbered list," each "As an &lt;actor&gt;, I want a &lt;feature&gt;, so that &lt;benefit&gt;," and "extremely extensive."</td><td>Can each story become at least one acceptance criterion?</td></tr>
+        <tr><td><strong>Implementation Decisions</strong></td><td>Modules, interfaces, "architectural decisions," "schema changes," "API contracts" — but "do NOT include specific file paths or code snippets."</td><td>Did any decision get made that you never discussed?</td></tr>
+        <tr><td><strong>Testing Decisions</strong></td><td>"What makes a good test (only test external behavior, not implementation details)," which modules, and "prior art for the tests."</td><td>Does the prior art actually exist in the repo?</td></tr>
+        <tr><td><strong>Out of Scope</strong></td><td>"The things that are out of scope for this spec."</td><td>Are the neighbouring backlog tickets named?</td></tr>
+        <tr><td><strong>Further Notes</strong></td><td>Anything else.</td><td>Is anything here actually a decision that belongs above?</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout note">
+    <span class="label">Why "no file paths" — and the exception</span>
+    <p>The skill excludes paths and code because "they may end up being outdated very quickly." A spec is read for weeks; a path is true for one commit. The stated exception is a prototype: "if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it … and note briefly that it came from a prototype." Compare M07's rule for <em>tickets</em>, which name a test file on purpose — a ticket is read once, by one session, this week; a spec is not.</p>
+  </div>
+
+  <h2>What the spec is, in GitHub terms</h2>
+  <p>The published spec is an ordinary issue with a long body, the <code>ready-for-agent</code> label, and — by this course's convention from <a href="../m08-labels-types-and-templates/index.html">M08</a> — the issue type <code>Feature</code>. Its job in the rest of the week is to be the <strong>parent</strong>: <span class="skill">/to-tickets</span> reads it, and the tickets it produces become the spec's <em>sub-issues</em> (<a href="../m11-recording-dependencies/index.html">M11</a>). So the spec is where GitHub's hierarchy feature earns its keep, one level deep: one Feature, many Tasks.</p>
+
+  <p>The skill sets the label but not the type — it predates issue types. Add it yourself after publishing:</p>
+  <pre><code><span class="prompt">$</span> gh issue edit <span class="dim">&lt;spec-number&gt;</span> --type Feature</code></pre>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>A2's spec is "the review loop": a learner can grade one card and have it rescheduled and saved — the Seed backlog's T01–T06 territory. <code>check_a2.py</code> verifies an open issue with the seven spec headings exists, labelled <code>ready-for-agent</code>, typed <code>Feature</code>.</p>
+    <label class="check"><input type="checkbox"><span>Had a genuine design conversation in my Instance first — at least: what a review session looks like from the terminal, what state a card needs, where <code>today</code> comes from.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <span class="skill">/to-spec</span>, read the proposed seams, and answered the one question it asks.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed the published issue carries <code>ready-for-agent</code>, then set <code>--type Feature</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Did <em>not</em> run <span class="skill">/to-tickets</span> yet — page 2 comes first.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. You open a fresh Claude Code session and immediately run <span class="skill">/to-spec</span> for a feature you have not discussed. What happens?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It interviews you until it has enough to write a complete specification</button></li>
+        <li><button data-opt="b">It refuses to run until a design conversation exists in the transcript</button></li>
+        <li><button data-opt="c">It synthesises a thin spec from the codebase alone, because it is told not to interview</button></li>
+        <li><button data-opt="d">It runs <span class="skill">/grill-me</span> first automatically and then writes the spec</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> "Do NOT interview the user — just synthesize what you already know." With nothing discussed, "what you already know" is the repo. The skill does not refuse (B) and does not chain to other skills (D); the sequencing — grill, then spec — is your job.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. What is the one thing <span class="skill">/to-spec</span> checks with you before writing?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">That the seams where the feature will be tested match your expectations</button></li>
+        <li><button data-opt="b">That the list of user stories is long enough to be considered extensive</button></li>
+        <li><button data-opt="c">That the issue tracker configured in <code>docs/agents/</code> is the one you meant</button></li>
+        <li><button data-opt="d">That the spec's title follows the repository's issue-naming convention</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Step 2 of the process ends with "Check with the user that these seams match their expectations." It is a proposal for a yes/no, and it is the only interaction the skill's process specifies.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Why does the spec template exclude file paths while the course's tickets include a test path?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because specs are published to GitHub, where paths render as broken links</button></li>
+        <li><button data-opt="b">Because the spec skill cannot read the repository and so does not know any paths</button></li>
+        <li><button data-opt="c">Because tickets are graded by a checker that looks for a <code>tests/</code> string</button></li>
+        <li><button data-opt="d">Because a spec is read for weeks and a path is true for one commit; a ticket is read once, this week</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The skill's reason is that paths "may end up being outdated very quickly." A ticket's lifetime is one fresh session, and its test path is part of the deliverable, so the trade-off comes out differently. The skill does explore the repo (B is false), and neither GitHub nor the checker is the reason (A, C).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m09-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front"><span class="skill">/to-spec</span> in its own five words?</div><div class="fc-back">"No interview, just synthesis" — of the conversation you have already had.</div></div>
+      <div class="fc"><div class="fc-front">When in a session should you run it?</div><div class="fc-back">At the <em>end</em> of a design conversation, before context is cleared. Grill first (<span class="skill">/grill-me</span>), spec second.</div></div>
+      <div class="fc"><div class="fc-front">The skill's three steps?</div><div class="fc-back">Explore the repo (glossary, ADRs) → sketch the seams and check them with you → write the template and publish with <code>ready-for-agent</code>.</div></div>
+      <div class="fc"><div class="fc-front">Seven sections of the spec template?</div><div class="fc-back">Problem Statement · Solution · User Stories · Implementation Decisions · Testing Decisions · Out of Scope · Further Notes.</div></div>
+      <div class="fc"><div class="fc-front">The ideal number of seams, per the skill?</div><div class="fc-back">One. "The fewer seams across the codebase, the better." Prefer existing seams; place new ones as high as possible.</div></div>
+      <div class="fc"><div class="fc-front">Why no file paths or code in a spec — and the exception?</div><div class="fc-back">They "may end up being outdated very quickly." Exception: a prototype snippet that encodes a decision (state machine, schema, type shape), marked as such.</div></div>
+      <div class="fc"><div class="fc-front">What the spec becomes in GitHub terms this week?</div><div class="fc-back">The <strong>parent</strong> issue (type Feature); <span class="skill">/to-tickets</span> makes its tickets sub-issues of it.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Before running the skill, ask Claude Code: "If you ran <span class="skill">/to-spec</span> right now, which decisions would you be forced to invent because we have not discussed them?" Discuss those, then run it. Afterwards, ask it to point to the sentence in the conversation that each Implementation Decision came from — any decision with no source is a hallucinated one. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>to-spec</code></a><span class="why">The whole skill is one page; read the installed copy at <code>~/.claude/skills/to-spec/SKILL.md</code> before you run it. Every quotation here is from it.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>grill-me</code></a><span class="why">The skill that <em>does</em> interview you. Run it before <span class="skill">/to-spec</span> when the design is not yet settled; M18 covers the rest of the toolbelt.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/skills">Anthropic: Skills</a><span class="why">How <code>disable-model-invocation: true</code> in the skill's front matter means <span class="skill">/to-spec</span> only runs when <em>you</em> type it — the agent will never decide to spec on its own.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>to-spec</code>; every quotation is from the installed <code>SKILL.md</code>, read 2026-09-13</li>
+      <li><a href="https://code.claude.com/docs/en/skills">Anthropic: Skills</a> — skill invocation and front matter</li>
+      <li><code>seed/SPEC.md</code> §6 in the course repo — the T01–T06 scope that A2's spec covers</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m08-labels-types-and-templates/issue-templates.html"><span class="dir">Previous · M08</span>Issue Templates</a>
+    <a class="next" href="checking-the-spec.html"><span class="dir">Next · M09, page 2</span>Checking the Spec</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labels and Issue Types — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M08 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Labels and Issue Types</h1>
+  <p class="lede">A backlog is only useful if the next piece of ready work can be found with one query. Labels, issue types, and templates are three different tools for making that query possible — and they answer three different questions.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M08 · Issues</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Apply labels, issue types, and issue templates so a backlog is filterable and ready work is findable.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M08 pages</span>
+    <span class="here"><span class="num">1</span>Labels and Issue Types</span>
+    <a href="issue-templates.html"><span class="num">2</span>Issue Templates</a>
+  </nav>
+
+  <h2>Three tools, three questions</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>The question it answers</th><th>Lives at</th><th>How many per issue</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Label</strong></td><td>"Which of several independent things is true of this issue?"</td><td>The repository</td><td>Any number</td></tr>
+        <tr><td><strong>Issue type</strong></td><td>"What <em>kind</em> of thing is this — task, bug, feature?"</td><td>The organization</td><td>Exactly one, or none</td></tr>
+        <tr><td><strong>Issue template</strong></td><td>"What shape should a human be prompted to write?"</td><td><code>.github/ISSUE_TEMPLATE/</code> on the default branch</td><td>— (it is a form, not metadata)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Templates are the subject of <a href="issue-templates.html">page 2</a>. This page is the two kinds of metadata.</p>
+
+  <h2>Labels</h2>
+  <p>GitHub's definition is one sentence: "You can classify issues, pull requests, and discussions by creating, editing, applying, and deleting labels." Labels are per-repository, free-form, and unlimited in number per issue — which is both their strength and the reason label sets rot. Permissions matter for the maintainer seat later: "Anyone with write access to a repository can create a label," and "Anyone with triage access to a repository can apply and dismiss labels."</p>
+
+  <p>You saw in <a href="../../week-01/m06-reading-the-exhibit/index.html">M06</a> that a well-run repository uses labels on several independent <strong>axes</strong> — <code>bug</code> is a kind, <code>priority-3</code> a rank, <code>gh-pr</code> an area. Your Instance now has two families, and they are on different axes too:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Axis</th><th>Labels</th><th>Rule</th><th>Who applies them</th></tr></thead>
+      <tbody>
+        <tr><td><strong>State</strong> (triage)</td><td><code>needs-triage</code> <code>needs-info</code> <code>ready-for-agent</code> <code>ready-for-human</code> <code>wontfix</code></td><td>At most one at a time — an issue is in one state</td><td><span class="skill">/triage</span>, <span class="skill">/to-spec</span>, <span class="skill">/to-tickets</span>, and you</td></tr>
+        <tr><td><strong>Area</strong> (layer)</td><td><code>layer:domain</code> <code>layer:storage</code> <code>layer:cli</code></td><td>One or more — a tracer bullet crosses layers</td><td>You, when filing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The five state labels came from M05 and A1. The three layer labels are new this week, and the <code>layer:</code> prefix is doing real work: it makes the axis visible in a label list without a colour legend, and it keeps <code>gh label list</code> sortable. Create them with a colour and a description — the description is what a new collaborator (or an agent reading <code>gh label list --json</code>) sees:</p>
+
+  <pre><code><span class="prompt">$</span> gh label create layer:domain  --color 1d76db --description "Touches src/flashcards/domain"
+<span class="prompt">$</span> gh label create layer:storage --color 0e8a16 --description "Touches src/flashcards/storage"
+<span class="prompt">$</span> gh label create layer:cli     --color fbca04 --description "Touches src/flashcards/cli"</code></pre>
+
+  <div class="callout warn">
+    <span class="label">A label must exist before it can be applied</span>
+    <p>This is the first thing that goes wrong on a fresh Instance. Run on a repository created moments earlier, with only GitHub's ten defaults present:</p>
+    <pre><code><span class="prompt">$</span> gh issue create --title "Spec: the review loop" --body-file spec.md --label ready-for-agent --type Feature
+<span class="dim">could not add label: 'ready-for-agent' not found</span></code></pre>
+    <p>The issue is <em>not</em> created. <code>gh</code> resolves labels before it creates anything, so a missing label aborts the whole command rather than filing an unlabelled issue — which is the behaviour you want, and the reason A1 had you create the five triage labels before any skill tried to use them.</p>
+  </div>
+
+  <h2>Issue types</h2>
+  <p>Issue types are newer and stricter than labels. Per GitHub: "You can use issue types to classify and manage different types of issues across your organization." Three things follow from <em>across your organization</em>:</p>
+  <ul>
+    <li>They are defined <strong>once, at the org</strong> (Organization settings → Planning → Issue types), not per repository — so every Instance in <code>perro-ruidoso</code> sees the same set. "The default types are task, bug, and feature," and "You can create up to 25 issue types."</li>
+    <li>An issue has <strong>one type or none</strong>. That is the whole difference from a label: a type is a single-valued classification, so it is the right home for "what kind of thing is this" and the wrong home for anything an issue can be several of.</li>
+    <li>They are queryable everywhere labels are — "You can filter and search by issue type" — including in <code>gh issue list --type</code>.</li>
+  </ul>
+
+  <p>The course org carries the three defaults, read back from the API:</p>
+  <span class="code-label">$ gh api orgs/perro-ruidoso/issue-types --jq '.[] | "\(.name)\t\(.description)"'</span>
+  <pre><code>Task	A specific piece of work
+Bug	An unexpected problem or behavior
+Feature	A request, idea, or new functionality</code></pre>
+
+  <p>The convention this course uses is small: a <strong>spec</strong> issue is a <code>Feature</code>; every <strong>ticket</strong> is a <code>Task</code>; anything <span class="skill">/qa</span> files in Week 4 is a <code>Bug</code>. Set it at creation with <code>--type</code>, or afterwards with <code>gh issue edit N --type Task</code> (and <code>--remove-type</code> to clear it).</p>
+
+  <div class="callout note">
+    <span class="label">This needs <code>gh</code> 2.94.0 or later</span>
+    <p><code>--type</code>, and the sub-issue and dependency flags <a href="../m11-recording-dependencies/index.html">M11</a> depends on, arrived in GitHub CLI <strong>2.94.0 (2026-06-10)</strong> — "Issue types, sub-issues, and relationships in <code>gh issue</code>." Every transcript on the Week 2 pages was captured with 2.100.0. Check yours with <code>gh --version</code>; on 2.92.0, which the course machine had at the start of Week 2, every one of these flags is "unknown flag". Upgrade before the meeting.</p>
+  </div>
+
+  <h2>Filtering: the query that finds ready work</h2>
+  <p>The point of all this metadata is one command. On a throwaway Instance with a spec and four tickets filed (the same repository the transcripts on the next three pages come from):</p>
+
+  <span class="code-label">$ gh issue list --label ready-for-agent --label layer:domain --json number,title</span>
+  <pre><code>[{"number":4,"title":"SM-2 scheduler: next interval and ease update"},
+ {"number":2,"title":"Add review state to Card: repetitions, ease factor, interval, due date"}]</code></pre>
+  <p>Two <code>--label</code> flags are an <strong>AND</strong>: both labels must be present. GitHub's search syntax says the same thing two ways — <code>label:"bug" label:"wip"</code> is AND, and <code>label:"bug","wip"</code> (one qualifier, comma-separated) is OR.</p>
+
+  <span class="code-label">$ gh issue list --type Task --json number,title,issueType --jq '.[] | "#\(.number)\t\(.issueType.name)\t\(.title)"'</span>
+  <pre><code>#5	Task	review command: one card, prompt, grade, schedule
+#4	Task	SM-2 scheduler: next interval and ease update
+#3	Task	Persist review state in the deck file
+#2	Task	Add review state to Card: repetitions, ease factor, interval, due date</code></pre>
+
+  <p>When the flags run out, <code>--search</code> takes any search qualifier. Three worth memorising: <code>no:label</code> finds issues nobody has classified, <code>-label:</code> excludes, and <code>type:</code> filters by issue type inside a search:</p>
+
+  <span class="code-label">$ gh issue list --search "is:open label:ready-for-agent -label:layer:cli" --json number --jq '[.[].number]'</span>
+  <pre><code>[4,3,2,1]</code></pre>
+  <span class="code-label">$ gh issue list --search "type:Feature" --json number,title</span>
+  <pre><code>[{"number":1,"title":"Spec: the review loop"}]</code></pre>
+  <span class="code-label">$ gh issue list --search "no:label" --json number,title</span>
+  <pre><code>[]</code></pre>
+  <p>That last empty list is the goal state for a backlog: nothing unclassified. It is also what <code>check_a2.py</code> looks for.</p>
+
+  <div class="callout note">
+    <span class="label">The Seed Repo's backlog has no labels or types</span>
+    <p>Look at <code>gh issue view 14 -R perro-ruidoso/flashcards-seed</code>: <code>labels:</code> empty, <code>issue-type:</code> empty. The template's issues were filed for M10 and M11 — bodies and blocking edges — before this objective was written. That makes the Seed Repo a good exhibit for "what a backlog without metadata costs you": try to find its domain-layer tickets without reading every body. Your Instance's tickets should not have that problem.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p><code>check_a2.py</code> verifies the three layer labels exist, every open issue has at least one label and a type, and no open issue matches <code>no:label</code>.</p>
+    <label class="check"><input type="checkbox"><span>Confirmed <code>gh --version</code> is 2.94.0 or later.</span></label>
+    <label class="check"><input type="checkbox"><span>Created <code>layer:domain</code>, <code>layer:storage</code>, <code>layer:cli</code> with a colour and a description each.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh api orgs/perro-ruidoso/issue-types</code> and saw Task, Bug, Feature.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran the AND query and the <code>--search "no:label"</code> query against my Instance and understood both results.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. What is the structural difference between a label and an issue type?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Labels are searchable and issue types are not, so types are for display only</button></li>
+        <li><button data-opt="b">Labels are defined at the organization and types per repository, so labels are shared</button></li>
+        <li><button data-opt="c">An issue can carry any number of labels but at most one type, and types are defined at the org</button></li>
+        <li><button data-opt="d">Types can be applied by anyone with read access while labels need write access</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Types are single-valued, org-level classifications ("across your organization", up to 25); labels are per-repository, multi-valued, and unlimited. Both are searchable (A is false), the org/repo split is the other way round (B), and applying either needs triage access, not read (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. <code>gh issue create --label ready-for-agent …</code> fails with "could not add label: 'ready-for-agent' not found". What happened?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The label does not exist in this repository yet; nothing was created, and <code>gh label create</code> fixes it</button></li>
+        <li><button data-opt="b">The issue was created without the label, and a follow-up <code>gh issue edit</code> is needed</button></li>
+        <li><button data-opt="c">The token lacks the scope required to apply labels, so <code>gh auth refresh</code> is needed</button></li>
+        <li><button data-opt="d">Labels cannot be applied at creation time; they must be added after the issue exists</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Labels are per-repository, and a fresh Instance has only GitHub's ten defaults. <code>gh</code> resolves labels first and aborts, so no issue is left behind (B is false). Scope (C) and timing (D) are not involved — <code>--label</code> at creation works fine once the label exists.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which query finds open issues that are ready for an agent <em>and</em> touch the storage layer?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>gh issue list --search 'label:"ready-for-agent","layer:storage"'</code></button></li>
+        <li><button data-opt="b"><code>gh issue list --label ready-for-agent,layer:storage --state all</code></button></li>
+        <li><button data-opt="c"><code>gh issue list --type Task --search "layer:storage"</code></button></li>
+        <li><button data-opt="d"><code>gh issue list --label ready-for-agent --label layer:storage</code></button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Repeated <code>--label</code> flags are AND. A is OR — a comma-separated list inside one <code>label:</code> qualifier matches either. B adds <code>--state all</code>, which pulls in closed issues, and C searches the words "layer:storage" as text rather than as a label qualifier.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">4. Why does the <code>layer:</code> prefix earn its place in the label names?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">GitHub requires a prefix on any label that is not one of its ten defaults</button></li>
+        <li><button data-opt="b">It makes the axis visible in a plain label list and groups the family when sorted</button></li>
+        <li><button data-opt="c">The engineering skills only recognise labels with a colon in the name</button></li>
+        <li><button data-opt="d">It prevents the label from being applied to pull requests, only to issues</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Labels are free-form text; the prefix is a convention, not a mechanism. It tells a reader (human or agent) that <code>layer:cli</code> and <code>layer:domain</code> are alternatives on one axis, the way <code>priority-3</code> did in the <code>cli/cli</code> exhibit. GitHub imposes nothing (A), the skills read the label strings you map in <code>triage-labels.md</code> (C), and labels apply to PRs regardless of name (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m08-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Label vs issue type — where is each defined, and how many per issue?</div><div class="fc-back">Label: per repository, any number. Type: per organization (up to 25), at most one.</div></div>
+      <div class="fc"><div class="fc-front">The org's three default issue types?</div><div class="fc-back">Task, Bug, Feature. Course convention: spec = Feature, ticket = Task, <span class="skill">/qa</span> output = Bug.</div></div>
+      <div class="fc"><div class="fc-front">Two <code>--label</code> flags on <code>gh issue list</code> — AND or OR?</div><div class="fc-back">AND. In search syntax, <code>label:a label:b</code> is AND and <code>label:a,b</code> is OR.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>gh issue create --label X</code> do when label X does not exist?</div><div class="fc-back">Aborts — "could not add label: 'X' not found" — and creates nothing. Create the label first.</div></div>
+      <div class="fc"><div class="fc-front">Which <code>gh</code> release added <code>--type</code>, <code>--parent</code>, and <code>--blocked-by</code>?</div><div class="fc-back">2.94.0 (2026-06-10). On 2.92.0 they are all "unknown flag".</div></div>
+      <div class="fc"><div class="fc-front">The search qualifier that finds unclassified issues?</div><div class="fc-back"><code>no:label</code> — the goal is for it to return an empty list.</div></div>
+      <div class="fc"><div class="fc-front">Who can apply a label; who can create one?</div><div class="fc-back">Apply: triage access. Create, edit, delete: write access.</div></div>
+      <div class="fc"><div class="fc-front">Your Instance's two label families and their axes?</div><div class="fc-back">State: the five triage labels (one at a time). Area: <code>layer:domain|storage|cli</code> (one or more).</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code, in your Instance: "Using <code>gh issue list --json</code>, show me every open issue with its labels and type as a table, then tell me which ones an agent could pick up right now and why." Check its answer against the AND query on this page — if it used OR, you have found the most common mistake in label queries. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels">GitHub Docs: Managing labels</a><span class="why">The definition, the ten defaults with GitHub's own descriptions, the permissions, and the note that "Organization owners can customize the default labels for repositories in their organization" — the mechanism the course org does not use, which is why <code>wontfix</code> arrives and the other four do not.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-types-in-an-organization">GitHub Docs: Managing issue types in an organization</a><span class="why">Where types live, the three defaults, the limit of 25, and the settings path an org owner uses to add one.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests">GitHub Docs: Filtering and searching issues and pull requests</a><span class="why">Every qualifier <code>--search</code> accepts: <code>label:</code> AND/OR forms, <code>-label:</code>, <code>no:label</code>, <code>type:</code>, <code>is:</code>, <code>reason:</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_list">GitHub CLI manual: <code>gh issue list</code></a><span class="why"><code>--label</code>, <code>--type</code>, <code>--search</code>, and the <code>--json</code> fields that now include <code>issueType</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/cli/cli/releases/tag/v2.94.0">GitHub CLI v2.94.0 release notes</a><span class="why">The release that made this week teachable from the terminal. Read the first section; it is the summary of M08 and M11 in ten lines.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels">GitHub Docs: Managing labels</a> — definition, permissions, defaults (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-types-in-an-organization">GitHub Docs: Managing issue types in an organization</a> — "across your organization", defaults, limit of 25 (fetched 2026-09-13; the URL recorded earlier under <code>configuring-issues/</code> redirects here)</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests">GitHub Docs: Filtering and searching issues and pull requests</a> — label AND/OR syntax, <code>no:label</code>, <code>type:</code> (fetched 2026-09-13)</li>
+      <li><a href="https://github.com/cli/cli/releases/tag/v2.94.0">cli/cli v2.94.0</a> — the flags; verified by running <code>gh issue create --help</code> on 2.92.0 (absent) and 2.100.0 (present), 2026-09-13</li>
+      <li>Every transcript was captured on 2026-09-13 with <code>gh</code> 2.100.0 against a throwaway Instance created from the template that morning.</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m07-issues-an-agent-can-execute/acceptance-criteria.html"><span class="dir">Previous · M07</span>Criteria That Can Fail</a>
+    <a class="next" href="issue-templates.html"><span class="dir">Next · M08, page 2</span>Issue Templates</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two Features, Two Shapes — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M11 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Two Features, Two Shapes</h1>
+  <p class="lede">GitHub has two ways to relate one issue to another, and they are not interchangeable. A sub-issue is a hierarchy: one parent. A dependency is a graph: any number of blockers. The Seed backlog has five tickets that only one of them can express.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M11 · Work dependencies</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Record work dependencies as GitHub issue dependencies via the <code>gh</code> CLI, distinguish them from sub-issues and say why a sub-issue cannot express a two-parent join, and render the resulting graph as a Mermaid diagram.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M11 pages</span>
+    <span class="here"><span class="num">1</span>Two Features, Two Shapes</span>
+    <a href="reading-the-graph-back.html"><span class="num">2</span>Reading the Graph Back</a>
+  </nav>
+
+  <h2>The two features, in GitHub's words</h2>
+  <div class="compare">
+    <div class="side yes">
+      <h3>Sub-issues — a hierarchy</h3>
+      <p>"You can add sub-issues to an issue to break down larger pieces of work into tasks." "Sub-issues add support for <strong>hierarchies</strong> of issues on GitHub by creating relationships between your issues."</p>
+      <p>Limits: "up to 100 sub-issues per parent issue and … up to eight levels of nested sub-issues." An issue has <strong>at most one parent</strong>.</p>
+      <p>Good for: <em>decomposition</em>. The spec is the parent; its tickets are the children.</p>
+    </div>
+    <div class="side yes">
+      <h3>Issue dependencies — a graph</h3>
+      <p>"Issue dependencies let you define issues that are <strong>blocked by</strong>, or <strong>blocking</strong>, other work." Blocked by: "your issue depends on another issue being completed." Blocking: "your issue is preventing another issue from being completed."</p>
+      <p>An issue may be blocked by <strong>many</strong> issues and block many.</p>
+      <p>Good for: <em>sequencing</em>. This is where a Work Dependency lives.</p>
+    </div>
+  </div>
+
+  <p><code>CONTEXT.md</code> gives each its own term — <strong>Sub-Issue</strong> and <strong>Issue Dependency</strong> — precisely because they were once conflated in this course's own documents, and the conflation was caught by trying to file the Seed backlog. The <span class="skill">/to-tickets</span> skill's publish step still says "native blocking / sub-issue relationship" in one breath. After this page you will know which half of that sentence applies to which relation.</p>
+
+  <h2>The <code>gh</code> flags</h2>
+  <p>Since <code>gh</code> 2.94.0 both features are first-class on <code>gh issue create</code> and <code>gh issue edit</code>. Every relation for a new ticket can be set in the command that files it:</p>
+
+  <pre><code><span class="prompt">$</span> gh issue create --title "Persist review state in the deck file" --body-file t02.md \
+    --label ready-for-agent --label layer:storage --type Task \
+    --parent 1 \
+    --blocked-by 2
+<span class="dim">https://github.com/perro-ruidoso/flashcards-&lt;handle&gt;/issues/3</span>
+
+<span class="prompt">$</span> gh issue create --title "review command: one card, prompt, grade, schedule" --body-file t04.md \
+    --label ready-for-agent --label layer:cli --type Task \
+    --parent 1 \
+    --blocked-by 3,4
+<span class="dim">https://github.com/perro-ruidoso/flashcards-&lt;handle&gt;/issues/5</span></code></pre>
+
+  <p><code>--parent 1</code> makes the ticket a sub-issue of the spec (#1). <code>--blocked-by 3,4</code> records two dependency edges. Both are visible in one view:</p>
+
+  <span class="code-label">$ gh issue view 5 --json number,title,parent,blockedBy --jq '{number, title, parent: .parent.number, blockedBy: [.blockedBy.nodes[].number]}'</span>
+  <pre><code>{"blockedBy":[4,3],"number":5,"parent":1,"title":"review command: one card, prompt, grade, schedule"}</code></pre>
+
+  <p>For existing issues the edit flags are symmetrical: <code>--add-blocked-by</code> / <code>--remove-blocked-by</code>, <code>--add-blocking</code> / <code>--remove-blocking</code>, <code>--parent</code> / <code>--remove-parent</code>, <code>--add-sub-issue</code> / <code>--remove-sub-issue</code>. Note that <code>--blocked-by</code> and <code>--add-blocking</code> are the same edge seen from either end: "#5 is blocked by #3" and "#3 is blocking #5" are one fact.</p>
+
+  <div class="callout note">
+    <span class="label">Before 2.94.0 this was <code>gh api</code> only</span>
+    <p>The Seed backlog's 19 edges were filed on 2026-09-12 with <code>gh</code> 2.92.0, which had no dependency flags, through the REST endpoint <code>POST /repos/O/R/issues/N/dependencies/blocked_by</code> with a payload of <code>{"issue_id": &lt;database id&gt;}</code>. <a href="reading-the-graph-back.html">Page 2</a> still teaches that route: it is what the flags call underneath, it is what you use from any language, and its error messages are more honest than the CLI's — as the experiment below shows.</p>
+  </div>
+
+  <h2>The experiment: can a sub-issue have two parents?</h2>
+  <p>Ticket #5 (the <code>review</code> command) is blocked by both #3 (persistence) and #4 (scheduler). Suppose you tried to express that with sub-issues instead — make #5 a child of #3, then also a child of #4. Run on a throwaway Instance, 2026-09-13:</p>
+
+  <pre><code><span class="prompt">$</span> gh issue edit 3 --add-sub-issue 5
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w2probe/issues/3</span>
+<span class="prompt">$</span> gh issue view 5 --json parent --jq .parent.number
+3
+
+<span class="prompt">$</span> gh issue edit 4 --add-sub-issue 5
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w2probe/issues/4</span>
+<span class="prompt">$</span> gh issue view 5 --json parent --jq .parent.number
+4
+<span class="prompt">$</span> gh issue view 3 --json subIssues --jq '[.subIssues.nodes[].number]'
+[]
+<span class="prompt">$</span> gh issue view 4 --json subIssues --jq '[.subIssues.nodes[].number]'
+[5]</code></pre>
+
+  <p>Both commands "succeeded." But the second one did not add a parent — it <strong>moved</strong> the only parent from #3 to #4, and #3's sub-issue list is now empty. The CLI silently replaced the relation. The REST API, asked to do the same thing without permission to replace, says so out loud:</p>
+
+  <pre><code><span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w2probe/issues/3/sub_issues -F sub_issue_id=5440629998
+<span class="dim">{"message":"An error occurred while adding the sub-issue to the parent issue. Sub issue may only have one parent",
+ "documentation_url":"https://docs.github.com/rest/issues/sub-issues#add-sub-issue","status":"422"}</span></code></pre>
+
+  <p><em>"Sub issue may only have one parent."</em> That sentence is the whole objective. The REST endpoint documents an optional <code>replace_parent</code> flag — "when true, instructs the operation to replace the sub-issues current parent issue" — and <code>gh</code>'s source hard-codes the GraphQL equivalent, <code>replaceParent: true</code>, for <code>--add-sub-issue</code> (<code>api/queries_issue.go</code> in <code>cli/cli</code>, read 2026-09-13), which is why the CLI moved the parent instead of failing. Either way, at no point did #5 have two parents, because the data model has no place to put a second one.</p>
+
+  <div class="callout warn">
+    <span class="label">What this means for a backlog</span>
+    <p>Five of the Seed's fifteen tickets have two blockers (#5, #7, #9, #13, #14). A backlog that recorded its "dependencies" as sub-issues would have to <em>drop one blocker from each of those five</em>, and an agent working the frontier would start each of them one ticket too early. The failure is silent: nothing errors, the graph is just wrong. So the rule is mechanical — <strong>decomposition is <code>--parent</code>; sequencing is <code>--blocked-by</code></strong> — and the course convention uses both at once: every ticket is a sub-issue of its spec and is blocked by its predecessors.</p>
+  </div>
+
+  <h2>Restoring the hierarchy</h2>
+  <p>After the experiment, #5's parent was put back where it belongs:</p>
+  <pre><code><span class="prompt">$</span> gh issue edit 5 --parent 1
+<span class="prompt">$</span> gh issue view 1 --json subIssues --jq '[.subIssues.nodes[].number]'
+[2,3,4,5]</code></pre>
+  <p>The spec has its four children again, and the <code>blockedBy</code> edges were never touched — the two relations are stored separately, which is the other half of "two features."</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p><code>check_a2.py</code> verifies every ticket has the spec as its parent, at least six <code>blockedBy</code> edges exist across the tickets, at least one ticket has two blockers, and the graph has no cycle.</p>
+    <label class="check"><input type="checkbox"><span>Every ticket <span class="skill">/to-tickets</span> published in my Instance has <code>parent</code> = the spec (checked with <code>gh issue view N --json parent</code>); fixed any that did not with <code>gh issue edit N --parent &lt;spec&gt;</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Every Blocked-by line in a ticket body is also a recorded edge (checked with <code>--json blockedBy</code>); added any missing ones with <code>--add-blocked-by</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Repeated the two-parent experiment on two of my own tickets, watched the parent move, and restored it.</span></label>
+    <label class="check"><input type="checkbox"><span>Can say, in one sentence each, what a sub-issue is for and what a dependency is for.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Ticket #5 is blocked by #3 and #4. Why can sub-issues not record this?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because sub-issues are limited to eight levels and this graph is deeper</button></li>
+        <li><button data-opt="b">Because sub-issues can only relate issues of the same issue type</button></li>
+        <li><button data-opt="c">Because an issue has at most one parent, so a second parent replaces the first rather than joining it</button></li>
+        <li><button data-opt="d">Because sub-issues require the parent to be closed before the child can be opened</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The experiment showed it: <code>--add-sub-issue</code> from a second parent moved the relation, and the REST API said "Sub issue may only have one parent." Depth (A), types (B), and state (D) are not the constraint; cardinality is.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. Which pair of flags does the course convention use on every ticket, and for what?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>--parent</code> for the spec it decomposes, and <code>--blocked-by</code> for the tickets that must land first</button></li>
+        <li><button data-opt="b"><code>--blocked-by</code> for the spec it decomposes, and <code>--parent</code> for the ticket that must land first</button></li>
+        <li><button data-opt="c"><code>--add-sub-issue</code> for each blocker, and <code>--type</code> to mark it as a dependency</button></li>
+        <li><button data-opt="d"><code>--parent</code> only; the Blocked-by section of the body records the sequencing</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Decomposition is a hierarchy (one spec, many tickets), so <code>--parent</code>; sequencing is a graph (a ticket may need several predecessors), so <code>--blocked-by</code>. B inverts them, C misuses both, and D leaves the edges as prose that no query can read.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. <code>gh issue edit 4 --add-sub-issue 5</code> printed a URL and exited 0, yet #5 did not gain a second parent. What is the lesson?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The <code>gh</code> CLI has a bug that should be reported upstream</button></li>
+        <li><button data-opt="b">Sub-issue edits take a few seconds to propagate and should be re-checked later</button></li>
+        <li><button data-opt="c">The parent field is read-only once set, so the second command was a no-op</button></li>
+        <li><button data-opt="d">A successful command is not proof the model changed the way you meant; read the state back and check</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The CLI replaced the parent, which is what the REST <code>replace_parent</code> option does. Neither a bug (A) nor a lag (B) nor a no-op (C) — the state changed, just not into a shape that exists. M06's discipline again: observe, then infer.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">4. "#3 is blocking #5" and "#5 is blocked by #3" — how many facts is that?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Two, stored separately, which must be kept in sync with two commands</button></li>
+        <li><button data-opt="b">One edge seen from either end; recording it once with either flag records both</button></li>
+        <li><button data-opt="c">Two, because the blocking side is only visible through the REST API</button></li>
+        <li><button data-opt="d">One, but only <code>--add-blocking</code> can create it; <code>--blocked-by</code> is a query</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> After <code>--blocked-by 3</code> on #5, <code>gh issue view 3 --json blocking</code> lists #5 with no further command. The REST API exposes both directions (<code>dependencies/blocked_by</code> and <code>dependencies/blocking</code>) of the same stored relation.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m11-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Sub-issue vs issue dependency — the shape of each?</div><div class="fc-back">Sub-issue: a hierarchy, at most one parent, up to eight levels, 100 children. Dependency: a graph, any number of blockers and blocked.</div></div>
+      <div class="fc"><div class="fc-front">What each is <em>for</em>, in the course convention?</div><div class="fc-back">Sub-issue = decomposition (spec → tickets). Dependency = sequencing (ticket → the tickets it needs first).</div></div>
+      <div class="fc"><div class="fc-front">Why can a sub-issue not express a two-parent join?</div><div class="fc-back">"Sub issue may only have one parent" (REST 422). A second parent replaces the first; there is nowhere to store two.</div></div>
+      <div class="fc"><div class="fc-front">The two <code>gh issue create</code> flags a course ticket always carries for relations?</div><div class="fc-back"><code>--parent &lt;spec&gt;</code> and <code>--blocked-by a,b</code>.</div></div>
+      <div class="fc"><div class="fc-front">What did <code>gh issue edit 4 --add-sub-issue 5</code> do to #5, which already had parent #3?</div><div class="fc-back">Moved its parent to #4 and exited 0 — <code>gh</code> sends <code>replaceParent: true</code>. The REST API without <code>replace_parent</code> refuses with a 422 instead.</div></div>
+      <div class="fc"><div class="fc-front">Which Seed tickets would lose a blocker if edges were stored as sub-issues?</div><div class="fc-back">The five joins: #5, #7, #9, #13, #14. Each would silently drop one of its two blockers.</div></div>
+      <div class="fc"><div class="fc-front">"A is blocking B" and "B is blocked by A" — how many stored facts?</div><div class="fc-back">One. Either flag records it; both directions are readable (<code>blocking</code>, <code>blockedBy</code>).</div></div>
+      <div class="fc"><div class="fc-front">Which <code>gh</code> version introduced these flags, and what did you use before?</div><div class="fc-back">2.94.0 (2026-06-10). Before: <code>gh api</code> against the REST dependency and sub-issue endpoints.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code to "explain the difference between a sub-issue and an issue dependency, then run the two-parent experiment on two throwaway issues in this repo and show me the state after each step." Watch whether it reads the state back after each command or trusts the exit code — that is the habit this objective is really about. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">GitHub Docs: Adding sub-issues</a><span class="why">The limits (100 per parent, eight levels), the purpose ("break down larger pieces of work"), and the CLI commands — <code>--parent</code>, <code>--add-sub-issue</code>, <code>--remove-parent</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies">GitHub Docs: Creating issue dependencies</a><span class="why">The definitions of blocked by and blocking, and the CLI commands — <code>--blocked-by</code>, <code>--add-blocked-by</code>, <code>--add-blocking</code>, <code>--json blockedBy,blocking</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/issues/sub-issues">GitHub Docs: REST API endpoints for sub-issues</a><span class="why">The <code>replace_parent</code> option that explains why the CLI moved the parent instead of failing.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/cli/cli/releases/tag/v2.94.0">GitHub CLI v2.94.0 release notes</a><span class="why">"Issue types, sub-issues, and relationships in <code>gh issue</code>" — the ten-line summary of the flags used on this page.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/CONTEXT.md">course repo: <code>CONTEXT.md</code></a><span class="why">The Issue Dependency and Sub-Issue entries, and the note on why the two terms exist: the course conflated them once and the Seed backlog's five joins exposed it.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">GitHub Docs: Adding sub-issues</a> — limits and purpose (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies">GitHub Docs: Creating issue dependencies</a> — definitions of blocked by / blocking (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/rest/issues/sub-issues">GitHub Docs: REST API endpoints for sub-issues</a> — <code>sub_issue_id</code>, <code>replace_parent</code> (fetched 2026-09-13)</li>
+      <li>Every transcript was run on 2026-09-13 with <code>gh</code> 2.100.0 against <code>perro-ruidoso/flashcards-w2probe</code>, a throwaway Instance created from the template that morning; the 422 body is quoted verbatim from the server</li>
+      <li><a href="https://github.com/cli/cli/blob/trunk/api/queries_issue.go">cli/cli: <code>api/queries_issue.go</code></a> — <code>AddSubIssue</code> is called with <code>replaceParent = true</code> for <code>--add-sub-issue</code> (read 2026-09-13)</li>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>to-tickets</code> publish step wording, installed <code>SKILL.md</code> read 2026-09-13</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m10-decomposing-into-tickets/the-seed-backlog.html"><span class="dir">Previous · M10</span>Reading the Seed Backlog</a>
+    <a class="next" href="reading-the-graph-back.html"><span class="dir">Next · M11, page 2</span>Reading the Graph Back</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

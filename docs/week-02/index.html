@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 2 · Issues as Units of Agent Work — GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb">Week 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Week 2 — Issues as Units of Agent Work</h1>
+  <p class="lede">An issue is the only thing a fresh agent session knows. This week you learn to write one it can execute, decompose a feature into a graph of them, record that graph where GitHub can read it, and put a project-management layer on top that updates itself.</p>
+
+  <p>Week 1 gave you a precise model of a pull request and a repository configured for the engineering skills. But your Instance has <strong>no issues</strong> — a template copies files, not issues — and until it does, there is nothing for an agent to pick up. By the end of this week it will have a spec, six to ten tickets that each cross every layer of the app, real blocking edges between them, a Mermaid picture of the whole thing, and a Linear board that reflects all of it without anyone re-typing anything.</p>
+
+  <div class="callout note">
+    <span class="label">Suggested order</span>
+    <p>The objectives are in build order, and the later ones consume the earlier ones' output. <strong>M07</strong> is the standard everything else is held to. <strong>M08</strong> is quick setup — do it before you file anything. <strong>M09</strong> and <strong>M10</strong> are the two skills that write your backlog; <strong>M11</strong> is where the backlog becomes a graph, and its two-parent experiment is the idea of the week. <strong>M12</strong> comes last on purpose: Linear only syncs issues created after it is connected, and you want a week of real history first. Do the flashcards again a few days later.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Upgrade <code>gh</code> first</span>
+    <p>Issue types, sub-issues, and dependencies became <code>gh issue</code> flags in GitHub CLI <strong>2.94.0</strong> (2026-06-10). Every transcript this week was captured with 2.100.0. Run <code>gh --version</code>; on anything older, <code>--type</code>, <code>--parent</code>, and <code>--blocked-by</code> are "unknown flag" and M08 and M11 will not work as written.</p>
+  </div>
+
+  <h2>Objectives</h2>
+  <div class="table-wrap">
+    <table class="objtable">
+      <thead><tr><th>ID</th><th>Objective</th><th>Bloom</th><th>Assessed by</th></tr></thead>
+      <tbody>
+        <tr><td class="id">M07</td><td><a href="m07-issues-an-agent-can-execute/index.html">Write an issue body a fresh agent session can execute without asking a question: context, acceptance criteria, and explicit out-of-scope.</a></td><td class="bloom">Create</td><td class="bloom">A2 (rubric)</td></tr>
+        <tr><td class="id">M08</td><td><a href="m08-labels-types-and-templates/index.html">Apply labels, issue types, and issue templates so a backlog is filterable and ready work is findable.</a></td><td class="bloom">Apply</td><td class="bloom">A2 (checker)</td></tr>
+        <tr><td class="id">M09</td><td><a href="m09-conversation-to-spec/index.html">Turn a design conversation into a published spec issue with <span class="skill">/to-spec</span>, and check the result before filing.</a></td><td class="bloom">Apply</td><td class="bloom">A2 (checker)</td></tr>
+        <tr><td class="id">M10</td><td><a href="m10-decomposing-into-tickets/index.html">Decompose a spec into 6–10 tracer-bullet tickets with declared blocking edges using <span class="skill">/to-tickets</span>.</a></td><td class="bloom">Create</td><td class="bloom">A2 (rubric)</td></tr>
+        <tr><td class="id">M11</td><td><a href="m11-recording-dependencies/index.html">Record work dependencies as GitHub issue dependencies via the <code>gh</code> CLI, distinguish them from sub-issues and say why a sub-issue cannot express a two-parent join, and render the resulting graph as a Mermaid diagram.</a></td><td class="bloom">Apply</td><td class="bloom">A2 (checker)</td></tr>
+        <tr><td class="id">M12</td><td><a href="m12-wiring-linear/index.html">Connect Linear to the Instance and verify that issues and PRs appear and update without manual touching.</a></td><td class="bloom">Apply</td><td class="bloom">A2 (checker)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Learning pages</h2>
+  <p>Each objective has an entry page (<code>index.html</code>) and one supporting page. Every page ends with a self-check, a flashcard deck, and a where-to-learn-more list; the pager at the bottom of each page walks the whole week in order.</p>
+  <ul class="card-grid">
+    <li class="card">
+      <div class="meta"><span class="chip">M07</span><span class="chip bloom">Create</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m07-issues-an-agent-can-execute/index.html">The Ticket as a Contract</a>
+      <p>The four sections, why "fresh session" changes the standard, and the Seed Repo's ticket #1 read cold.</p>
+      <p><a href="m07-issues-an-agent-can-execute/acceptance-criteria.html">Criteria That Can Fail</a> — the falsifiability test, naming the test, and out-of-scope as a fence.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M08</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m08-labels-types-and-templates/index.html">Labels and Issue Types</a>
+      <p>Two label axes, org-level issue types, the <code>gh</code> 2.94 flags, and the one query that finds ready work.</p>
+      <p><a href="m08-labels-types-and-templates/issue-templates.html">Issue Templates</a> — where they live, the front matter, and why an agent never sees one.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M09</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m09-conversation-to-spec/index.html">From Conversation to Spec</a>
+      <p>"No interview, just synthesis": when to run <span class="skill">/to-spec</span>, the seam question, and the seven-section template.</p>
+      <p><a href="m09-conversation-to-spec/checking-the-spec.html">Checking the Spec</a> — auditing the published issue for invented decisions before anything downstream reads it.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M10</span><span class="chip bloom">Create</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m10-decomposing-into-tickets/index.html">Tracer Bullets and Blocking Edges</a>
+      <p>The four vertical-slice rules, what an edge asserts, the quiz step, and why 6–10.</p>
+      <p><a href="m10-decomposing-into-tickets/the-seed-backlog.html">Reading the Seed Backlog</a> — 15 tickets, 19 edges, 5 waves, width 4, read back from GitHub and drawn.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M11</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m11-recording-dependencies/index.html">Two Features, Two Shapes</a>
+      <p>Sub-issues are a hierarchy, dependencies are a graph, and a live experiment: "Sub issue may only have one parent."</p>
+      <p><a href="m11-recording-dependencies/reading-the-graph-back.html">Reading the Graph Back</a> — three surfaces for one edge, the database-id trap, the cycle GitHub accepts, and Mermaid in the spec.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M12</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m12-wiring-linear/index.html">Linear Above GitHub</a>
+      <p>The PM layer, the Free-plan question settled from the pricing table, enabling the integration, and forward-only sync.</p>
+      <p><a href="m12-wiring-linear/verify-without-touching.html">Verify Without Touching</a> — a four-step protocol run entirely from <code>gh</code>, and what the checker can and cannot see.</p>
+    </li>
+  </ul>
+
+  <h2>Assignment A2</h2>
+  <p>Due before the Week 3 meeting. The full brief is in <a href="../../assignments/a2.md"><code>assignments/a2.md</code></a>; in short:</p>
+  <ol>
+    <li>Three <code>layer:</code> labels and a <code>Ticket</code> issue template committed to your Instance; every open issue labelled and typed.</li>
+    <li>One ticket written by hand — due-date filtering — with all four sections.</li>
+    <li>A spec issue for the review loop published with <span class="skill">/to-spec</span>: seven sections, <code>ready-for-agent</code>, type Feature.</li>
+    <li>Six to ten tickets from <span class="skill">/to-tickets</span>, each a sub-issue of the spec, with blocking edges recorded as issue dependencies; no cycle, at least one join; the graph as Mermaid in the spec's body.</li>
+    <li>Linear connected and the verification protocol run from <code>gh</code>, with dated captures in your write-up.</li>
+    <li>A short write-up: where your decomposition differs from the Seed's, and what you touched by hand (ideally: nothing).</li>
+  </ol>
+  <p>Items 1, 3, 4 (the counts and the graph), and the GitHub side of 5 are graded by <code>checkers/check_a2.py</code>. Items 2, 4 (the slice quality and the edges' honesty), and 6 are graded by a human against the rubric.</p>
+
+  <h2>Assigned sources</h2>
+  <ul>
+    <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies">GitHub Docs: Creating issue dependencies</a> and <a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">Adding sub-issues</a> — the important pair; read them side by side</li>
+    <li><a href="https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels">GitHub Docs: Managing labels</a> and <a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-types-in-an-organization">Managing issue types in an organization</a></li>
+    <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — the installed <code>to-spec</code> and <code>to-tickets</code> <code>SKILL.md</code> files, in full; they are short</li>
+    <li><a href="https://linear.app/docs/github">Linear Docs: GitHub</a> — the integration page, especially the GitHub Issues Sync section</li>
+    <li><a href="https://github.com/cli/cli/releases/tag/v2.94.0">GitHub CLI v2.94.0 release notes</a> — the first section</li>
+  </ul>
+  <p><strong>Time estimate:</strong> 4–5 hours including the assignment; the Linear setup is the variable part.</p>
+
+  <nav class="pager">
+    <a href="../week-01/index.html"><span class="dir">Previous</span>Week 1 hub</a>
+    <a class="next" href="m07-issues-an-agent-can-execute/index.html"><span class="dir">Start · M07</span>The Ticket as a Contract</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 hub. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

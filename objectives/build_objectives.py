@@ -57,7 +57,7 @@ OBJECTIVES = [
      "Create", "A2 (rubric)", "mattpocock/skills: to-tickets"),
     ("M11", 2, "Work dependencies",
      "Record work dependencies as GitHub issue dependencies via the gh CLI, distinguish them from sub-issues and say why a sub-issue cannot express a two-parent join, and render the resulting graph as a Mermaid diagram.",
-     "Apply", "A2 (checker)", "GitHub Docs: Issue dependencies REST API; Adding sub-issues"),
+     "Apply", "A2 (checker)", "GitHub Docs: Creating issue dependencies; Adding sub-issues; Issue dependencies REST API"),
     ("M12", 2, "PM integration",
      "Connect Linear to the Instance and verify that issues and PRs appear and update without manual touching.",
      "Apply", "A2 (checker)", "Linear Docs: GitHub integration"),
@@ -173,6 +173,30 @@ PAGES = {
         ("week-01/m06-reading-the-exhibit/index.html", "Reading the Exhibit"),
         ("week-01/m06-reading-the-exhibit/the-method.html", "The Method"),
         ("week-01/m06-reading-the-exhibit/your-target.html", "Your Target"),
+    ],
+    "M07": [
+        ("week-02/m07-issues-an-agent-can-execute/index.html", "The Ticket as a Contract"),
+        ("week-02/m07-issues-an-agent-can-execute/acceptance-criteria.html", "Criteria That Can Fail"),
+    ],
+    "M08": [
+        ("week-02/m08-labels-types-and-templates/index.html", "Labels and Issue Types"),
+        ("week-02/m08-labels-types-and-templates/issue-templates.html", "Issue Templates"),
+    ],
+    "M09": [
+        ("week-02/m09-conversation-to-spec/index.html", "From Conversation to Spec"),
+        ("week-02/m09-conversation-to-spec/checking-the-spec.html", "Checking the Spec"),
+    ],
+    "M10": [
+        ("week-02/m10-decomposing-into-tickets/index.html", "Tracer Bullets and Blocking Edges"),
+        ("week-02/m10-decomposing-into-tickets/the-seed-backlog.html", "Reading the Seed Backlog"),
+    ],
+    "M11": [
+        ("week-02/m11-recording-dependencies/index.html", "Two Features, Two Shapes"),
+        ("week-02/m11-recording-dependencies/reading-the-graph-back.html", "Reading the Graph Back"),
+    ],
+    "M12": [
+        ("week-02/m12-wiring-linear/index.html", "Linear Above GitHub"),
+        ("week-02/m12-wiring-linear/verify-without-touching.html", "Verify Without Touching"),
     ],
 }
 

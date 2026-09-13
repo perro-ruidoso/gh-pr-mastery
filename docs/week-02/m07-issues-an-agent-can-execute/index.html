@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Ticket as a Contract — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M07 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>The Ticket as a Contract</h1>
+  <p class="lede">An issue body is the only thing a fresh agent session knows. If the session has to ask you a question, the issue failed — and the failure is yours, not the agent's.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M07 · Issues</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A2 (rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Write an issue body a fresh agent session can execute without asking a question: context, acceptance criteria, and explicit out-of-scope.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M07 pages</span>
+    <span class="here"><span class="num">1</span>The Ticket as a Contract</span>
+    <a href="acceptance-criteria.html"><span class="num">2</span>Criteria That Can Fail</a>
+  </nav>
+
+  <h2>What "fresh session" changes</h2>
+  <p>GitHub's own description of issues is deliberately loose: they "are quick to create, flexible, and can be used in many ways," and "can track bug reports, new features and ideas, and anything else you need to write down." That flexibility is fine for humans, who fill gaps by asking. It is a trap for agentic work, because the reader of your issue will be a Claude Code session started with <strong>no memory of the conversation that produced it</strong>. The <span class="skill">/to-tickets</span> skill you meet in <a href="../m10-decomposing-into-tickets/index.html">M10</a> says why in one line: each ticket "is sized to fit in a single fresh context window," and you "work the frontier one ticket at a time … clearing context between tickets."</p>
+
+  <p>So the standard for an issue body in this course is not "would a teammate understand this?" It is: <em>could a session that has read only <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, and this issue start work, finish it, and know it has finished — without a follow-up question?</em> That is what the <code>ready-for-agent</code> label from <a href="../../week-01/m05-configuring-the-skills/labels-and-domain-docs.html">M05</a> asserts: "fully specified, ready for an AFK agent."</p>
+
+  <h2>The four sections</h2>
+  <p>Every ticket in this course carries the same four headings. They are not a template for its own sake; each one closes a specific kind of question an agent would otherwise have to ask.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Section</th><th>The question it pre-empts</th><th>What goes there</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Context</strong></td><td>"Why does this exist, and what is true today?"</td><td>Two sentences. The current state and the reason it must change. Not the history of the discussion.</td></tr>
+        <tr><td><strong>Acceptance criteria</strong></td><td>"How will I know I am done?"</td><td>A checklist of observable statements, each of which can be <em>false</em>, including the test that must exist. <a href="acceptance-criteria.html">Page 2</a> is entirely about this section.</td></tr>
+        <tr><td><strong>Out of scope</strong></td><td>"Should I also…?"</td><td>The adjacent work an eager implementer would reach for, named so it is not done here. Usually the neighbouring tickets.</td></tr>
+        <tr><td><strong>Blocked by</strong></td><td>"Can I start?"</td><td>The issues that must land first, and why. Recorded as a real GitHub issue dependency in <a href="../m11-recording-dependencies/index.html">M11</a>, not only as prose.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>A ticket that meets the bar</h2>
+  <p>This is issue <a href="https://github.com/perro-ruidoso/flashcards-seed/issues/1">#1</a> of the Seed Repo's backlog — the first of fifteen, and the one every other ticket ultimately depends on. Read it as an agent would: cold.</p>
+
+  <span class="code-label">$ gh issue view 1 -R perro-ruidoso/flashcards-seed --json title,body --jq '.title, "", .body'</span>
+  <pre><code>Add review state to Card: repetitions, ease factor, interval, due date
+
+## Context
+
+A Card today knows its prompt and its answer and nothing about when it should next be
+seen. Every scheduling ticket in this backlog needs somewhere to put that state, so it
+goes on the Card first.
+
+## Acceptance criteria
+
+- [ ] `Card` carries `repetitions: int`, `ease_factor: float`, `interval: int`, and `due: date | None`
+- [ ] Defaults for a never-reviewed card are `0`, `2.5`, `0`, `None` - the starting ease
+      factor is fixed in `docs/adr/0001`
+- [ ] `Card` stays frozen and stays free of I/O
+- [ ] `tests/domain/test_models.py` pins the defaults, and pins that the new fields are
+      optional so existing call sites still construct a Card with three arguments
+
+## Out of scope
+
+Persistence (T02), any arithmetic that changes these fields (T03), and any command that
+displays them.
+
+## Blocked by
+
+Nothing. This ticket can start today.
+
+_Layer: `domain`_</code></pre>
+
+  <h3>Why it works</h3>
+  <ul>
+    <li><strong>Context names the current state</strong> ("knows its prompt and its answer and nothing about when it should next be seen") and the reason ("every scheduling ticket … needs somewhere to put that state"). An agent can verify the first half by reading <code>models.py</code>.</li>
+    <li><strong>Every criterion can fail.</strong> Field names and types are exact. The defaults are numbers, and where a number comes from a decision, the decision is cited (<code>docs/adr/0001</code>) rather than restated — so an agent that reads the ADR gets the reasoning, and an agent that does not still gets the value.</li>
+    <li><strong>The test is a criterion, not an afterthought.</strong> Its path is given. "Pins that the new fields are optional so existing call sites still construct a Card with three arguments" is a backwards-compatibility requirement expressed as something a test can assert.</li>
+    <li><strong>Out of scope names the neighbours.</strong> Persistence, arithmetic, display — the three things an implementer would naturally reach for next — are each assigned to a specific other ticket. The fence is drawn where the temptation is.</li>
+    <li><strong>Blocked by says "nothing" out loud.</strong> Silence would be ambiguous. "Can start today" is a statement an agent can act on.</li>
+  </ul>
+
+  <div class="callout note">
+    <span class="label">Constraints are criteria too</span>
+    <p>"<code>Card</code> stays frozen and stays free of I/O" adds no behaviour. It is there because it is the kind of thing an agent will quietly violate while making the other criteria pass — an unfrozen dataclass is easier to mutate, a date import is one step from reading the clock. The Seed Repo's <code>CLAUDE.md</code> states the layer rules once; a ticket that touches a boundary repeats the rule that applies. Redundancy at the boundary is cheap; a review that catches the violation in Week 4 is not.</p>
+  </div>
+
+  <h2>Four ways issues fail an agent</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Failure</th><th>What it looks like</th><th>The question it forces</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Intent without state</strong></td><td>"Add spaced repetition."</td><td>"Which algorithm? Where does the state live? What exists already?"</td></tr>
+        <tr><td><strong>Criteria that cannot fail</strong></td><td>"Works correctly." "Is well tested." "Handles edge cases."</td><td>"Which cases? Tested how? Correct according to what?"</td></tr>
+        <tr><td><strong>Unbounded scope</strong></td><td>No out-of-scope section on a ticket whose obvious next steps are three other tickets.</td><td>None — that is the problem. The agent does not ask; it does the neighbouring work too, and the diff becomes unreviewable (Week 3, M14).</td></tr>
+        <tr><td><strong>Conversation residue</strong></td><td>"As we discussed, go with the second option."</td><td>"Which discussion? Which option?"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The last one is the most common when a ticket is written at the end of a long Claude Code session, and it is exactly why <span class="skill">/to-spec</span> (<a href="../m09-conversation-to-spec/index.html">M09</a>) exists: to synthesise the conversation into a document that stands without it.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>The exhibit is the Seed Repo. Your own Instance starts with <strong>no issues</strong> — a template copies files, not issues (verified on a fresh Instance, 2026-09-13) — so the tickets you write this week are the first ones it has.</p>
+    <label class="check"><input type="checkbox"><span>Read three tickets from <code>perro-ruidoso/flashcards-seed</code> with <code>gh issue view N --json body</code>, including one with two entries under "Blocked by" (try <code>#5</code> or <code>#14</code>).</span></label>
+    <label class="check"><input type="checkbox"><span>For each, found one criterion that could be made to <em>fail</em> by a plausible wrong implementation, and said how.</span></label>
+    <label class="check"><input type="checkbox"><span>Wrote the A2 hand-authored ticket in my Instance with all four sections, using <code>gh issue create --body-file</code>.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Why does this course hold issue bodies to a stricter standard than most teams do?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because GitHub rejects issues that are missing required sections</button></li>
+        <li><button data-opt="b">Because the rubric awards points for each heading present in the body</button></li>
+        <li><button data-opt="c">Because the reader is a fresh session with no memory of the conversation, and cannot fill gaps by asking</button></li>
+        <li><button data-opt="d">Because the Seed Repo's issue template enforces the four sections automatically</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> <span class="skill">/to-tickets</span> sizes each ticket "to fit in a single fresh context window" and clears context between tickets — so the issue is the whole briefing. GitHub enforces nothing about body structure (A), the rubric grades whether an agent could execute it rather than counting headings (B), and the template ships no issue template at all (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Which of these belongs under <strong>Out of scope</strong> on the Seed Repo's ticket #1 (review state on <code>Card</code>)?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The default ease factor of 2.5, since it is decided in an ADR</button></li>
+        <li><button data-opt="b">Persisting the new fields to the deck file, since that is the next ticket's job</button></li>
+        <li><button data-opt="c">Keeping <code>Card</code> frozen, since that is a constraint not a feature</button></li>
+        <li><button data-opt="d">The test file path, since tests are the implementer's choice</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Out of scope names the adjacent work an implementer would reach for — and persistence is T02, the very next ticket. The default (A) and the frozen constraint (C) are acceptance criteria on this ticket, and the test path (D) is a criterion too: the ticket names <code>tests/domain/test_models.py</code> so "done" is checkable.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. A ticket's Blocked-by section is empty. What should an agent conclude?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The ticket has no dependencies and work can begin immediately</button></li>
+        <li><button data-opt="b">The dependencies are recorded on GitHub instead, so the prose was omitted</button></li>
+        <li><button data-opt="c">The ticket is a parent issue whose children carry the dependencies</button></li>
+        <li><button data-opt="d">Nothing safely — the author forgot or meant "none", and the two are indistinguishable</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Silence is ambiguous, which is why the exhibit says "Nothing. This ticket can start today" in words. Any of A, B, or C might be true; the point of the section is that the agent should not have to guess which.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">4. "As we discussed, use the second approach." What is wrong with this in an issue body?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The reader is a fresh session; "we discussed" and "the second approach" refer to context it does not have</button></li>
+        <li><button data-opt="b">It is too short; acceptance criteria should run to at least four checklist items</button></li>
+        <li><button data-opt="c">It uses the first person, which the issue template forbids for consistency</button></li>
+        <li><button data-opt="d">Nothing, provided the conversation transcript is linked from the issue</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Conversation residue. The fix is not to link the transcript (D) — a fresh session should not need to replay a discussion to act — but to state the decision itself. <span class="skill">/to-spec</span> exists to do that synthesis.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m07-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The one-sentence test for an agent-ready issue body?</div><div class="fc-back">Could a session that has read only <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, and this issue start, finish, and know it has finished — without asking a question?</div></div>
+      <div class="fc"><div class="fc-front">The four sections of a course ticket, in order?</div><div class="fc-back">Context · Acceptance criteria · Out of scope · Blocked by.</div></div>
+      <div class="fc"><div class="fc-front">What question does <strong>Out of scope</strong> pre-empt?</div><div class="fc-back">"Should I also…?" — it names the adjacent work an implementer would reach for, usually the neighbouring tickets.</div></div>
+      <div class="fc"><div class="fc-front">Why does <span class="skill">/to-tickets</span> justify the "fresh session" standard?</div><div class="fc-back">Each ticket "is sized to fit in a single fresh context window"; you work the frontier "clearing context between tickets."</div></div>
+      <div class="fc"><div class="fc-front">"Works correctly", "well tested", "handles edge cases" — what is the shared defect?</div><div class="fc-back">None of them can be <em>false</em>. A criterion that cannot fail cannot tell an agent it is done.</div></div>
+      <div class="fc"><div class="fc-front">Why does ticket #1 cite <code>docs/adr/0001</code> for the ease factor instead of explaining it?</div><div class="fc-back">The value (2.5) is stated so the agent has it; the reasoning lives once, in the ADR, so it cannot drift between tickets.</div></div>
+      <div class="fc"><div class="fc-front">How many issues does a fresh Instance start with, and why?</div><div class="fc-back">Zero. A template copies files, not issues. The 15-ticket backlog lives on the Seed Repo as an exhibit.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Paste one of the Seed Repo's tickets into Claude Code and ask: "You are a fresh session with only <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, and this issue. List every question you would need to ask before starting, and every point where you would have to guess." If the list is empty, ask it to try to break each acceptance criterion with a wrong implementation. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/learning-about-issues/about-issues">GitHub Docs: About issues</a><span class="why">The vendor's own framing — issues are "flexible" and for "anything else you need to write down." Read it to see how little structure GitHub imposes, which is why this course imposes its own.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>to-tickets</code></a><span class="why">The issue template the skill publishes — Parent, What to build, Acceptance criteria, Blocked by — and the rule that tickets avoid "specific file paths or code snippets" because "they go stale fast." Compare that rule with the exhibit, which names a test path on purpose.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/issues">The Seed Repo backlog</a><span class="why">Fifteen tickets written to this standard. Read <code>#5</code> and <code>#14</code>, the ones with two blockers, and notice how Out of scope and Blocked by divide the neighbouring work between them.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_create">GitHub CLI manual: <code>gh issue create</code></a><span class="why"><code>--body-file</code> is how a multi-section body gets in from the terminal without quoting pain; <code>-F -</code> reads it from stdin.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/learning-about-issues/about-issues">GitHub Docs: About issues</a> — "quick to create, flexible"; the URL recorded in <code>RESOURCES.md</code> now redirects here (fetched 2026-09-13)</li>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>to-tickets</code> and <code>implement</code>; quotations from the installed <code>SKILL.md</code> files, read 2026-09-13</li>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/issues/1">perro-ruidoso/flashcards-seed#1</a> — the exhibit; body captured with the command shown, 2026-09-13</li>
+      <li>"A fresh Instance has zero issues" — verified 2026-09-13 by creating an Instance from the template and running <code>gh issue list --state all</code>; see <code>NOTES.md</code></li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../index.html"><span class="dir">Up</span>Week 2 hub</a>
+    <a class="next" href="acceptance-criteria.html"><span class="dir">Next · M07, page 2</span>Criteria That Can Fail</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -73,16 +73,20 @@ is the workflow used to build it, so its own issues and PRs are teaching exhibit
 **Issue Dependency**
 : GitHub's mechanism for recording that one issue blocks another. A **graph**: an issue may
   be blocked by many issues and block many. This is where a Work Dependency lives.
-  There is no `gh issue edit` flag for it as of `gh` 2.92.0; it is reached through
-  `gh api repos/O/R/issues/N/dependencies/blocked_by`, whose payload takes the blocker's
-  **database id**, not its issue number.
+  Recorded with `gh issue create --blocked-by` / `gh issue edit --add-blocked-by` on
+  `gh` 2.94.0 and later, and read back with `--json blockedBy,blocking`. Underneath is
+  `POST repos/O/R/issues/N/dependencies/blocked_by`, whose payload takes the blocker's
+  **database id**, not its issue number. GitHub does not reject a cycle; the course's
+  `waves_from_github.py` does.
 
 **Sub-Issue**
 : GitHub's mechanism for breaking one issue into children. A **hierarchy**: an issue has at
   most one parent, up to eight levels deep. Good for decomposition, and structurally unable
   to express a Work Dependency where a ticket has two blockers — the Seed Repo's backlog
   has five such joins, which is the concrete reason the two mechanisms are not
-  interchangeable. Reached with `gh issue edit --add-sub-issue`.
+  interchangeable. Reached with `gh issue create --parent` and `gh issue edit
+  --add-sub-issue` (`gh` 2.94.0+); a second `--add-sub-issue` *moves* the parent rather
+  than adding one. The course convention: every ticket is a Sub-Issue of its spec.
 
 **Tracer-Bullet Ticket**
 : A ticket that crosses every layer of the app and emits observable feedback, rather

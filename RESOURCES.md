@@ -12,15 +12,23 @@ GitHub is the subject of this course, so its docs are primary here, not ancillar
 sections. Several URLs first recorded here now redirect (HTTP 200 via 301) to new canonical
 addresses, and in at least one case the wording the lessons quoted changed with the move — see
 `NOTES.md`. Rows below carry the canonical URL; Week 1 pages cite the canonical URL and were
-re-quoted from the fetched text. Re-check the remaining rows before writing Weeks 2–6.
+re-quoted from the fetched text. Week 2's rows were re-checked on 2026-09-13 (two more
+redirects, noted inline). Re-check the remaining rows before writing Weeks 3–6.
 
 | Resource | URL | Used in |
 |---|---|---|
 | Pull requests (reference) — formerly "About pull requests"; also absorbs "About collaborative development models" | https://docs.github.com/en/pull-requests/reference/pull-requests | M02, M31 |
 | Branches (reference) — formerly "About comparing branches in pull requests" | https://docs.github.com/en/pull-requests/reference/branches | M03 |
-| About issues | https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues | M07 |
+| About issues — the recorded URL now redirects here | https://docs.github.com/en/issues/tracking-your-work-with-issues/learning-about-issues/about-issues | M07 |
+| Managing issue types in an organization (moved from `configuring-issues/`) | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/managing-issue-types-in-an-organization | M08 |
+| Filtering and searching issues and pull requests | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/filtering-and-searching-issues-and-pull-requests | M08 |
+| Configuring issue templates for your repository | https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository | M08 |
+| Syntax for issue forms | https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms | M08 (learn more) |
 | Adding sub-issues | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues | M11 |
+| Creating issue dependencies — the user-facing page; the CLI flags are documented here | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies | M11 |
 | REST API endpoints for issue dependencies | https://docs.github.com/en/rest/issues/issue-dependencies | M11 |
+| REST API endpoints for sub-issues (`sub_issue_id`, `replace_parent`) | https://docs.github.com/en/rest/issues/sub-issues | M11 |
+| Creating diagrams (Mermaid in Markdown) | https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams | M11 |
 | Linking a pull request to an issue | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue | M15 |
 | Changing the base branch of a pull request | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-base-branch-of-a-pull-request | M16 |
 | Reviewing proposed changes in a pull request | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request | M19, M20 |
@@ -35,13 +43,16 @@ re-quoted from the fetched text. Re-check the remaining rows before writing Week
 | GitHub CLI manual: `gh auth status`, `gh auth refresh` | https://cli.github.com/manual/gh_auth_refresh | M01 |
 | GitHub CLI manual: `gh repo create` | https://cli.github.com/manual/gh_repo_create | M01 |
 | GitHub CLI manual: `gh pr view`, `gh pr list`, `gh pr diff`, `gh help formatting` | https://cli.github.com/manual/gh_pr_view | M02, M04, M06 |
-| GitHub CLI manual: `gh label create` | https://cli.github.com/manual/gh_label_create | M05 |
+| GitHub CLI manual: `gh label create` | https://cli.github.com/manual/gh_label_create | M05, M08 |
+| GitHub CLI manual: `gh issue create`, `gh issue edit`, `gh issue list` (2.94.0+ flags) | https://cli.github.com/manual/gh_issue_create | M07, M08, M09, M11 |
+| GitHub CLI manual: `gh issue close` | https://cli.github.com/manual/gh_issue_close | M12 |
+| GitHub CLI v2.94.0 release notes — issue types, sub-issues, and relationships | https://github.com/cli/cli/releases/tag/v2.94.0 | M08, M11 |
 | Creating a repository from a template | https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template | M01 |
 | Scopes for OAuth apps | https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps | M01 |
 | Publicizing or hiding organization membership | https://docs.github.com/en/account-and-profile/how-tos/organization-membership/publicizing-or-hiding-organization-membership | M01 |
 | Changing the stage of a pull request | https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request | M02 |
 | Comparing commits | https://docs.github.com/en/pull-requests/how-tos/commit-changes/comparing-commits | M03 |
-| Managing labels | https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels | M05 |
+| Managing labels | https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels | M05, M08 |
 | Using keywords in issues and pull requests | https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests | M06 |
 
 ## Tier 2 — Anthropic official
@@ -51,13 +62,13 @@ re-quoted from the fetched text. Re-check the remaining rows before writing Week
 | Code Review (`/code-review`) | https://code.claude.com/docs/en/code-review | M21 |
 | Claude Code GitHub Actions | https://code.claude.com/docs/en/github-actions | M30 |
 | Memory / CLAUDE.md | https://code.claude.com/docs/en/memory | M05 |
-| Skills | https://code.claude.com/docs/en/skills | M05, M18 |
+| Skills | https://code.claude.com/docs/en/skills | M05, M09, M18 |
 
 ## Tier 3 — Pocock / AI Hero
 
 | Resource | URL | Used in |
 |---|---|---|
-| `mattpocock/skills` repo | https://github.com/mattpocock/skills | M05, M09, M10, M17, M18, M24, M32 |
+| `mattpocock/skills` repo — Week 2 quotes the installed `to-spec` and `to-tickets` | https://github.com/mattpocock/skills | M05, M07, M09, M10, M17, M18, M24, M32 |
 | AI Hero | https://www.aihero.dev | M10, M18 |
 
 Local copies of the skills this course teaches are at `~/.agents/skills/`, symlinked into
@@ -69,7 +80,8 @@ version students will actually run — and cite the upstream repo as the source.
 | Resource | URL | Used in |
 |---|---|---|
 | GitHub integration | https://linear.app/docs/github | M12, M34 |
-| Pricing (plan gates) | https://linear.app/pricing | M12 — **unresolved**, see `NOTES.md` |
+| Pricing (plan gates) — Issue sync is a Core feature on every plan; parsed at cell level 2026-09-13, see `NOTES.md` | https://linear.app/pricing | M12 |
+| GitHub Issues Importer (historical issues; sync is forward-only) | https://linear.app/docs/github-to-linear | M12 (learn more) |
 
 ## Non-GitHub references used on Week 1 pages
 
@@ -78,6 +90,7 @@ version students will actually run — and cite the upstream repo as the source.
 | Git reference: `git merge-base`, `git diff`, `gitrevisions` | https://git-scm.com/docs/git-diff | M03 |
 | Pro Git, ch. 3.2 Basic Branching and Merging | https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging | M03 (learn more) |
 | jq manual (moved from `jqlang.github.io`; old address redirects) | https://jqlang.org/manual/ | M04, M06 (learn more) |
+| Mermaid: flowchart syntax (`graph LR`, `subgraph`) | https://mermaid.js.org/syntax/flowchart.html | M11 (learn more) |
 
 ## Ancillary
 

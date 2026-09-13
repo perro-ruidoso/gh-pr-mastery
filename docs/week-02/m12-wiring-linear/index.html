@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linear Above GitHub — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M12 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Linear Above GitHub</h1>
+  <p class="lede">Linear is wired in last, on purpose. You now have a week of real GitHub history — a spec, tickets, edges — and a project-management layer is only worth having if it reflects that history without anyone re-typing it.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M12 · PM integration</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Connect Linear to the Instance and verify that issues and PRs appear and update without manual touching.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M12 pages</span>
+    <span class="here"><span class="num">1</span>Linear Above GitHub</span>
+    <a href="verify-without-touching.html"><span class="num">2</span>Verify Without Touching</a>
+  </nav>
+
+  <h2>Where Linear sits</h2>
+  <p>This course's position is fixed in <code>MISSION.md</code>: <strong>GitHub Issues is the source of truth</strong>; Linear is the project-management layer above it. That is why <a href="../../week-01/m05-configuring-the-skills/index.html">M05</a> had you tell the engineering skills that issues live on GitHub, and why every ticket this week was filed with <code>gh</code>. Linear's job, from today, is to <em>show</em> that work — as a team's board, with statuses that move — and to do so from the GitHub activity itself, not from anyone clicking.</p>
+
+  <p>Linear's model is not GitHub's, and Week 6 (M33) takes the differences seriously. For now, one term: a Linear <strong>team</strong> owns issues and gives them their identifier prefix. You will create one team for your Instance; its key (say <code>FLASH</code>) becomes the <code>FLASH-12</code> in every synced issue's title.</p>
+
+  <h2>Two capabilities, one integration</h2>
+  <p>Linear's GitHub integration does two separable things, and the objective needs both:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Capability</th><th>What it does</th><th>Assessed in</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PR and commit linking</strong></td><td>A branch name or PR title that contains a Linear issue ID, or a magic word in a PR description, moves the Linear issue's status: "by default, we will move linked issues to 'In Progress' when PRs are open and 'Done' when PRs merge."</td><td>M12 (preview), M34 (fully)</td></tr>
+        <tr><td><strong>GitHub Issues Sync</strong></td><td>Copies issues between a GitHub repository and a Linear team — "title, description, status, assignee, labels, sub-issues, comments" — one-way or two-way.</td><td>M12</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>The plan question, settled</h2>
+  <p>The course had an open question about whether Linear's Free plan includes Issues Sync. It was resolved from Linear's pricing page, re-fetched on 2026-09-13 and read at the level of the table cells, not the summary text:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pricing-page row</th><th>Free</th><th>Basic</th><th>Business</th><th>Enterprise</th></tr></thead>
+      <tbody>
+        <tr><td>Issue sync (Core)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Integrations (Core)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Members</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
+        <tr><td>Teams</td><td>2</td><td>5</td><td>Unlimited</td><td>Unlimited</td></tr>
+        <tr><td>Issues</td><td>250</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
+        <tr><td>File upload</td><td>10 MB</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The only plan-gated items on the integration's own documentation page are GitHub Enterprise Cloud support — "Available to workspaces on our Enterprise plan" — and AI-written titles from magic words, "On Business and Enterprise plans." Neither is needed. What Free actually limits is <strong>2 teams and 250 issues</strong>: one Instance is one team, and a spec plus ten tickets is nowhere near 250. <strong>M12 is written for the Free plan.</strong></p>
+
+  <div class="callout warn">
+    <span class="label">What has not been done</span>
+    <p>The steps below are quoted from Linear's documentation. The course has <em>not yet</em> walked them in a live Free workspace, and no UI captures ship with this page — <code>CONTEXT.md</code>'s rule is that captures carry a visible date, and there is none to date yet. So where this page says "look for the <strong>+</strong> icon," read that as Linear's description of its own UI on 2026-09-13. If your screen disagrees, the documentation moved; tell the instructor, and the page gets a dated capture.</p>
+  </div>
+
+  <h2>Enabling the integration</h2>
+  <ol>
+    <li><strong>Create a workspace and one team.</strong> Free plan. Name the team after your Instance; its key is the prefix every synced issue will carry.</li>
+    <li><strong>Install the GitHub integration.</strong> "Go to Setting &gt; Features &gt; Integrations &gt; GitHub" and authorise. Linear's permission note matters for you specifically: "To grant Linear organization-level access in GitHub, the integration must be installed by a GitHub organization owner. If you only need repository-level access, a repository administrator can install the integration instead." You are not an org owner of <code>perro-ruidoso</code>; you are, as its creator, an administrator of your Instance. Check before you start — <code>gh api repos/perro-ruidoso/flashcards-<span class="dim">&lt;handle&gt;</span> --jq .permissions.admin</code> should print <code>true</code>. If the instructor has already installed the app at org level (instructor guide, Part 5), you will only be choosing your repository.</li>
+    <li><strong>Link your repository to your team for Issues Sync.</strong> "From the <em>GitHub Issues</em> section of the GitHub integration settings, click the <strong>+</strong> icon, then select the GitHub repo and Linear team to link." Choose <strong>two-way</strong>: "issues created in either the GitHub repo or Linear team will create a synced copy in the other software." Note the constraint: "only one repo can be configured for two-way sync at a time" — fine, you have one.</li>
+  </ol>
+
+  <div class="callout note">
+    <span class="label">Forward only</span>
+    <p>"This will only sync issues <em>going forward</em>." And again: "GitHub Issues Sync will only sync newly created issues." The spec and tickets you filed in M09–M11 <strong>will not appear</strong> in Linear when you connect. That is not a fault; it is the reason the verification on <a href="verify-without-touching.html">page 2</a> creates a <em>new</em> issue and watches it cross. If you want the existing backlog in Linear too, Linear's documentation points to its GitHub Issues Importer for "historical GitHub Issues" — optional for A2, and worth doing only after the sync is proven.</p>
+  </div>
+
+  <h2>Why not make Linear the tracker?</h2>
+  <p>Because the engineering skills would lose their first-class support (M05), because a fresh agent session reads <code>gh issue view</code> and not a Linear board, and because a source of truth that two systems both claim to be is the situation Week 6's M35 exists to reason about — duplication, sync lag, and permissions. You are building the evidence for that argument now: after this week, every status change in Linear should be traceable to a GitHub event. If one is not, you touched it by hand, and that is exactly what the objective says not to do.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p><code>check_a2.py</code> cannot see inside Linear. It looks for the GitHub-side traces (page 2) and for the dated capture in your write-up.</p>
+    <label class="check"><input type="checkbox"><span>Confirmed I am an administrator of my Instance with <code>gh api … --jq .permissions.admin</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Created a Free Linear workspace with one team; noted the team key.</span></label>
+    <label class="check"><input type="checkbox"><span>Installed the GitHub integration and linked my Instance to my team with <strong>two-way</strong> Issues Sync.</span></label>
+    <label class="check"><input type="checkbox"><span>Did <em>not</em> create, edit, or move anything in Linear by hand — page 2 depends on that.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. You connect Linear on Friday. The spec and eight tickets you filed on Tuesday do not appear. What happened?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The Free plan caps synced issues, and the backlog exceeded the cap</button></li>
+        <li><button data-opt="b">Two-way sync was chosen; one-way sync would have imported them</button></li>
+        <li><button data-opt="c">Nothing is wrong — Issues Sync "will only sync issues going forward"; existing issues need the importer</button></li>
+        <li><button data-opt="d">The tickets are sub-issues of the spec, and Linear does not sync sub-issues</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Forward-only is documented twice on Linear's page. The Free cap is 250 (A), the direction setting does not backfill (B), and sub-issues are in the list of synced fields (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. On what evidence is M12 written for Linear's Free plan?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The pricing page's table shows "Issue sync" available on all four plans, and the docs gate only GitHub Enterprise Cloud and AI titles</button></li>
+        <li><button data-opt="b">A live Free workspace was connected to an Instance and the sync observed on 2026-09-13</button></li>
+        <li><button data-opt="c">Linear support confirmed it by email when the course was designed</button></li>
+        <li><button data-opt="d">The integration page says "available on all plans" in its first paragraph</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Documentary evidence, read at the level of the table cells. The live check (B) has not been done and the page says so; there was no support contact (C); and the integration page does not make a blanket statement (D) — it names the two gated items instead.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which of these is the course's reason for keeping GitHub as the source of truth after Linear is connected?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Linear's Free plan does not permit editing issues that originated on GitHub</button></li>
+        <li><button data-opt="b">Linear cannot represent blocking relationships between issues</button></li>
+        <li><button data-opt="c">GitHub is where the code lives, so its issues must legally be authoritative</button></li>
+        <li><button data-opt="d">The engineering skills and a fresh agent session read GitHub natively; a second claimant to truth is the M35 problem</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> It is a tooling and single-source argument, not a plan or capability limit. Linear can edit synced issues (two-way sync), has its own relations (B is false), and "legally" (C) is not a thing.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m12-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Linear's role in this course, in one line?</div><div class="fc-back">The project-management layer <em>above</em> GitHub. GitHub Issues is the source of truth (<code>MISSION.md</code>).</div></div>
+      <div class="fc"><div class="fc-front">The two capabilities of Linear's GitHub integration?</div><div class="fc-back">PR/commit linking (branch names, PR titles, magic words move status) and GitHub Issues Sync (copies issues between a repo and a team).</div></div>
+      <div class="fc"><div class="fc-front">What does Issues Sync copy?</div><div class="fc-back">"title, description, status, assignee, labels, sub-issues, comments" — one-way or two-way.</div></div>
+      <div class="fc"><div class="fc-front">Free plan: what is gated, and what is actually limited?</div><div class="fc-back">Issue sync is a Core feature on every plan. Free limits: 2 teams, 250 issues, 10 MB uploads.</div></div>
+      <div class="fc"><div class="fc-front">The two plan-gated items on the integration page?</div><div class="fc-back">GitHub Enterprise Cloud support (Enterprise plan) and AI-written titles from magic words (Business and Enterprise).</div></div>
+      <div class="fc"><div class="fc-front">Does connecting Linear import your existing issues?</div><div class="fc-back">No — "only sync issues going forward." Historical issues need the GitHub Issues Importer.</div></div>
+      <div class="fc"><div class="fc-front">Who can install the integration, per Linear?</div><div class="fc-back">Org-level access: a GitHub organization owner. Repository-level: a repository administrator — you, on your Instance.</div></div>
+      <div class="fc"><div class="fc-front">How many repos can be in two-way sync at once?</div><div class="fc-back">One. Several repos can feed one team one-way.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Before connecting, ask Claude Code: "Read <code>MISSION.md</code>'s constraint that GitHub Issues is the source of truth. If Linear is two-way synced, what could go wrong that would make that constraint false in practice, and how would I detect it from <code>gh</code> alone?" Keep its answer; you will want it for M35. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t4">Tier 4</span><a href="https://linear.app/docs/github">Linear Docs: GitHub</a><span class="why">The whole integration on one page — enabling it, PR/commit linking, magic words, Issues Sync, and the two plan-gated notes. Every quotation here is from it.</span></li>
+      <li><span class="tier t4">Tier 4</span><a href="https://linear.app/pricing">Linear: Pricing</a><span class="why">The table this page's plan facts come from. Scroll to the Core feature group and find "Issue sync."</span></li>
+      <li><span class="tier t4">Tier 4</span><a href="https://linear.app/docs/github-to-linear">Linear Docs: GitHub Issues Importer</a><span class="why">The route for the backlog that predates the sync, if you want it in Linear. Optional; prove the sync first.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/instructors/instructor-guide.md">course repo: instructor guide, Part 5</a><span class="why">The instructor's own Linear setup and the org-level install path. If the app is installed org-wide, step 2 above is shorter for you.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://linear.app/docs/github">Linear Docs: GitHub</a> — installation, permissions, Issues Sync fields and direction, forward-only, plan-gated notes (fetched 2026-09-13)</li>
+      <li><a href="https://linear.app/pricing">Linear: Pricing</a> — plan names and prices, Free limits, and the per-plan availability of "Issue sync" read from the table's cells (fetched 2026-09-13; see <code>NOTES.md</code> for the method)</li>
+      <li><code>MISSION.md</code> and <code>NOTES.md</code> in the course repo — the source-of-truth constraint and the plan-question record</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m11-recording-dependencies/reading-the-graph-back.html"><span class="dir">Previous · M11</span>Reading the Graph Back</a>
+    <a class="next" href="verify-without-touching.html"><span class="dir">Next · M12, page 2</span>Verify Without Touching</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

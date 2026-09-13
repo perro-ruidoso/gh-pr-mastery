@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracer Bullets and Blocking Edges — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M10 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Tracer Bullets and Blocking Edges</h1>
+  <p class="lede">A decomposition is two decisions: how to cut the work, and what has to land before what. Cut vertically and the second decision becomes a graph you can hand to concurrent agents. Cut horizontally and it becomes a queue.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M10 · Decomposition</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A2 (rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Decompose a spec into 6–10 tracer-bullet tickets with declared blocking edges using <span class="skill">/to-tickets</span>.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M10 pages</span>
+    <span class="here"><span class="num">1</span>Tracer Bullets and Blocking Edges</span>
+    <a href="the-seed-backlog.html"><span class="num">2</span>Reading the Seed Backlog</a>
+  </nav>
+
+  <h2>Vertical, not horizontal</h2>
+  <p><span class="skill">/to-tickets</span> defines the unit of work it produces with four rules, quoted in full because A2's rubric is these four lines:</p>
+  <blockquote>
+    <ul>
+      <li>"Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer"</li>
+      <li>"A completed slice is demoable or verifiable on its own"</li>
+      <li>"Each slice is sized to fit in a single fresh context window"</li>
+      <li>"Any prefactoring should be done first"</li>
+    </ul>
+  </blockquote>
+
+  <p>In the Seed Repo, "every layer" means <code>domain/</code>, <code>storage/</code>, and <code>cli/</code> — the three-layer layout was chosen (<code>seed/SPEC.md</code> §4) so that "a tracer-bullet ticket should have to touch all three, and a horizontal ticket should feel wrong." A horizontal decomposition of the review loop would be: (1) all the domain code, (2) all the storage code, (3) all the CLI code. Nothing is demoable until (3), the three tickets form a strict chain, and no two agents can work at once. The vertical decomposition — the one the Seed backlog actually uses — is on <a href="the-seed-backlog.html">page 2</a>.</p>
+
+  <div class="callout note">
+    <span class="label">"Tracer bullet"</span>
+    <p><code>CONTEXT.md</code>'s definition: "A ticket that crosses every layer of the app and emits observable feedback, rather than completing one layer horizontally." The metaphor is a round you can see the path of: you learn where the whole system is aimed from the first shot, not the last. The Seed Repo's <code>flashcards list</code> command is the tracer bullet that shipped in the template — a real, thin path through all three layers — and every backlog ticket extends it.</p>
+  </div>
+
+  <h2>Blocking edges</h2>
+  <p>The skill's instruction is short: "Give each ticket its <strong>blocking edges</strong> — the other tickets that must complete before it can start. A ticket with no blockers can start immediately." Two things about this are worth more than they look.</p>
+
+  <p>First, an edge is a <em>claim</em>. "B is blocked by A" says that B cannot be started — not finished, started — without A having landed. The skill asks you to check exactly this: "Are the blocking edges correct — does each ticket only depend on tickets that genuinely gate it?" Over-declaring edges is the common failure, and it is costly: every unnecessary edge removes a ticket from the set that could run in parallel.</p>
+
+  <p>Second, the set of edges is a <strong>graph</strong>, not a list. Once a ticket can have two blockers — and in any real backlog some will — the shape has forks and joins, and reading it as a numbered list misleads. That is the entire content of <a href="../m11-recording-dependencies/index.html">M11</a>, where the edges become GitHub issue dependencies and get drawn.</p>
+
+  <h2>The process</h2>
+  <ol>
+    <li><strong>Gather context.</strong> "If the user passes a reference (a spec path, an issue number or URL) as an argument, fetch it and read its full body and comments." Pass your M09 spec's number: <code>/to-tickets #<span class="dim">n</span></code>.</li>
+    <li><strong>Explore the codebase</strong>, respecting the glossary and ADRs — and "look for opportunities to prefactor the code to make the implementation easier. 'Make the change easy, then make the easy change.'"</li>
+    <li><strong>Draft vertical slices</strong> with the four rules above, each with its blocking edges.</li>
+    <li><strong>Quiz the user.</strong> The skill presents a numbered list — Title, Blocked by, What it delivers — and asks three questions: "Does the granularity feel right?", "Are the blocking edges correct?", "Should any tickets be merged or split further?" It says "iterate until the user approves the breakdown." This is the review step; treat it as seriously as M09's seam question.</li>
+    <li><strong>Publish.</strong> On a real tracker it publishes "one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers," and applies <code>ready-for-agent</code> — "the tickets are agent-grabbable by construction." It also says: "Do NOT close or modify any parent issue."</li>
+  </ol>
+
+  <div class="callout warn">
+    <span class="label">Read the publish step's wording closely</span>
+    <p>The skill says to "use the platform's native blocking / sub-issue relationship where it has one." Those are two different GitHub features with two different shapes, and M11 shows — by experiment — that a sub-issue cannot express a ticket with two blockers. When the skill publishes, check <em>which</em> relation it used: <code>gh issue view N --json blockedBy,parent</code>. The right answer is both — <code>parent</code> is the spec, <code>blockedBy</code> is the edges — and if the edges arrived only as prose in the body, M11 tells you how to record them.</p>
+  </div>
+
+  <h2>Six to ten</h2>
+  <p>The objective says 6–10 tickets, and the bounds are there for reasons. Fewer than six for a feature the size of the review loop means slices too wide for "a single fresh context window" — an agent that cannot hold the whole ticket will improvise. More than ten usually means horizontal slicing crept in, or tickets that are one acceptance criterion each. The Seed backlog's fifteen cover the <em>whole</em> application (review loop, tags, stats, CSV); the review loop alone is its first six. If your decomposition of the same scope has three tickets or fourteen, something is off, and the quiz step is where to fix it.</p>
+
+  <h2>Wide refactors are the exception</h2>
+  <p>The skill carves out one case where vertical slicing is wrong: a <strong>wide refactor</strong>, "one mechanical change — rename a column, retype a shared symbol — whose blast radius fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green." For those it prescribes <strong>expand–contract</strong>: "First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches … each batch its own ticket blocked by the expand … Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch." You will not need it in a 21-file Instance; you will need it the first time you rename something in a real codebase, and the graph it produces — one fan-out, one fan-in — is worth recognising.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>A2's rubric grades the decomposition on the four slice rules and on whether every edge is genuine. <code>check_a2.py</code> counts tickets (6–10, type Task, <code>ready-for-agent</code>) and edges; the judgement is the human grader's.</p>
+    <label class="check"><input type="checkbox"><span>Ran <span class="skill">/to-tickets #<em>spec</em></span> in my Instance with the spec number as the argument.</span></label>
+    <label class="check"><input type="checkbox"><span>At the quiz step, checked every edge with the question "could this ticket be <em>started</em> without that one?" and removed at least one edge, or can say why none needed removing.</span></label>
+    <label class="check"><input type="checkbox"><span>Checked every ticket against "demoable or verifiable on its own" and named the command or test that demonstrates it.</span></label>
+    <label class="check"><input type="checkbox"><span>After publishing, ran <code>gh issue view N --json blockedBy,parent</code> on the ticket with the most blockers and confirmed which relation was recorded.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. Which decomposition of "add a review loop" is vertical in the skill's sense?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">(1) domain scheduler, (2) storage of review state, (3) the <code>review</code> command — one ticket per layer</button></li>
+        <li><button data-opt="b">(1) review state on <code>Card</code> with a test, (2) persist it, (3) schedule it, (4) the command that uses all three — each demoable when done</button></li>
+        <li><button data-opt="c">(1) write all tests, (2) write all code, (3) write the documentation — one ticket per activity</button></li>
+        <li><button data-opt="d">(1) the review loop, complete — one ticket, since it is a single feature</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> That is the Seed backlog's T01–T04: each lands green with its own test and extends the running program. A is the horizontal cut the three-layer layout was designed to make "feel wrong"; C slices by activity, which is also horizontal; D fails "sized to fit in a single fresh context window."</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. What does "B is blocked by A" assert?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">B should be done after A for readability of the history</button></li>
+        <li><button data-opt="b">B and A touch the same files and would conflict if done together</button></li>
+        <li><button data-opt="c">B is a sub-task of A and should be closed when A is closed</button></li>
+        <li><button data-opt="d">B cannot be started until A has landed — A genuinely gates it</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> "The other tickets that must complete before it can start." Preference (A) and conflict risk (B) are not gates; C describes a sub-issue, a different feature. Over-declaring edges costs parallelism, which is why the skill's quiz asks whether each ticket depends "only … on tickets that genuinely gate it."</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Why does the skill publish tickets "in dependency order (blockers first)"?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">So each ticket's Blocked-by can reference the real issue numbers of tickets that already exist</button></li>
+        <li><button data-opt="b">So the issue numbers reflect the order in which the work should be done</button></li>
+        <li><button data-opt="c">Because GitHub rejects a dependency on an issue with a higher number</button></li>
+        <li><button data-opt="d">So that the parent issue is closed automatically when the last ticket lands</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The skill's own reason: "so each ticket's blocking edges can reference real identifiers." Numbers are not an ordering (B) — page 2 shows why reading them as one misleads — GitHub accepts any edge (C), and the skill explicitly does not touch the parent (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">4. Your decomposition of the review loop has fourteen tickets. What is the most likely diagnosis?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The spec was too detailed, and should be rewritten with fewer user stories</button></li>
+        <li><button data-opt="b">The skill malfunctioned and should be re-run in a fresh session</button></li>
+        <li><button data-opt="c">Horizontal slicing or one-criterion tickets crept in; merge at the quiz step</button></li>
+        <li><button data-opt="d">Nothing — more tickets always means more parallelism for agents</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The whole Seed application is fifteen tickets; its review loop is six. Fourteen for the loop alone means slices that are not vertical or not complete. The quiz step exists for exactly this ("Should any tickets be merged or split further?"). More tickets do not mean more parallelism (D) if they form chains.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m10-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The four vertical-slice rules?</div><div class="fc-back">Complete path through every layer · demoable or verifiable alone · fits one fresh context window · prefactoring first.</div></div>
+      <div class="fc"><div class="fc-front">A tracer bullet, per <code>CONTEXT.md</code>?</div><div class="fc-back">"A ticket that crosses every layer of the app and emits observable feedback, rather than completing one layer horizontally."</div></div>
+      <div class="fc"><div class="fc-front">What does a blocking edge assert?</div><div class="fc-back">The blocked ticket cannot be <em>started</em> until the blocker lands. Not "should be done after"; not "touches the same files".</div></div>
+      <div class="fc"><div class="fc-front">Why is over-declaring edges costly?</div><div class="fc-back">Every unnecessary edge removes a ticket from the set that could run in parallel across agent sessions.</div></div>
+      <div class="fc"><div class="fc-front">The three questions the skill asks at the quiz step?</div><div class="fc-back">Granularity right? Edges correct — only genuine gates? Merge or split anything?</div></div>
+      <div class="fc"><div class="fc-front">Why publish blockers first?</div><div class="fc-back">"So each ticket's blocking edges can reference real identifiers." The number is an artifact of order, not a plan.</div></div>
+      <div class="fc"><div class="fc-front">Wide refactor: the exception and its pattern?</div><div class="fc-back">One mechanical change with a codebase-wide blast radius. Expand → migrate in batches (each blocked by expand) → contract (blocked by every batch).</div></div>
+      <div class="fc"><div class="fc-front">Why 6–10 tickets for the review loop?</div><div class="fc-back">Fewer: slices too wide for one context window. More: horizontal or one-criterion slices. The Seed's whole app is 15; its review loop is 6.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>At the quiz step, before approving, ask Claude Code: "For each edge, tell me what would go wrong if an agent started the blocked ticket <em>today</em>, with the blocker unmerged." An edge whose answer is "nothing, really" should be deleted. Then ask it which tickets could be handed to three concurrent sessions right now. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>to-tickets</code></a><span class="why">The source of every rule on this page. The installed copy at <code>~/.claude/skills/to-tickets/SKILL.md</code> is the version you run; read the wide-refactor paragraph twice.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://www.aihero.dev">AI Hero</a><span class="why">Pocock's longer-form writing on why agent work should be decomposed into fresh-context units. Practitioner material; the rules above are the primary source.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/issues">The Seed Repo backlog</a><span class="why">Fifteen tickets decomposed by these rules, with 19 real edges. Page 2 reads it; go there next.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>to-tickets</code>; every quotation is from the installed <code>SKILL.md</code>, read 2026-09-13</li>
+      <li><code>CONTEXT.md</code> and <code>seed/SPEC.md</code> §4, §6 in the course repo — the tracer-bullet definition and the three-layer rationale</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m09-conversation-to-spec/checking-the-spec.html"><span class="dir">Previous · M09</span>Checking the Spec</a>
+    <a class="next" href="the-seed-backlog.html"><span class="dir">Next · M10, page 2</span>Reading the Seed Backlog</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

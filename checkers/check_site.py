@@ -5,7 +5,9 @@
 Catches the failures that are invisible until a student hits them - a lesson linking to a
 page that does not exist, a page that uses a Mermaid diagram without loading Mermaid, a
 self-check whose data-answer names an option that is not there, a flashcard with no back,
-an objective folder whose pages do not all link each other.
+an objective folder whose pages do not all link each other, an Apply or Create page with no
+hands-on checklist, two decks sharing a localStorage id, a Week Hub the Course Home does
+not link.
 
 Layout it expects: docs/week-NN/index.html is the Week Hub; docs/week-NN/mNN-slug/ is one
 objective, holding index.html (the entry Learning Page) plus any supporting pages.
@@ -28,6 +30,8 @@ OPTION = re.compile(r'data-opt="([a-z])"')
 CARD = re.compile(r'<div class="fc">(.*?)</div>\s*</div>', re.S)
 CARD_FRONT = re.compile(r'<div class="fc-front">\s*\S')
 CARD_BACK = re.compile(r'<div class="fc-back">\s*\S')
+DECK_ID = re.compile(r'data-deck="([^"]+)"')
+BLOOM = re.compile(r'Bloom:\s*(Understand|Apply|Analyze|Evaluate|Create)')
 
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
@@ -90,6 +94,10 @@ def check_structure(path: Path, html: str, problems: list[str]) -> None:
         ):
             if required not in html:
                 problems.append(f"{rel}: missing {label}")
+        # An objective a student *does* needs a checklist; a concept page does not.
+        bloom = BLOOM.search(html)
+        if bloom and bloom.group(1) in ("Apply", "Create") and 'class="handson"' not in html:
+            problems.append(f"{rel}: Bloom {bloom.group(1)} page has no hands-on checklist")
 
     # A page with a flashcard deck must load the component, and every card
     # needs a non-empty front and back.
@@ -114,6 +122,26 @@ def check_structure(path: Path, html: str, problems: list[str]) -> None:
             problems.append(
                 f"{rel}: self-check data-answer='{answer}' but options are {sorted(opts)}"
             )
+
+
+def check_site_wiring(found: list[Path], problems: list[str]) -> None:
+    """Deck ids are unique across the site (they key localStorage), and the Course Home
+    links every Week Hub that exists."""
+    seen: dict[str, Path] = {}
+    for path in found:
+        for deck in DECK_ID.findall(path.read_text(encoding="utf-8")):
+            if deck in seen:
+                problems.append(
+                    f"{path.relative_to(ROOT)}: deck id {deck!r} also used by {seen[deck].relative_to(ROOT)}"
+                )
+            seen.setdefault(deck, path)
+    home = DOCS / "index.html"
+    if home.exists():
+        home_html = home.read_text(encoding="utf-8")
+        for hub in sorted(DOCS.glob("week-*/index.html")):
+            link = f'href="{hub.parent.name}/index.html"'
+            if link not in home_html:
+                problems.append(f"docs/index.html: does not link {hub.parent.name}/index.html")
 
 
 def check_objective_coverage(problems: list[str]) -> None:
@@ -155,6 +183,7 @@ def main() -> int:
         check_structure(path, html, problems)
 
     check_objective_coverage(problems)
+    check_site_wiring(found, problems)
 
     print(f"{len(found)} pages, {links} internal links checked")
     if problems:

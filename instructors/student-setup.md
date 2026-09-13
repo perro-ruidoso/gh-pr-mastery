@@ -45,7 +45,7 @@ CLI, chosen partly for that reason.
 |---|---|---|
 | `git` | 2.30+ | `git --version` |
 | Python | 3.10 or newer | `python --version` |
-| GitHub CLI (`gh`) | 2.60+ | `gh --version` |
+| GitHub CLI (`gh`) | **2.94.0+** (Week 2 uses `--type`, `--parent`, `--blocked-by`, which older releases lack) | `gh --version` |
 | Claude Code | current | `claude --version` |
 
 **macOS**
