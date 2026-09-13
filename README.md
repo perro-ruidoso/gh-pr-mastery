@@ -81,7 +81,8 @@ reading `templateRepository.nameWithOwner`, a field `gh` does not return, so eve
 would have failed the "created from template" check — now fixed. And `wontfix`, one of the
 five triage labels A1 asks students to create, is a GitHub default that arrives on every
 new repository, so that item assesses four labels rather than five. Both are written up in
-[`NOTES.md`](NOTES.md); the second is an open question.
+[`NOTES.md`](NOTES.md); the second was accepted, and the checker now grades the four
+labels a student creates and only notes that `wontfix` is present.
 
 Not yet built: Weeks 2–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
 authored on an Instance where T03 has landed, not against the template), the

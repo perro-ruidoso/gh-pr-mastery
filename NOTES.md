@@ -96,7 +96,9 @@ receive it for free and `check_a1.py` genuinely assesses only **four** of the fi
 template cannot prevent this — `seed/SPEC.md` §1 lists `wontfix` under "must not ship",
 and that item is unachievable by any change to the template. A1's
 `gh label create ... || true` loop already swallows the collision, so nothing breaks;
-the objective is just softer than intended. See the open question below.
+the objective is just softer than intended. **Decided 2026-09-13: accepted.** `check_a1.py`
+now grades the four created labels and reports `wontfix` as a note (present, not graded;
+failing only if a student deleted it). See the open questions below for the reasoning.
 
 **Also observed:** labels take a few seconds to appear on a newly created repository. An
 immediate `gh label list` returned an empty set; the same call moments later returned all
@@ -144,7 +146,7 @@ Rejected on both cost and plan grounds. The course uses the **Claude Code GitHub
 (instructor OAuth token) plus local `/code-review` instead. Revisit if the plan
 requirement relaxes.
 
-### Linear GitHub integration — verified 2026-09-12, INCOMPLETE
+### Linear GitHub integration — verified 2026-09-12; plan gate checked 2026-09-13
 
 Two distinct capabilities confirmed:
 1. **PR/commit linking** — branch names, PR titles, and magic words (`Fixes`, `Closes`,
@@ -155,11 +157,25 @@ Two distinct capabilities confirmed:
 
 Source: [Linear Docs — GitHub](https://linear.app/docs/github)
 
-**OPEN:** the docs page does not state which Linear **plan** includes Issues Sync. Must
-be confirmed against `linear.app/pricing` against a real Free workspace before Week 2's
-M12 is written, since M12 assumes students on Free can complete the wiring. If Sync is
-paid-only, M12 falls back to PR/commit linking alone (which is sufficient for the
-status-automation objectives M34) and Week 6's sync content becomes instructor-demoed.
+The docs page does not state which Linear **plan** includes Issues Sync. The pricing page
+does — fetched 2026-09-13:
+
+| Fact | Source |
+|---|---|
+| "Issue sync" is a line item in the **Core** feature group, shown available on all four plans (Free, Basic, Business, Enterprise) with no per-plan gate. | [linear.app/pricing](https://linear.app/pricing) |
+| The only plan-gated GitHub items on the integration page are GitHub Enterprise Cloud support ("Available to workspaces on our Enterprise plan") and AI-written titles/labels from magic words ("On Business and Enterprise plans"). Issues Sync carries no such note. | [Linear Docs — GitHub](https://linear.app/docs/github) |
+| Free plan limits: unlimited members, **2 teams**, **250 issues**, 10 MB file uploads. | [linear.app/pricing](https://linear.app/pricing) |
+
+**Reading:** Issues Sync is available on Free. The 250-issue cap is the limit that actually
+matters, and it is comfortable: a student workspace syncing one Instance holds the
+15-ticket backlog plus whatever they add — nowhere near 250. The 2-team cap is one team per
+Instance; students wire one.
+
+**Residual, not yet done:** one live confirmation in a real Free workspace — open Settings
+→ Integrations → GitHub and check the *GitHub Issues* section offers the **+** to link a
+repo. Five minutes; do it when the instructor's own workspace is created (instructor guide
+Part 5.2). Until then M12 can be written on the Free assumption with the PR/commit-linking
+fallback kept as a footnote, not a fork in the content.
 
 ### Seed Repo toolchain pins — verified 2026-09-12
 
@@ -262,19 +278,31 @@ merged, and code owners are not automatically requested"; the secrets page's for
 
 ## Open questions
 
-- Linear Free plan's Issues Sync availability (above) — blocks final wording of M12.
-- **The fifth triage label is free.** `wontfix` is in GitHub's default label set, so A1
-  item 4 assesses four labels, not five (verified above). Three ways out, none of them
-  obviously right: accept it; rename the course's fifth role to something outside the
-  defaults (`declined`?), which costs a change to `docs/agents/triage-labels.md` and the
-  Pocock skill's own vocabulary; or have `check_a1.py` assert that `wontfix` was *edited*
-  (description or colour changed from GitHub's default) as evidence the student handled it
-  deliberately. Decide before the first cohort.
-- **Org plan: pay for Team seats, or downgrade to Free?** `perro-ruidoso` was created on
-  GitHub **Team** (2 seats, 1 filled). A cohort of 8-14 plus the instructor needs 9-15
-  seats at $4/user/month. Downgrading to Free costs the curriculum **nothing** - every gate
-  the course uses works on a public repo at either tier (see `adr/0003`). Decide before
-  inviting students.
+- ~~Linear Free plan's Issues Sync availability~~ — **resolved on paper 2026-09-13**
+  (above): the pricing page lists Issue sync as a Core feature on every plan. One live
+  check in a Free workspace remains; M12 is written on the Free assumption.
+- ~~**The fifth triage label is free.**~~ — **decided 2026-09-13: accept it, and make the
+  grading honest.** `wontfix` is in GitHub's default label set, so A1 item 4 assesses four
+  labels, not five (verified above). The alternatives were rejected: renaming the fifth
+  role (`declined`?) forks the course from the Pocock skill's own vocabulary — the whole
+  point of M05 is that the skill writes the mapping file — and asserting that `wontfix` was
+  *edited* grades a colour change, not understanding. What changed: `check_a1.py` grades
+  the four created labels under "Triage labels (4 created + 1 default)", reports `wontfix`
+  as a `note` when present (failing only if the student deleted it, since the mapping file
+  names it), and retries `gh label list` to cover the propagation lag noted above. A1 item
+  4 says so. M05 already teaches why the fifth arrives free.
+- ~~**Org plan: pay for Team seats, or downgrade to Free?**~~ — **decided 2026-09-13: stay
+  on Team for now.** `perro-ruidoso` was created on GitHub **Team** (2 seats, 1 filled;
+  re-checked 2026-09-13, unchanged). The recommendation was to downgrade — every gate the
+  course uses works on a public repo at either tier (`adr/0003`), Team's extras are
+  private-repo features, and GitHub's pricing page shows Team at "$4 USD per user/month for
+  the first 12 months*", so 9-15 seats is $36-60/month for nothing the curriculum uses.
+  The instructor chose to keep the paid plan for now; nothing in the course depends on it
+  either way. **Consequence:** seats must be bought before inviting — the org has 2 and a
+  cohort of 8-14 plus the instructor needs 9-15. Settings → Billing and licensing. Team
+  members past the seat count cannot be invited. Revisit before cohort 2; the downgrade
+  path is documented at
+  [Downgrading your account's plan](https://docs.github.com/en/billing/managing-the-plan-for-your-github-account/downgrading-your-accounts-plan).
 - ~~Week 1's M06 assigns students a merged PR in `gh-pr-mastery` and that repo has no PR
   history~~ — **resolved 2026-09-12.** The repo is pushed, public, and has begun being
   dogfooded; A1 item 6 now has a real target. The history is still short, and both A1 and
@@ -475,3 +503,15 @@ merged, and code owners are not automatically requested"; the secrets page's for
   - The Bash tool in this session mangled single quotes inside heredocs; HTML and the larger
     Python edits were written with the file tool and helper scripts in the scratchpad
     instead. No effect on the repo, noted so the next builder is not surprised.
+
+- **2026-09-13** — Three of the four open decisions closed. **Linear:** `linear.app/pricing`
+  lists Issue sync as a Core feature on every plan and the docs gate only GitHub Enterprise
+  Cloud and AI magic-word enrichment, so M12 is written on the Free assumption; one live
+  check in a Free workspace remains a TODO. **`wontfix`:** accepted; `check_a1.py` now
+  grades four created labels, notes `wontfix`, and retries `gh label list` for the
+  propagation lag — exercised against `flashcards-seed` (correctly fails the four withheld
+  labels, notes `wontfix`) and a nonexistent repo. **Org plan:** stay on Team for now;
+  seats must be bought before inviting. `adr/0003`, the instructor guide (0.3, 3.3, 5.3,
+  8.2, Parts 9 and 10), A1 item 4, the README, and the roadmap were updated to match. The
+  remaining open decision is the Pro-versus-Max question, which waits for the Week 5 dry
+  run.

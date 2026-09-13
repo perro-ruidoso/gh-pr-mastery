@@ -49,11 +49,12 @@ would consume a metered allowance shared across the whole cohort.
 - Student work is world-readable. This must be stated in the syllabus before enrolment, and
   it appears in a callout on the Course Home page and in M01.
 - Nothing personal goes in these repos. The flashcards domain was chosen partly for this.
-- **Team is a paid plan.** At the time of writing the org has 2 seats with 1 filled. A
-  cohort of 8–14 students plus the instructor needs 9–15 seats. Whether to pay for that or
-  downgrade to Free is an open question in `NOTES.md` — note that **downgrading to Free
-  costs this course nothing**, because every gate the curriculum actually uses works on a
-  public repository at either tier.
+- **Team is a paid plan, and the org stays on it for now (decided 2026-09-13).** The org
+  has 2 seats with 1 filled; a cohort of 8–14 students plus the instructor needs 9–15, so
+  **seats must be purchased before students are invited.** Downgrading to Free would cost
+  this course nothing — every gate the curriculum actually uses works on a public
+  repository at either tier — and remains the recommendation to revisit before a second
+  cohort. Reasoning and the downgrade path are in `NOTES.md`.
 
 ## Alternatives rejected
 
