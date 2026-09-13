@@ -128,10 +128,10 @@ _Layer: `domain`_</code></pre>
     <div class="q" data-answer="c">
       <p class="q-text">1. Why does this course hold issue bodies to a stricter standard than most teams do?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because GitHub rejects issues that are missing required sections</button></li>
+        <li><button data-opt="a">Because GitHub rejects issues that are missing required sections when the repository has an issue template configured</button></li>
         <li><button data-opt="b">Because the rubric awards points for each heading present in the body</button></li>
         <li><button data-opt="c">Because the reader is a fresh session with no memory of the conversation, and cannot fill gaps by asking</button></li>
-        <li><button data-opt="d">Because the Seed Repo's issue template enforces the four sections automatically</button></li>
+        <li><button data-opt="d">Because the Seed Repo's issue template enforces the four sections automatically, so a body without them will not be accepted by <code>gh issue create</code></button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> <span class="skill">/to-tickets</span> sizes each ticket "to fit in a single fresh context window" and clears context between tickets — so the issue is the whole briefing. GitHub enforces nothing about body structure (A), the rubric grades whether an agent could execute it rather than counting headings (B), and the template ships no issue template at all (D).</p>
@@ -141,9 +141,9 @@ _Layer: `domain`_</code></pre>
     <div class="q" data-answer="b">
       <p class="q-text">2. Which of these belongs under <strong>Out of scope</strong> on the Seed Repo's ticket #1 (review state on <code>Card</code>)?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The default ease factor of 2.5, since it is decided in an ADR</button></li>
+        <li><button data-opt="a">The default ease factor of 2.5, since it is decided in an ADR and the ticket should not restate decisions</button></li>
         <li><button data-opt="b">Persisting the new fields to the deck file, since that is the next ticket's job</button></li>
-        <li><button data-opt="c">Keeping <code>Card</code> frozen, since that is a constraint not a feature</button></li>
+        <li><button data-opt="c">Keeping <code>Card</code> frozen, since that is a constraint rather than a feature and constraints belong outside scope</button></li>
         <li><button data-opt="d">The test file path, since tests are the implementer's choice</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -154,9 +154,9 @@ _Layer: `domain`_</code></pre>
     <div class="q" data-answer="d">
       <p class="q-text">3. A ticket's Blocked-by section is empty. What should an agent conclude?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The ticket has no dependencies and work can begin immediately</button></li>
+        <li><button data-opt="a">The ticket has no dependencies and work can begin immediately, because an empty section is the conventional way to say "none"</button></li>
         <li><button data-opt="b">The dependencies are recorded on GitHub instead, so the prose was omitted</button></li>
-        <li><button data-opt="c">The ticket is a parent issue whose children carry the dependencies</button></li>
+        <li><button data-opt="c">The ticket is a parent issue whose children carry the dependencies, so the section is empty by design</button></li>
         <li><button data-opt="d">Nothing safely — the author forgot or meant "none", and the two are indistinguishable</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -168,9 +168,9 @@ _Layer: `domain`_</code></pre>
       <p class="q-text">4. "As we discussed, use the second approach." What is wrong with this in an issue body?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The reader is a fresh session; "we discussed" and "the second approach" refer to context it does not have</button></li>
-        <li><button data-opt="b">It is too short; acceptance criteria should run to at least four checklist items</button></li>
-        <li><button data-opt="c">It uses the first person, which the issue template forbids for consistency</button></li>
-        <li><button data-opt="d">Nothing, provided the conversation transcript is linked from the issue</button></li>
+        <li><button data-opt="b">It is too short; acceptance criteria should run to at least four checklist items, and this body has none at all, so the checker will reject it</button></li>
+        <li><button data-opt="c">It uses the first person, which the issue template forbids for consistency with the rest of the backlog</button></li>
+        <li><button data-opt="d">Nothing, provided the conversation transcript is linked from the issue so the agent can read the discussion</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> Conversation residue. The fix is not to link the transcript (D) — a fresh session should not need to replay a discussion to act — but to state the decision itself. <span class="skill">/to-spec</span> exists to do that synthesis.</p>

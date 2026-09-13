@@ -130,10 +130,10 @@ graph LR
     <div class="q" data-answer="c">
       <p class="q-text">1. <code>git diff main..feature</code> lists a file you never opened, showing its lines being reverted. What happened?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Your branch is corrupt and should be recreated</button></li>
-        <li><button data-opt="b">Someone force-pushed over your branch</button></li>
+        <li><button data-opt="a">Your branch is corrupt and should be recreated from <code>main</code>, because a diff can only mention files a branch touched</button></li>
+        <li><button data-opt="b">Someone force-pushed over your branch and replaced the file's contents with an older version</button></li>
         <li><button data-opt="c">That file changed on <code>main</code> after you branched; two-dot compares tip to tip, so main's newer content shows as something your branch removes</button></li>
-        <li><button data-opt="d">Git is showing a merge conflict preview</button></li>
+        <li><button data-opt="d">Git is showing a merge conflict preview: the lines it reverts are the ones that will conflict when <code>main</code> is merged into your branch, which is what the two dots ask for</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> Two dots compare the tip of <code>main</code> with the tip of your branch. Your branch simply does not contain the colleague's newer commit, so relative to main's tip that content is "missing" — and the diff renders it as a deletion. Use three dots and it disappears, because three dots measure from the merge base, before their change existed.</p>
@@ -170,8 +170,8 @@ graph LR
       <p class="q-text">4. Which comparison does a pull request's Files changed tab use?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Two-dot, so reviewers see everything the branch lacks relative to the base</button></li>
-        <li><button data-opt="b">Whichever the author chose when opening the pull request</button></li>
-        <li><button data-opt="c">Two-dot for same-repo PRs and three-dot for fork PRs</button></li>
+        <li><button data-opt="b">Whichever the author chose</button></li>
+        <li><button data-opt="c">Two-dot for same-repo PRs, three-dot for fork PRs</button></li>
         <li><button data-opt="d">Three-dot, measured from the merge base</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -227,7 +227,7 @@ graph LR
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/mermaid.min.js"></script>
 <script src="../../assets/app.js"></script>

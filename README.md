@@ -95,6 +95,15 @@ topological sort. The M11 pages carry a live experiment showing that a second `-
 moves a parent rather than adding one. M12 is written for Linear's Free plan on documentary
 evidence and says on the page that the UI walk has not yet been captured.
 
+**Weeks 1 and 2 were audited on 2026-09-13** (issue #15, PR to follow) with the tools live:
+every source URL re-fetched and every quotation re-checked against the fetched text, every
+`gh` transcript re-run on the installed `gh` 2.100.0, both checkers fault-injected rule by
+rule, and every page render-tested in Chrome at 1200 px and 400 px. What it found and fixed
+is in `NOTES.md` under "Week 1–2 audit"; the short version is that `cli/cli#14398` (the M02/M04
+example) closed unmerged the same morning, M06's snapshot of this repository had gone stale,
+one quoted GitHub Docs sentence had been rewritten upstream, a checker regex accepted an empty
+flashcard face, and 81 of 93 self-check questions gave the answer away by option length.
+
 Not yet built: Weeks 3–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
 authored on an Instance where T03 has landed, not against the template), the
 merge-strategy simulator widget (Week 5), and the UI captures.

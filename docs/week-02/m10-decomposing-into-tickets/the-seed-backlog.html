@@ -152,8 +152,8 @@ wave 5  #13  #14  #15
     <div class="q" data-answer="c">
       <p class="q-text">1. The Seed backlog has 15 tickets and its widest wave is 4. What does the 4 tell you that the 15 does not?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">That four of the tickets are larger than the others and should be split</button></li>
-        <li><button data-opt="b">That four tickets have no blockers and can all be started on day one</button></li>
+        <li><button data-opt="a">That four of the tickets are larger than the others and should be split before an agent is given any of them</button></li>
+        <li><button data-opt="b">That four tickets have no blockers and can all be started on day one, before anything else has merged</button></li>
         <li><button data-opt="c">The maximum number of tickets that could be handed to concurrent agent sessions at one moment</button></li>
         <li><button data-opt="d">The number of layers in the application plus one for the tests</button></li>
       </ol>
@@ -166,9 +166,9 @@ wave 5  #13  #14  #15
       <p class="q-text">2. Why does <code>seed/SPEC.md</code> single out #14 (<code>stats --by-tag</code>) as the clearest example of why a linear reading misleads?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Its numbering neighbour (the <code>stats</code> command) is one parent, but its other parent is tag persistence, far away in a different layer</button></li>
-        <li><button data-opt="b">It is the only ticket in the backlog that has two blocking parents</button></li>
-        <li><button data-opt="c">It is blocked by a ticket with a higher number than itself, which GitHub disallows</button></li>
-        <li><button data-opt="d">It is in wave 5, so it is the last ticket that can ever be started</button></li>
+        <li><button data-opt="b">It is the only ticket in the backlog that has two blocking parents, so it is the only place a join can be seen at all</button></li>
+        <li><button data-opt="c">It is blocked by a ticket with a higher number than itself, which GitHub disallows, so the edge had to be recorded with <code>gh api</code> instead of the <code>--blocked-by</code> flag</button></li>
+        <li><button data-opt="d">It is in wave 5, so it is the last ticket that can ever be started, and its number (<code>#14</code>) says nothing about that</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> Reading the list in number order, #14 looks ready as soon as #11 lands. The graph shows the storage parent. Five tickets have two parents (B is false), GitHub accepts any edge direction (C), and wave 5 has three tickets (D).</p>
@@ -178,9 +178,9 @@ wave 5  #13  #14  #15
     <div class="q" data-answer="d">
       <p class="q-text">3. The page says the waves were "machine-checked, twice." What did the second check add?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Confirmation that the spec's table has no typos in the T-numbers</button></li>
-        <li><button data-opt="b">A faster algorithm than the first check, which had been done by hand</button></li>
-        <li><button data-opt="c">A check that the issue numbers match the T-numbers in the spec</button></li>
+        <li><button data-opt="a">Confirmation that the spec's table has no typos in the T-numbers, which the first check could not see because it read the prose</button></li>
+        <li><button data-opt="b">A faster algorithm than the first check, which had been done by hand from the table and took most of an afternoon</button></li>
+        <li><button data-opt="c">A check that the issue numbers match the T-numbers in the spec, one to one and in order</button></li>
         <li><button data-opt="d">Independence: it read the edges GitHub stores, proving the filing matched the spec's intent</button></li>
       </ol>
       <div class="q-why" hidden>

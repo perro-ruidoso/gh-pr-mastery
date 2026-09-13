@@ -160,12 +160,13 @@ load-bearing here. An Issue Dependency is a **graph** — an issue can be blocke
 and block many. A Sub-Issue is a **hierarchy** — one parent, up to eight levels deep. Five
 of the Seed Repo's fifteen tickets have *two* blockers, which a hierarchy structurally
 cannot express. Week 1 asks students only to *read* a dependency; Week 2 (M11) assesses
-the distinction. On `gh` 2.92.0 there was no `gh issue edit` flag for dependencies — they
+the distinction. Before `gh` 2.94.0 there was no `gh issue edit` flag for dependencies — they
 were reached through `gh api`, whose payload takes the blocker's **database id**, not its
 issue number. **`gh` 2.94.0 (2026-06-10) added `--blocked-by`, `--add-blocked-by`,
-`--parent`, `--add-sub-issue`, and `--type`**; Week 2 requires 2.94.0 or later and its
-pages were captured with 2.100.0. Upgrade the teaching machine before Week 2
-(`winget upgrade GitHub.cli`), and tell students to upgrade at the Week 1 meeting.
+`--parent`, `--add-sub-issue`, and `--type`**; Week 2 requires 2.94.0 or later. The teaching
+machine runs **2.100.0** (upgraded 2026-09-13 with `winget upgrade GitHub.cli`), which is the
+version every Week 2 transcript was captured with. Tell students to upgrade at the Week 1
+meeting; `instructors/student-setup.md` already asks for 2.94.0+.
 
 ---
 
@@ -184,8 +185,8 @@ first.
 | GitHub CLI (`gh`) | 2.60+ | `gh --version` |
 | Claude Code | current | `claude --version` |
 
-Reference state on the build machine **[run 2026-09-12]**: `gh` 2.92.0 (**too old for Week 2 — 2.94.0+ needed; see Part 10**), Python 3.14.4,
-git 2.52.0.windows.1, Claude Code 2.1.269.
+Reference state on the build machine **[run 2026-09-13]**: `gh` 2.100.0 (2026-09-03; it was 2.92.0 until the
+Week 1–2 audit upgraded it), Python 3.14.4, git 2.52.0.windows.1, Claude Code 2.1.269.
 
 ```bash
 # macOS
@@ -718,9 +719,12 @@ Three things to point at:
   It works for `gh issue view`, `gh pr list`, and `gh run list` too.
 
 One live-demo risk: `cli/cli` is a real, moving repository. PR 14398 was open on 2026-09-12
-and may have merged since. Re-run every command in this section the morning of the session,
-and if a number has gone stale, pick a current one with `gh pr list`. The Learning Pages
-carry the captured transcripts, so a stale live demo is an annoyance, not a gap.
+and was **closed unmerged on 2026-09-13** (`closedAt` `2026-09-13T06:06:03Z`); the M02 and
+M04 pages now show its `"state": "CLOSED"` and use it to make the point that closing changes
+`state` and nothing else, and the `gh pr list` listings were re-captured (#14373, #14355,
+#14351). Re-run every command in this section the morning of the session, and if a number
+has gone stale, pick a current one with `gh pr list`. The Learning Pages carry dated
+transcripts, so a stale live demo is an annoyance, not a gap.
 
 ### 7.4 Live demo: the exhibit (M06)
 
@@ -732,25 +736,33 @@ one observation: the PR merged at `15:55:40` and the issue closed at `15:55:42`.
 seconds.** Nobody closed that issue by hand — a linking keyword in the PR body closed it.
 
 Then show the same thing in this course's own repository, which is the exhibit A1 item 6
-actually points at **[run 2026-09-12]**:
+actually points at **[run 2026-09-12; re-run 2026-09-13]**:
 
 ```bash
 gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged \
   --json number,title,mergedAt,headRefName
 ```
 
-Four merged PRs: #3, #5, #6, #8. PR #3 merged at `15:27:45`; issue #1 closed at `15:27:46`
-— a **one-second gap**, the same evidence, produced here by a `Closes` keyword. Then show
-the dependency:
+Seven merged PRs as of 2026-09-13: #3, #5, #6, #8, #10, #12, #14. PR #3 merged at `15:27:45`;
+issue #1 closed at `15:27:46` — a **one-second gap**, the same evidence, produced here by a
+`Closes` keyword. PR #14 is the richer story and is now the page's second worked example: it
+was opened *stacked* on the Week 1 branch, its `Closes #13` was ignored while it targeted a
+non-default branch, it was retargeted to `main` at `15:40:05` (four seconds after #12
+merged), and on merge at `15:43:30` it closed #13 at `15:43:31`. Show the retarget from the
+timeline — `gh api repos/perro-ruidoso/gh-pr-mastery/issues/14/timeline --jq '.[] |
+select(.event=="base_ref_changed") | .created_at'` — because that is the M16 move students
+make in Week 3. Then show the dependency:
 
 ```bash
 gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by \
   --jq '.[] | "#\(.number) [\(.state)] \(.title)"'
 ```
 
-Issue #2 is recorded as blocked by #1 — a real Issue Dependency, the same mechanism the
-Seed Repo's backlog uses, which is what makes A1 item 6's second question answerable from
-data rather than from prose.
+Issue #2 is recorded as blocked by #1, and #13 by #11 (the same command with `13`) — real
+Issue Dependencies, the same mechanism the Seed Repo's backlog uses, which is what makes A1
+item 6's second question answerable from data rather than from prose. Every other issue
+returns `[]`; the page teaches students to report that as "no relation is recorded", not
+"it had no dependencies".
 
 **Be honest about the exhibit's limits, out loud.** The M06 page was rewritten specifically
 because it over-claimed: an earlier draft said each of the course's six units was filed as
@@ -763,7 +775,9 @@ repository's own process earns full marks on A1; the repository is an exhibit, n
 answer.
 
 As the history grows, re-audit M06's claims about what the repository demonstrates. That
-claim has to stay true.
+claim has to stay true. It was re-audited on 2026-09-13 (issue #15): the snapshot had gone
+stale at five PRs and one dependency edge, and the page's line that "the other issues have
+no recorded blockers" had become false the moment #13 was filed.
 
 ### 7.5 Per-objective teaching notes
 
@@ -1032,18 +1046,24 @@ and every Linear UI step (5.2).
 2. **Re-verify the vendor-behaviour rows in `NOTES.md`.** Those are the ones that move.
    Before each cohort, not once.
 3. **Re-audit M06's claims** against the course repo's history as it grows. The page
-   describes the history that actually exists; keep that true.
+   describes the history that actually exists; keep that true. Last done 2026-09-13
+   (issue #15, which also re-fetched every source, re-ran every transcript, and
+   render-tested every page — repeat that audit before each cohort).
 4. **Collect A1 write-ups into a calibration set.** Two or three good ones and one
    over-reading one make the Week 4 review objectives much easier to teach, because you can
    show the cohort its own work.
-5. **Week 2 is built** (M07–M12, twelve Learning Pages, `assignments/a2.md`,
-   `checkers/check_a2.py`). Three things it needs from you before it is taught: `gh` 2.94.0+
-   on every machine (the hub says so); the Linear live walk in item 1, because M12 quotes
-   the docs and says on the page that the UI has not been captured; and a decision on the
-   throwaway Instance `perro-ruidoso/flashcards-w2probe` (private) that its transcripts came
-   from — delete it, or keep it as a reference. Every student's Instance starts with **zero
-   issues**; A2 has them build their own backlog with `/to-spec` and `/to-tickets`, and the
-   Seed Repo's fifteen tickets are the exhibit they compare against.
+5. **Week 2 is built and audited** (M07–M12, twelve Learning Pages, `assignments/a2.md`,
+   `checkers/check_a2.py`; audit 2026-09-13, issue #15). Two things it still needs from you
+   before it is taught: `gh` 2.94.0+ on every *student* machine (the teaching machine is at
+   2.100.0; the hub and the setup handout say so), and the Linear live walk in item 1,
+   because M12 quotes the docs and says on the page that the UI has not been captured.
+   The throwaway Instance `perro-ruidoso/flashcards-w2probe` (private) that the M08/M11/M12
+   transcripts came from is still in the org: the build token has no `delete_repo` scope, so
+   delete it by hand — `gh auth refresh -s delete_repo && gh repo delete
+   perro-ruidoso/flashcards-w2probe --yes` — or from Settings → Danger Zone. Nothing on the
+   pages depends on it surviving. Every student's Instance starts with **zero issues**; A2
+   has them build their own backlog with `/to-spec` and `/to-tickets`, and the Seed Repo's
+   fifteen tickets are the exhibit they compare against.
 
 ---
 
@@ -1076,7 +1096,7 @@ grep -rn 'needs-triage' .
 
 # --- the Week 1 demos ---------------------------------------------------------
 gh pr list -R cli/cli --limit 3
-gh pr view 14398 -R cli/cli --json number,title,baseRefName,headRefName,changedFiles
+gh pr view 14398 -R cli/cli --json number,title,state,baseRefName,headRefName,changedFiles   # state is CLOSED since 2026-09-13
 gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged \
   --json number,title,mergedAt,headRefName
 gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by \

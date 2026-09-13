@@ -69,7 +69,7 @@ gitGraph
   </div>
 
   <h2>Reading base and head off a real pull request</h2>
-  <p>Here is an actual open pull request in the <code>cli/cli</code> repository — the GitHub CLI's own codebase — read from the terminal:</p>
+  <p>Here is an actual pull request in the <code>cli/cli</code> repository — the GitHub CLI's own codebase — read from the terminal on 2026-09-13:</p>
 
   <span class="code-label">$ gh pr view 14398 -R cli/cli --json number,title,state,isDraft,baseRefName,headRefName,changedFiles</span>
   <pre><code>{
@@ -78,9 +78,11 @@ gitGraph
   "headRefName": "issue-12195",
   "isDraft": false,
   "number": 14398,
-  "state": "OPEN",
+  "state": "CLOSED",
   "title": "Check for merged state when viewing a PR via the issues command"
 }</code></pre>
+
+  <p>This PR was open when the course first captured it on 2026-09-12 and was closed, unmerged, the next morning (<code>closedAt</code> <code>2026-09-13T06:06:03Z</code>, <code>mergedAt</code> <code>null</code>). Closing it changed <code>state</code> and nothing else: the two refs it names are still recorded, which is why the sentence below still reads the same. Run the command yourself and the only field that may have moved again is <code>state</code>.</p>
 
   <p>Read it as a sentence: <em>pull request 14398 proposes merging <code>issue-12195</code> into <code>trunk</code>.</em> That sentence — <em>head into base</em> — is the whole objective. If you can produce it for any PR from its <code>baseRefName</code> and <code>headRefName</code>, you have M02.</p>
 
@@ -130,9 +132,9 @@ gitGraph
       <p class="q-text">2. You open a PR, then push three more commits to your branch. What must you do to update the pull request?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Nothing — the PR tracks the head ref and updates itself</button></li>
-        <li><button data-opt="b">Close it and open a new one against the newer commits</button></li>
-        <li><button data-opt="c">Run <code>gh pr sync</code></button></li>
-        <li><button data-opt="d">Re-request review, which re-reads the branch</button></li>
+        <li><button data-opt="b">Close it and open a new one against the newer commits, since a PR is a snapshot of the branch at the time it was opened</button></li>
+        <li><button data-opt="c">Run <code>gh pr sync</code> to push the new commits into it</button></li>
+        <li><button data-opt="d">Re-request review, which re-reads the branch and refreshes the diff</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> A pull request is a live comparison between two refs, not an uploaded snapshot. Pushing to the head branch updates the PR by definition. (Re-requesting review is a social act — it tells a human to look again — and does not change what the PR contains.)</p>
@@ -142,10 +144,10 @@ gitGraph
     <div class="q" data-answer="d">
       <p class="q-text">3. A reviewer wants "the diff that reviewers use to understand the proposed changes." Which tab is that, in GitHub's own description?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Conversation</button></li>
-        <li><button data-opt="b">Commits</button></li>
-        <li><button data-opt="c">Checks</button></li>
-        <li><button data-opt="d">Files changed</button></li>
+        <li><button data-opt="a">Conversation, with the timeline and reviews</button></li>
+        <li><button data-opt="b">Commits, one diff per commit</button></li>
+        <li><button data-opt="c">Checks, the automated validations</button></li>
+        <li><button data-opt="d">Files changed, the proposal as one diff</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>D.</strong> Files changed is the diff. Conversation holds the description, timeline, comments, and reviews; Commits shows how the branch changed over time (each commit's diff, not the whole proposal); Checks shows automated validations. Knowing which tab answers which question is what lets you read a PR quickly.</p>
@@ -155,8 +157,8 @@ gitGraph
     <div class="q" data-answer="c">
       <p class="q-text">4. <code>gh pr view 14398 -R cli/cli --json baseRefName</code> prints <code>"trunk"</code>. What should you conclude?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The PR is malformed and should be retargeted at <code>main</code></button></li>
-        <li><button data-opt="b">The head branch is called <code>trunk</code> and the base is unknown</button></li>
+        <li><button data-opt="a">The PR is malformed and should be retargeted at <code>main</code> before anyone reviews it, because a base must be the default branch</button></li>
+        <li><button data-opt="b">The head branch is called <code>trunk</code> and the base is unknown, because <code>baseRefName</code> reports the head</button></li>
         <li><button data-opt="c">This repository's PR targets a branch named <code>trunk</code>; nothing says a base must be called <code>main</code></button></li>
         <li><button data-opt="d">The PR is a draft, because drafts always target a non-default branch</button></li>
       </ol>
@@ -212,7 +214,7 @@ gitGraph
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/mermaid.min.js"></script>
 <script src="../../assets/app.js"></script>

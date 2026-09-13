@@ -110,10 +110,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">1. Which repository do you push your own work to during this course?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a"><code>perro-ruidoso/gh-pr-mastery</code>, the course repository</button></li>
-        <li><button data-opt="b"><code>perro-ruidoso/flashcards-seed</code>, the template repository</button></li>
+        <li><button data-opt="a"><code>perro-ruidoso/gh-pr-mastery</code>, the course repo</button></li>
+        <li><button data-opt="b"><code>perro-ruidoso/flashcards-seed</code>, the template</button></li>
         <li><button data-opt="c"><code>perro-ruidoso/flashcards-&lt;handle&gt;</code>, your Instance</button></li>
-        <li><button data-opt="d"><code>perro-ruidoso/flashcards-upstream</code>, the shared repository</button></li>
+        <li><button data-opt="d"><code>perro-ruidoso/flashcards-upstream</code>, the shared repo</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The Instance is the only one of the three that is yours. You read the course repo and analyse its history; you copy the template but never push to it. The upstream repo does become a push target — but not until Week 5, and even then as a shared repository with its own rules.</p>
@@ -123,9 +123,9 @@
     <div class="q" data-answer="d">
       <p class="q-text">2. Your organization membership is set to Private. What breaks later?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">You cannot clone the course repositories</button></li>
-        <li><button data-opt="b">Your commits stop appearing in your contributions graph</button></li>
-        <li><button data-opt="c">Nothing — visibility is purely cosmetic</button></li>
+        <li><button data-opt="a">You cannot clone the course repositories any more, because a private member is treated as an outsider by <code>git</code> over HTTPS</button></li>
+        <li><button data-opt="b">Your commits stop appearing in your contributions graph, and the org's activity feed stops attributing pull requests to you</button></li>
+        <li><button data-opt="c">Nothing — visibility is purely cosmetic and no tool reads it</button></li>
         <li><button data-opt="d">Tools that check whether the org grants you write access cannot see it, and may refuse to act on your comments</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -136,10 +136,10 @@
     <div class="q" data-answer="a">
       <p class="q-text">3. <code>gh</code> refuses a command and mentions a missing scope. What is the cheapest correct fix?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a"><code>gh auth refresh -s &lt;scope&gt;</code></button></li>
-        <li><button data-opt="b">Log out and run <code>gh auth login</code> from scratch</button></li>
+        <li><button data-opt="a"><code>gh auth refresh -s &lt;scope&gt;</code>, adding the one scope</button></li>
+        <li><button data-opt="b">Log out and run <code>gh auth login</code> again</button></li>
         <li><button data-opt="c">Create a personal access token by hand and export it</button></li>
-        <li><button data-opt="d">Ask an org owner to grant you admin</button></li>
+        <li><button data-opt="d">Ask an org owner to grant you <code>admin</code></button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> <code>gh auth refresh -s</code> adds scopes to the token you already have, without a full re-login. B works but is needless; C bypasses the credential store you already have; D confuses a <em>token scope</em> (what your token is permitted to ask for) with a <em>repository permission</em> (what your account is allowed to do) — they are different things, and only the first is yours to change.</p>
@@ -149,9 +149,9 @@
     <div class="q" data-answer="b">
       <p class="q-text">4. You run <code>gh auth refresh --remove-scopes repo</code>. What happens?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The <code>repo</code> scope is removed and private repositories become unreadable</button></li>
+        <li><button data-opt="a">The <code>repo</code> scope is removed and every private repository becomes unreadable until you add it back</button></li>
         <li><button data-opt="b">Nothing is removed — <code>repo</code> is part of the minimum set that cannot be taken away</button></li>
-        <li><button data-opt="c">The token is deleted and you are logged out of GitHub entirely</button></li>
+        <li><button data-opt="c">The token is deleted and you are logged out of GitHub entirely, because a token without <code>repo</code> is invalid</button></li>
         <li><button data-opt="d">All scopes are reset to the defaults for your login flow</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -208,7 +208,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

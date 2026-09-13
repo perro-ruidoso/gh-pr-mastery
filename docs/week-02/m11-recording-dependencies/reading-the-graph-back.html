@@ -150,8 +150,8 @@ graph LR
     <div class="q" data-answer="d">
       <p class="q-text">2. You record #2 as blocked by #5 while #5 is already (transitively) blocked by #2. What happens?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">GitHub rejects the edge with a validation error naming the cycle</button></li>
-        <li><button data-opt="b">GitHub accepts it and automatically removes the older edge to break the cycle</button></li>
+        <li><button data-opt="a">GitHub rejects the edge with a validation error naming the cycle, the same way it rejects a self-dependency</button></li>
+        <li><button data-opt="b">GitHub accepts it and automatically removes the older edge to break the cycle, keeping the graph a DAG</button></li>
         <li><button data-opt="c">GitHub accepts it and marks both issues with a warning in the sidebar</button></li>
         <li><button data-opt="d">GitHub accepts it silently; the backlog now has a cycle only your own check will find</button></li>
       </ol>
@@ -163,10 +163,10 @@ graph LR
     <div class="q" data-answer="c">
       <p class="q-text">3. Where should the Mermaid graph of a decomposition live, and why?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">In each ticket's body, so every agent session sees the whole graph</button></li>
+        <li><button data-opt="a">In each ticket's body, so every agent session sees the whole graph without having to open the spec</button></li>
         <li><button data-opt="b">In <code>README.md</code>, so it is rendered on the repository's front page</button></li>
         <li><button data-opt="c">In the spec issue's body, because the spec is the parent every ticket points at</button></li>
-        <li><button data-opt="d">In a wiki page, because Mermaid renders only in wikis and Markdown files</button></li>
+        <li><button data-opt="d">In a wiki page, because Mermaid renders only in wikis and Markdown files, not in issue bodies</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The spec is where someone looking for the shape of the work arrives, via any ticket's <code>parent</code>. Per ticket (A) is fifteen copies to keep in sync; the README (B) outlives the decomposition; and Mermaid renders in issues (D is false).</p>
@@ -177,8 +177,8 @@ graph LR
       <p class="q-text">4. Why does <code>waves_from_github.py</code> skip issues that have sub-issues by default?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">They are parents (specs), not tickets; with no blockers they would appear as a false wave-1 node</button></li>
-        <li><button data-opt="b">GitHub's API does not return <code>blockedBy</code> for issues that have sub-issues</button></li>
-        <li><button data-opt="c">Kahn's algorithm cannot process a node with more than eight children</button></li>
+        <li><button data-opt="b">GitHub's API does not return <code>blockedBy</code> for issues that have sub-issues, so the script cannot place them</button></li>
+        <li><button data-opt="c">Kahn's algorithm cannot process a node with more than eight children, and a spec routinely has more than that</button></li>
         <li><button data-opt="d">Parent issues are always closed, and the script lists only open issues</button></li>
       </ol>
       <div class="q-why" hidden>

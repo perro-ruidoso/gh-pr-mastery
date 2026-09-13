@@ -99,9 +99,9 @@
     <div class="q" data-answer="b">
       <p class="q-text">1. Which of these is an acceptance criterion in the sense this page means?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">"The scheduler is implemented cleanly and follows the project's conventions"</button></li>
+        <li><button data-opt="a">"The scheduler is implemented cleanly in <code>scheduler.py</code> and follows the project's conventions throughout"</button></li>
         <li><button data-opt="b">"<code>review(card, 5, today)</code> on a card with interval 5 and ease 2.5 returns interval 13"</button></li>
-        <li><button data-opt="c">"The scheduler handles all grades from 0 to 5 correctly and robustly"</button></li>
+        <li><button data-opt="c">"The scheduler handles all grades from 0 to 5 correctly and robustly, including the ones the ADR does not mention"</button></li>
         <li><button data-opt="d">"The scheduler is tested thoroughly, including the important edge cases"</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -112,8 +112,8 @@
     <div class="q" data-answer="d">
       <p class="q-text">2. Why does this course name a test file path in acceptance criteria when <span class="skill">/to-tickets</span> warns that file paths "go stale fast"?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because the skill's advice applies only to local-markdown trackers, not GitHub</button></li>
-        <li><button data-opt="b">Because the rubric requires a file path in every acceptance-criteria section</button></li>
+        <li><button data-opt="a">Because the skill's advice applies only to local-markdown trackers, not GitHub, where paths are rendered as links and kept current</button></li>
+        <li><button data-opt="b">Because the rubric requires a file path in every acceptance-criteria section, and the rubric outranks the skill</button></li>
         <li><button data-opt="c">Because test paths never change once the layered layout is fixed</button></li>
         <li><button data-opt="d">Because the test is part of the deliverable, so where "done" is checked has to be stated</button></li>
       </ol>
@@ -126,9 +126,9 @@
       <p class="q-text">3. Ticket #5 says "until then the command takes the first card." What job is that sentence doing?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Stating the stub behaviour so the ticket is completable before its neighbour (T05) lands</button></li>
-        <li><button data-opt="b">Declaring a dependency on T05 that should also be recorded as an issue dependency</button></li>
-        <li><button data-opt="c">Adding an acceptance criterion that the reviewer must verify with a test</button></li>
-        <li><button data-opt="d">Documenting a known bug that a later ticket is expected to fix</button></li>
+        <li><button data-opt="b">Declaring a dependency on T05 that should also be recorded as an issue dependency, since the sentence names work that must happen first</button></li>
+        <li><button data-opt="c">Adding an acceptance criterion that the reviewer must verify with a test before the ticket can be closed</button></li>
+        <li><button data-opt="d">Documenting a known bug that a later ticket is expected to fix, so nobody files it twice</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> It sits under Out of scope and makes the fence usable: the implementer knows what to do at the boundary without doing the neighbour's work. It is not a dependency (B) — #5 is blocked by #2 and #3, not by T05 — and it is not a bug (D); it is a decided interim behaviour.</p>

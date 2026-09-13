@@ -13,7 +13,9 @@ sections. Several URLs first recorded here now redirect (HTTP 200 via 301) to ne
 addresses, and in at least one case the wording the lessons quoted changed with the move — see
 `NOTES.md`. Rows below carry the canonical URL; Week 1 pages cite the canonical URL and were
 re-quoted from the fetched text. Week 2's rows were re-checked on 2026-09-13 (two more
-redirects, noted inline). Re-check the remaining rows before writing Weeks 3–6.
+redirects, noted inline). The whole table was re-fetched again in the 2026-09-13 Week 1–2 audit:
+three Week 3–5 rows (base branch, reviewing, CI) had moved and now carry their canonical URLs;
+every other row answered 200 with no redirect. Re-check again before writing Weeks 3–6.
 
 | Resource | URL | Used in |
 |---|---|---|
@@ -30,9 +32,9 @@ redirects, noted inline). Re-check the remaining rows before writing Weeks 3–6
 | REST API endpoints for sub-issues (`sub_issue_id`, `replace_parent`) | https://docs.github.com/en/rest/issues/sub-issues | M11 |
 | Creating diagrams (Mermaid in Markdown) | https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams | M11 |
 | Linking a pull request to an issue | https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue | M15 |
-| Changing the base branch of a pull request | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-base-branch-of-a-pull-request | M16 |
-| Reviewing proposed changes in a pull request | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request | M19, M20 |
-| About continuous integration with GitHub Actions | https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration | M25 |
+| Changing the base branch of a pull request — moved to `how-tos/` 2026-09-13 | https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-base-branch-of-a-pull-request | M16 |
+| Reviewing proposed changes in a pull request — moved to `how-tos/review-pull-requests/` 2026-09-13 | https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request | M19, M20 |
+| Continuous integration (Actions "get started") — formerly "About continuous integration with GitHub Actions" | https://docs.github.com/en/actions/get-started/continuous-integration | M25 |
 | About rulesets | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets | M26 |
 | About protected branches | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches | M26 |
 | About code owners | https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners | M27 |

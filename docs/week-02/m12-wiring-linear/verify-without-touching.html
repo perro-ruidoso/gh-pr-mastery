@@ -103,8 +103,8 @@
       <p class="q-text">2. The Linear copy did not move when you closed the GitHub issue. What is the right next step?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Drag the Linear card to Done so the two systems agree, then continue</button></li>
-        <li><button data-opt="b">Delete the Linear workspace and reconnect from scratch</button></li>
-        <li><button data-opt="c">Close the issue again from the Linear side to trigger the sync</button></li>
+        <li><button data-opt="b">Delete the Linear workspace and reconnect from scratch, since a sync that misses one event cannot be trusted with the next</button></li>
+        <li><button data-opt="c">Close the issue again from the Linear side to trigger the sync in the other direction, then run <code>gh issue view</code> to confirm</button></li>
         <li><button data-opt="d">Check the sync direction and status mapping in the integration settings, reopen with <code>gh</code>, retry</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -116,8 +116,8 @@
       <p class="q-text">3. What can <code>check_a2.py</code> verify about M12, and what can it not?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">It can see the GitHub side — the probe issue, its close reason, its comment; it cannot see Linear at all</button></li>
-        <li><button data-opt="b">It can query Linear's API with the same token, so it checks both sides</button></li>
-        <li><button data-opt="c">It can see Linear's copy through the sync bot's comments on the GitHub issue</button></li>
+        <li><button data-opt="b">It can query Linear's API with the same token, so it checks both sides and compares the status of each copy</button></li>
+        <li><button data-opt="c">It can see Linear's copy through the sync bot's comments on the GitHub issue, which mirror every status change</button></li>
         <li><button data-opt="d">It verifies nothing for M12; the objective is graded entirely by the rubric</button></li>
       </ol>
       <div class="q-why" hidden>

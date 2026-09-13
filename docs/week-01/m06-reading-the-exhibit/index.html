@@ -97,6 +97,56 @@ graph LR
     <span class="caption">One unit of work, reconstructed from two <code>gh</code> commands. The dotted edge is automation, not a person.</span>
   </div>
 
+  <h2>A second worked example, from this course's own repository</h2>
+  <p>The course repository is built with the workflow it teaches, so it has a story of the same shape — with one extra move in it. Read on 2026-09-13, after the fact:</p>
+
+  <span class="code-label">$ gh pr view 14 -R perro-ruidoso/gh-pr-mastery --json number,title,state,baseRefName,headRefName,createdAt,mergedAt,closingIssuesReferences --jq '{number,title,state,baseRefName,headRefName,createdAt,mergedAt,closingIssuesReferences:[.closingIssuesReferences[].number]}'</span>
+  <pre><code>{
+  "number": 14,
+  "title": "Build Week 2: hub, Learning Pages for M07-M12, A2, and check_a2.py",
+  "state": "MERGED",
+  "baseRefName": "main",
+  "headRefName": "13-week2-pages",
+  "createdAt": "2026-09-13T15:06:47Z",
+  "mergedAt": "2026-09-13T15:43:30Z",
+  "closingIssuesReferences": [13]
+}</code></pre>
+
+  <span class="code-label">$ gh api repos/perro-ruidoso/gh-pr-mastery/issues/14/timeline --jq '.[] | select(.event=="base_ref_changed" or .event=="merged") | "\(.created_at)  \(.event)"'</span>
+  <pre><code>2026-09-13T15:40:05Z  base_ref_changed
+2026-09-13T15:43:30Z  merged</code></pre>
+
+  <span class="code-label">$ gh issue view 13 -R perro-ruidoso/gh-pr-mastery --json number,state,closedAt,stateReason</span>
+  <pre><code>{"closedAt":"2026-09-13T15:43:31Z","number":13,"state":"CLOSED","stateReason":"COMPLETED"}</code></pre>
+
+  <p>Two more facts complete the picture, both from artifacts you can fetch yourself: PR #12 (the Week 1 rebuild, closing #11) merged at <strong>15:40:01</strong>, and PR #14's body opens with <em>"Closes #13. Stacked on #12 — the base branch is <code>11-week1-pages-flashcards-learn-more</code>"</em>. The <code>gh pr view</code> above shows <code>baseRefName: "main"</code>, so the base changed at some point; the timeline says exactly when.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Observation</th><th>Inference</th></tr></thead>
+      <tbody>
+        <tr><td>PR body says the base was another PR's branch; <code>baseRefName</code> is now <code>main</code>; a <code>base_ref_changed</code> event at <strong>15:40:05</strong></td><td>This was a <strong>stacked</strong> pull request that was <strong>retargeted</strong> to <code>main</code> — four seconds after its parent #12 merged at 15:40:01. Week 3 (M16) teaches this move; here is what it leaves behind.</td></tr>
+        <tr><td>PR merged <strong>15:43:30</strong>; issue #13 closed <strong>15:43:31</strong>, <code>stateReason: COMPLETED</code></td><td>One second. The merge closed the issue via the <code>Closes #13</code> keyword — the same mechanism as <code>cli/cli</code> above, on a repository you can read every byte of.</td></tr>
+        <tr><td><code>closingIssuesReferences: [13]</code> today; the PR body records that it was <strong>empty</strong> while the base was the Week 1 branch</td><td>GitHub ignores closing keywords on a PR that does not target the default branch, and starts honouring them once it does. The retarget is what made the link — and therefore the auto-close — happen. Neither the field nor the timestamp gap would exist without it.</td></tr>
+        <tr><td><code>headRefName</code> is <code>13-week2-pages</code></td><td>Branch named after its issue, number first — the same legibility as <code>…validate-issue-14404</code>, in a different naming convention.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  I11["Issue #11"] --> P12["PR #12<br/>base: main"]
+  I13["Issue #13<br/>blocked by #11"] --> P14["PR #14<br/>base: 11-week1-… → main"]
+  P12 -->|merged 15:40:01| M["main"]
+  P12 -.->|"closes 15:40:03"| C11["#11 closed"]
+  P12 -.->|"retarget 15:40:05"| P14
+  P14 -->|merged 15:43:30| M
+  P14 -.->|"closes 15:43:31"| C13["#13 closed"]
+    </pre>
+    <span class="caption">Two units of work, one stacked on the other. Every dotted edge is automation or a single click, and every timestamp comes from an artifact on this page.</span>
+  </div>
+
   <div class="callout note">
     <span class="label">Observation, then inference — in that order</span>
     <p>Every row in the table has two columns for a reason. The left column is something a command printed; the right column is what you conclude from it. Keeping them apart is the whole discipline of this objective, and it is what the A1 rubric grades. The <a href="the-method.html">next page</a> turns the two columns into a repeatable method with four questions.</p>
@@ -108,9 +158,9 @@ graph LR
     <div class="q" data-answer="b">
       <p class="q-text">1. A PR merged at 15:55:40 and its linked issue closed at 15:55:42. What does the two-second gap tell you?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Someone was watching and closed the issue very quickly</button></li>
+        <li><button data-opt="a">Someone was watching the pull request and closed the issue very quickly by hand the moment the merge went through</button></li>
         <li><button data-opt="b">The issue was closed automatically by the merge, via a linking keyword in the PR body</button></li>
-        <li><button data-opt="c">The clocks on the two records are unsynchronised</button></li>
+        <li><button data-opt="c">The clocks on the two records are unsynchronised, so the gap is measurement noise and tells you nothing</button></li>
         <li><button data-opt="d">The issue was closed first, and the PR merged in response</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -121,9 +171,9 @@ graph LR
     <div class="q" data-answer="d">
       <p class="q-text">2. Which claim is fully supported by <code>"isCrossRepository": false</code>?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The author is a member of the organisation</button></li>
-        <li><button data-opt="b">The PR was reviewed by a maintainer</button></li>
-        <li><button data-opt="c">The repository does not accept outside contributions</button></li>
+        <li><button data-opt="a">The author is a member of the organisation that owns the repository</button></li>
+        <li><button data-opt="b">The PR was reviewed by a maintainer before it merged</button></li>
+        <li><button data-opt="c">The repository does not accept outside contributions, which is why no fork was involved</button></li>
         <li><button data-opt="d">The head branch lives in the base repository, not in a fork</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -134,10 +184,10 @@ graph LR
     <div class="q" data-answer="c">
       <p class="q-text">3. An issue carries the labels <code>bug</code>, <code>priority-3</code>, and <code>gh-pr</code>. What is each one doing?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">All three are severities, from most to least urgent</button></li>
-        <li><button data-opt="b">They are three synonyms applied by three different people</button></li>
+        <li><button data-opt="a">All three are severities, from most (<code>bug</code>) to least (<code>gh-pr</code>) urgent</button></li>
+        <li><button data-opt="b">They are three synonyms for "needs attention" applied by three different people who did not check the existing labels</button></li>
         <li><button data-opt="c">A kind (<code>bug</code>), a rank (<code>priority-3</code>), and an area of the codebase (<code>gh-pr</code>)</button></li>
-        <li><button data-opt="d">Triage states from the five-label state machine</button></li>
+        <li><button data-opt="d">Triage states from the five-label state machine, renamed for <code>cli/cli</code></button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> Three independent axes on one issue — which is how a small label set stays filterable. None of them is a triage <em>state</em> in the M05 sense; a repo can use kind/rank/area labels <em>and</em> a state vocabulary side by side, and reading which axis a label belongs to is part of reading the exhibit.</p>
@@ -148,9 +198,9 @@ graph LR
       <p class="q-text">4. The head branch is named <code>williammartin-validate-issue-14404</code>. What is the <em>defensible</em> inference?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The branch was named after the issue it serves, so the link is legible before opening anything</button></li>
-        <li><button data-opt="b">The branch was created with <code>gh issue develop</code>, which always produces this exact name</button></li>
-        <li><button data-opt="c">The author is the repository's owner</button></li>
-        <li><button data-opt="d">The PR must be the only one that touched issue 14404</button></li>
+        <li><button data-opt="b">The branch was created with <code>gh issue develop</code>, which always produces this exact name from the issue number</button></li>
+        <li><button data-opt="c">The author is the repository's owner, since only an owner may name a branch after themselves</button></li>
+        <li><button data-opt="d">The PR must be the only one that touched issue 14404, because a branch name can be used once</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> The name contains the issue number; that is all the artifact shows. <em>How</em> the branch was created (B) is not recoverable from its name alone, the author's role (C) needs the <code>author</code> field and the org's membership, and D is a claim about other PRs you have not looked at. State what the artifact supports and stop.</p>
@@ -191,8 +241,8 @@ graph LR
     <h2>Sources for this page</h2>
     <ul>
       <li><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a> — <code>closingIssuesReferences</code>, <code>isCrossRepository</code>, <code>reviewDecision</code>, <code>statusCheckRollup</code>; the field list was re-captured 2026-09-12</li>
-      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a> — the keywords behind automatic closure, taught properly in Week 3</li>
-      <li>The worked example is <a href="https://github.com/cli/cli/issues/14404">cli/cli#14404</a> and <a href="https://github.com/cli/cli/pull/14429">cli/cli#14429</a>, read 2026-09-12. Every figure quoted was captured from the commands shown.</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a> — the keywords behind automatic closure, taught properly in Week 3 — including the rule the second example turns on: "If the pull request targets any other branch, then these keywords are ignored, no links are created, and merging the PR has no effect on the issues."</li>
+      <li>The first worked example is <a href="https://github.com/cli/cli/issues/14404">cli/cli#14404</a> and <a href="https://github.com/cli/cli/pull/14429">cli/cli#14429</a>, read 2026-09-12 and re-read unchanged 2026-09-13. The second is <a href="https://github.com/perro-ruidoso/gh-pr-mastery/pull/14">perro-ruidoso/gh-pr-mastery#14</a> and <a href="https://github.com/perro-ruidoso/gh-pr-mastery/issues/13">#13</a>, read 2026-09-13. Every figure quoted was captured from the commands shown.</li>
     </ul>
   </section>
 
@@ -203,7 +253,7 @@ graph LR
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/mermaid.min.js"></script>
 <script src="../../assets/app.js"></script>

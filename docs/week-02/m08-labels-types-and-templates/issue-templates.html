@@ -121,10 +121,10 @@ ticket.md</code></pre>
     <div class="q" data-answer="b">
       <p class="q-text">1. Claude Code files a ticket in your Instance with <code>gh issue create --title … --body-file …</code>. Which of these shaped the body?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The <code>.github/ISSUE_TEMPLATE/ticket.md</code> file, applied automatically on creation</button></li>
+        <li><button data-opt="a">The <code>.github/ISSUE_TEMPLATE/ticket.md</code> file, applied automatically on creation to any issue whose body lacks the headings</button></li>
         <li><button data-opt="b">What the agent had read — <code>CLAUDE.md</code> and the skill's own issue template — not the repository template</button></li>
-        <li><button data-opt="c">The <code>config.yml</code> in the template folder, which sets the default body for the API</button></li>
-        <li><button data-opt="d">GitHub's default issue form, which every API-created issue passes through</button></li>
+        <li><button data-opt="c">The <code>config.yml</code> in the template folder, which sets the default body for the API and for <code>gh</code></button></li>
+        <li><button data-opt="d">GitHub's default issue form, which every API-created issue passes through before it is stored</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> A template pre-fills an interactive editor and is refused alongside <code>--body-file</code> ("not supported when using <code>--body</code> or <code>--body-file</code>"). Nothing is applied automatically to API-created issues (A, D), and <code>config.yml</code> only configures the chooser (C).</p>
@@ -134,8 +134,8 @@ ticket.md</code></pre>
     <div class="q" data-answer="d">
       <p class="q-text">2. You add a template on a feature branch and open the repository's issue chooser. What do you see?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The new template, because GitHub reads templates from every branch</button></li>
-        <li><button data-opt="b">The new template, but only for collaborators with write access</button></li>
+        <li><button data-opt="a">The new template, because GitHub reads templates from every branch and merges the results into one chooser</button></li>
+        <li><button data-opt="b">The new template, but only for collaborators with write access, since they can see the feature branch</button></li>
         <li><button data-opt="c">An error, because templates on non-default branches are invalid</button></li>
         <li><button data-opt="d">No change — a template takes effect once merged into the default branch</button></li>
       </ol>
@@ -148,9 +148,9 @@ ticket.md</code></pre>
       <p class="q-text">3. Why does the course template leave the Acceptance criteria section as a description rather than a filled-in example?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">A pre-filled criterion gets submitted unread; the section is the part M07 grades the author on writing</button></li>
-        <li><button data-opt="b">GitHub strips checklist items from templates, so an example would not survive</button></li>
+        <li><button data-opt="b">GitHub strips checklist items from templates when it renders the chooser, so an example would not survive to the form</button></li>
         <li><button data-opt="c">Front matter cannot coexist with checklist syntax in a Markdown template</button></li>
-        <li><button data-opt="d">Examples would make the file longer than the size limit for templates</button></li>
+        <li><button data-opt="d">Examples would make the file longer than the size limit GitHub imposes on issue templates in the chooser</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> <code>seed/SPEC.md</code> §8 makes it a rule: templates "must not pre-fill the acceptance criteria M07 asks students to write." The other options describe restrictions that do not exist.</p>

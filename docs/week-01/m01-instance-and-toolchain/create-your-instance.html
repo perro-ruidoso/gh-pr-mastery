@@ -114,10 +114,10 @@
     <div class="q" data-answer="b">
       <p class="q-text">2. Why does this course insist your Instance be <strong>public</strong>?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">So other students can copy your solutions</button></li>
+        <li><button data-opt="a">So other students in the cohort can open your repository, read your solutions, and copy the parts they are stuck on</button></li>
         <li><button data-opt="b">Because merge queue is unavailable on a private repository outside GitHub Enterprise Cloud, and Week 5 requires one</button></li>
-        <li><button data-opt="c">Because the <code>gh</code> CLI cannot read private repositories</button></li>
-        <li><button data-opt="d">Because GitHub Actions does not run on private repositories</button></li>
+        <li><button data-opt="c">Because the <code>gh</code> CLI can only read private repositories with a token scope the course does not grant you</button></li>
+        <li><button data-opt="d">Because GitHub Actions does not run at all on private repositories, and Week 5 depends on CI</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> Merge queue is available in any public repository owned by an organization, but for a private repository it requires GitHub Enterprise Cloud — so M29 would be unreachable on a private Instance. Public repositories also run Actions for free. (C is false — <code>gh</code> reads private repos fine; D is false — Actions runs on private repos, it just consumes metered minutes.)</p>
@@ -127,10 +127,10 @@
     <div class="q" data-answer="b">
       <p class="q-text">3. When would a <strong>fork</strong> be the right choice instead of a template copy?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">When you want a clean history that starts with your own first commit</button></li>
+        <li><button data-opt="a">When you want a clean history that starts with your own first commit rather than inheriting every commit the original has</button></li>
         <li><button data-opt="b">When you intend to send changes back to the original as a cross-repository pull request</button></li>
         <li><button data-opt="c">When you want your commits to appear in your contributions graph</button></li>
-        <li><button data-opt="d">When you want GitHub Actions to run without consuming metered minutes</button></li>
+        <li><button data-opt="d">When you want GitHub Actions to run on your copy without consuming metered minutes</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> A fork stays linked to its parent, and that link is what a cross-repository pull request rides on — which is exactly what Week 6's fork drill needs. A and C are properties of the <em>template</em> path, and D depends on visibility, not on how the repository was created.</p>
@@ -140,8 +140,8 @@
     <div class="q" data-answer="d">
       <p class="q-text">4. Immediately after creating your Instance, <code>gh label list</code> shows ten labels you never made. Where did they come from?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">They were copied from the template repository along with its files</button></li>
-        <li><button data-opt="b">The course organization pushes a label set to every repository it owns</button></li>
+        <li><button data-opt="a">They were copied from the template repository along with its files, because a template copies everything it owns</button></li>
+        <li><button data-opt="b">The course organization pushes a label set to every repository it owns, the moment the repository is created</button></li>
         <li><button data-opt="c">The <code>--clone</code> flag imports labels alongside the working copy</button></li>
         <li><button data-opt="d">GitHub gives every new repository its default label set, regardless of how it was created</button></li>
       </ol>
@@ -199,7 +199,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

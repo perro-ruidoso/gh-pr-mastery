@@ -99,9 +99,9 @@
     <div class="q" data-answer="d">
       <p class="q-text">1. What is the strongest claim the <code>ready-for-agent</code> label makes?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">That an agent, rather than a human, must implement it</button></li>
-        <li><button data-opt="b">That the issue has been reviewed by a maintainer</button></li>
-        <li><button data-opt="c">That the work is small</button></li>
+        <li><button data-opt="a">That an agent, rather than a human, must implement it, and that a human who picks it up is breaking the convention</button></li>
+        <li><button data-opt="b">That the issue has been reviewed by a maintainer and is approved for work, which is why the label is applied last</button></li>
+        <li><button data-opt="c">That the work is small enough to finish in one sitting</button></li>
         <li><button data-opt="d">That a fresh session with no memory of the originating conversation could execute it with no further human context</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -126,7 +126,7 @@
       <p class="q-text">3. <code>gh label create wontfix</code> fails with "already exists" on a brand-new Instance you have not touched. Why?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The setup skill created it when it wrote <code>triage-labels.md</code></button></li>
-        <li><button data-opt="b">The template repository's labels were copied into your Instance</button></li>
+        <li><button data-opt="b">The template repository's labels were copied into your Instance along with its files when you ran <code>gh repo create --template</code></button></li>
         <li><button data-opt="c"><code>wontfix</code> is in GitHub's default label set, which every new repository receives</button></li>
         <li><button data-opt="d">Another student's label creation leaked across the organization</button></li>
       </ol>
@@ -138,9 +138,9 @@
     <div class="q" data-answer="b">
       <p class="q-text">4. Which layout do you choose in Decision C for your Instance, and what signals the other one?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Multi-context, because the app has separate domain, storage, and CLI layers</button></li>
+        <li><button data-opt="a">Multi-context, because the app has separate <code>domain</code>, <code>storage</code>, and <code>cli</code> layers, and each layer is a bounded context</button></li>
         <li><button data-opt="b">Single-context — one <code>CONTEXT.md</code> and <code>docs/adr/</code> at the root; a <code>CONTEXT-MAP.md</code> would signal multi-context</button></li>
-        <li><button data-opt="c">Multi-context, because the template ships more than one markdown file</button></li>
+        <li><button data-opt="c">Multi-context, because the template ships more than one markdown file under <code>docs/</code>, and each one is a context</button></li>
         <li><button data-opt="d">Single-context, because the skill does not support anything else</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -198,7 +198,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>
