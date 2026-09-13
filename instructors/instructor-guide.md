@@ -184,7 +184,7 @@ first.
 | GitHub CLI (`gh`) | 2.60+ | `gh --version` |
 | Claude Code | current | `claude --version` |
 
-Reference state on the build machine **[run 2026-09-12]**: `gh` 2.92.0, Python 3.14.4,
+Reference state on the build machine **[run 2026-09-12]**: `gh` 2.92.0 (**too old for Week 2 — 2.94.0+ needed; see Part 10**), Python 3.14.4,
 git 2.52.0.windows.1, Claude Code 2.1.269.
 
 ```bash

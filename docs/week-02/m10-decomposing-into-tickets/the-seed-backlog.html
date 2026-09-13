@@ -37,21 +37,23 @@
   <p>One command lists every open issue with the issues that block it. The <code>blockedBy</code> field arrived in <code>gh</code> 2.94.0; on the Seed Repo it returns this (issue numbers, not the spec's T-numbers — the tickets were filed in dependency order, so the two do not line up, and that is deliberate):</p>
 
   <span class="code-label">$ gh issue list -R perro-ruidoso/flashcards-seed --limit 30 --json number,title,blockedBy --jq 'sort_by(.number)[] | "#\(.number)\t\(.title)\tblocked by: \([.blockedBy.nodes[].number] | map("#\(.)") | join(", "))"'</span>
-  <pre><code>#1	Add review state to Card: repetitions, ease factor, interval, due date	blocked by:
-#2	Persist review state in the deck file	blocked by: #1
-#3	SM-2 scheduler: next interval and ease update	blocked by: #1
-#4	Tag field on Card	blocked by: #1
-#5	`review` command: one card, prompt, grade, schedule	blocked by: #3, #2
-#6	Due-date filtering: select only cards due today	blocked by: #3
-#7	Tag persistence in the deck file	blocked by: #2, #4
-#8	Session stats aggregation	blocked by: #2
-#9	`review --limit N`	blocked by: #6, #5
-#10	`add` command with `--tags`	blocked by: #7
-#11	`stats` command	blocked by: #8
-#12	CSV import, including a tags column	blocked by: #7
-#13	`review --tag &lt;tag&gt;`	blocked by: #9, #10
-#14	`stats --by-tag`	blocked by: #7, #11
-#15	`export --format json|csv`	blocked by: #12</code></pre>
+  <pre><code>#1   Add review state to Card: repetitions, ease factor, interval, due date  blocked by:
+#2   Persist review state in the deck file                                   blocked by: #1
+#3   SM-2 scheduler: next interval and ease update                           blocked by: #1
+#4   Tag field on Card                                                       blocked by: #1
+#5   `review` command: one card, prompt, grade, schedule                     blocked by: #3, #2
+#6   Due-date filtering: select only cards due today                         blocked by: #3
+#7   Tag persistence in the deck file                                        blocked by: #2, #4
+#8   Session stats aggregation                                               blocked by: #2
+#9   `review --limit N`                                                      blocked by: #6, #5
+#10  `add` command with `--tags`                                             blocked by: #7
+#11  `stats` command                                                         blocked by: #8
+#12  CSV import, including a tags column                                     blocked by: #7
+#13  `review --tag &lt;tag&gt;`                                                    blocked by: #9, #10
+#14  `stats --by-tag`                                                        blocked by: #7, #11
+#15  `export --format json|csv`                                              blocked by: #12</code></pre>
+
+  <p><small>Columns aligned for display; <code>gh</code> separates them with tabs.</small></p>
 
   <p>Read the layers off the titles: <code>Card</code> and <em>scheduler</em> and <em>filtering</em> and <em>aggregation</em> are <strong>domain</strong>; <em>persist</em>, <em>deck file</em>, <em>CSV</em> are <strong>storage</strong>; anything in backticks is a <strong>cli</strong> command. Now notice that the vertical slices are not single tickets but short <em>chains</em>: #1 → #2 → #5 is one tracer bullet (state, saved, used by a command) broken into three tickets so each lands green on its own and so #3 can proceed in parallel with #2.</p>
 

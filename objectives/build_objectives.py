@@ -57,7 +57,7 @@ OBJECTIVES = [
      "Create", "A2 (rubric)", "mattpocock/skills: to-tickets"),
     ("M11", 2, "Work dependencies",
      "Record work dependencies as GitHub issue dependencies via the gh CLI, distinguish them from sub-issues and say why a sub-issue cannot express a two-parent join, and render the resulting graph as a Mermaid diagram.",
-     "Apply", "A2 (checker)", "GitHub Docs: Issue dependencies REST API; Adding sub-issues"),
+     "Apply", "A2 (checker)", "GitHub Docs: Creating issue dependencies; Adding sub-issues; Issue dependencies REST API"),
     ("M12", 2, "PM integration",
      "Connect Linear to the Instance and verify that issues and PRs appear and update without manual touching.",
      "Apply", "A2 (checker)", "Linear Docs: GitHub integration"),
