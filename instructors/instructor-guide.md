@@ -55,52 +55,51 @@ mention it beyond "later" in Week 1; the M01 page already handles it.
 
 M01's page calls conflating these "the single most common Week 1 mistake." Believe it.
 
-### 0.3 Four decisions you owe before students arrive
+### 0.3 Four decisions: three made on 2026-09-13, one still owed
 
-These are open in `NOTES.md` and `roadmap/roadmap.docx`. Two of them block Week 1.
+These were open in `NOTES.md` and `roadmap/roadmap.docx`. The reasoning behind each is in
+`NOTES.md`; this is what was decided and what it obliges you to do.
 
-**(a) Org plan: pay for Team seats, or downgrade to Free? — blocks inviting students.**
-The org is on GitHub Team with 2 seats, 1 filled **[run 2026-09-12]**:
+**(a) Org plan — decided: stay on Team for now. Consequence: buy seats before inviting.**
+The org is on GitHub Team with 2 seats, 1 filled **[run 2026-09-12, unchanged 2026-09-13]**:
 
 ```bash
 $ gh api orgs/perro-ruidoso --jq '{login,plan:.plan.name,seats:.plan.seats,filled:.plan.filled_seats}'
 {"filled":1,"login":"perro-ruidoso","plan":"team","seats":2}
 ```
 
-A cohort of 8–14 plus you needs 9–15 seats at $4/user/month. **Recommendation: downgrade
-to Free before inviting.** `adr/0003` establishes that downgrading costs the curriculum
-nothing — every gate the course actually uses (rulesets, required checks, required
-reviews, conversation resolution, merge queue) works on a **public** repository at either
-tier, and all course repos are public by requirement. If you would rather not touch
-billing mid-build, staying on Team is harmless except to your wallet; nothing in the
-curriculum depends on it either way. What you must not do is leave the org at 2 seats and
-discover it while inviting fourteen people.
+A cohort of 8–14 plus you needs 9–15 seats at $4/user/month, and invitations beyond the
+seat count will not go through. Add the seats under organization → **Settings** →
+**Billing and licensing** before Part 3.3. Nothing in the curriculum depends on the plan:
+every gate the course uses (rulesets, required checks, required reviews, conversation
+resolution, merge queue) works on a **public** repository at either tier, which is why
+downgrading to Free remains the recommendation to revisit before cohort 2 (`adr/0003`).
 
-**(b) The fifth triage label is free — affects A1 grading, not the mechanics.**
-A1 item 4 asks students to create five triage labels, but `wontfix` is in GitHub's
-default label set and arrives on **every** new repository, template-derived or not. This
-was established by experiment, not assumed **[run 2026-09-12]**:
+**(b) The fifth triage label is free — decided: accept it.** A1 item 4 asks students to
+create five triage labels, but `wontfix` is in GitHub's default label set and arrives on
+**every** new repository, template-derived or not. Established by experiment, not assumed
+**[run 2026-09-12]**:
 
 ```bash
 $ gh label list --repo perro-ruidoso/flashcards-seed --json name --jq '[.[].name]|join(", ")'
 accessibility, bug, documentation, duplicate, enhancement, good first issue, help wanted, invalid, question, wontfix
 ```
 
-So the item genuinely assesses **four** labels. No change to the template can fix it.
-Three options, from `NOTES.md`: accept it; rename the fifth role to something outside the
-defaults (`declined`), which costs a change to the Pocock skill's own vocabulary; or make
-`check_a1.py` assert `wontfix` was *edited* (colour or description changed from GitHub's
-default) as evidence of deliberate handling. **Recommendation for cohort 1: accept it,
-and say so out loud in class.** It is a live example of a spec meeting a platform default
-— exactly the kind of thing this course trains people to notice. Changing the shared label
-vocabulary to win one rubric point is not worth the blast radius.
+So the item assesses **four** labels, and now says so: `check_a1.py` grades the four a
+student creates under "Triage labels (4 created + 1 default)" and reports `wontfix` as a
+`note` (failing only if a student deleted it, since the mapping file names it). Renaming
+the role would have forked the course from the Pocock skill's own vocabulary, and asserting
+an edit would have graded a colour change rather than understanding. **Say it out loud in
+class:** it is a live example of a spec meeting a platform default — exactly the kind of
+thing this course trains people to notice.
 
-**(c) Does Linear's Free plan include GitHub Issues Sync? — blocks Week 2 (M12), not
-Week 1.** Unresolved. See Part 5. You have until Week 2 to answer it; do it during Week 1
-so it is never urgent.
+**(c) Does Linear's Free plan include GitHub Issues Sync? — decided: yes, on the evidence
+of the pricing page; M12 is written on the Free assumption.** See 5.3. One five-minute
+live check in a real Free workspace remains, and it fits when you create your own
+workspace in 5.2.
 
 **(d) Can your Claude Pro subscription absorb the cohort's CI review volume, or do you
-need Max?** A Week 5 question, measured during the Week 5 dry run. Ignore it for now.
+need Max?** Still open. A Week 5 question, measured during the Week 5 dry run.
 
 ### 0.4 Time budget for standing the course up
 
@@ -109,7 +108,7 @@ need Max?** A Week 5 question, measured during the Week 5 dry run. Ignore it for
 | Your machine (Part 2) | 30–45 min |
 | Org setup and invitations (Part 3) | 30 min, plus waiting on students |
 | Verifying the infrastructure end to end (Part 4) | 45 min — **do not skip this** |
-| Linear (Part 5) | 45 min, most of it resolving decision (c) |
+| Linear (Part 5) | 30 min, including the one live check left from decision (c) |
 | Preparing the Week 1 session (Part 7) | 2 hrs the first time |
 | Grading A1 for 12 students (Part 8) | ~15 min of script + ~10 min per write-up |
 
@@ -263,8 +262,8 @@ npx skills@latest add mattpocock/skills
 ```
 
 This writes the skills into the repo as ordinary files you own and can edit; nothing
-updates behind your back. Choose this only if you intend to modify a skill — for example,
-if you take option (b) on decision 0.3 and rename the fifth triage label. If you do,
+updates behind your back. Choose this only if you intend to modify a skill — the course
+does not (decision 0.3(b) kept the skill's label vocabulary intact). If you do,
 **make sure `setup-matt-pocock-skills` is among the skills you select**; the installer
 lets you pick, and A1 fails without it.
 
@@ -360,6 +359,11 @@ cheap and means the invitation flow runs once rather than twice. Web UI: organiz
 **Teams** → **New team** → name it `cohort-2026`, visibility **Visible**.
 
 ### 3.3 Invite students
+
+**First, seats.** The org is on GitHub Team with 2 seats (decision 0.3(a)); a Team org
+cannot hold more members than it has seats. Add enough for the cohort plus yourself under
+organization → **Settings** → **Billing and licensing** before sending a single invitation,
+and confirm with `gh api orgs/perro-ruidoso --jq '.plan'`.
 
 You need each student's **GitHub handle** (or email). Collect handles at enrolment — the
 checker is keyed on the handle, so collecting them early saves a round trip later.
@@ -529,7 +533,7 @@ UI is that screenshots rot, so Week 2's Learning Pages will carry dated captures
 `docs/assets/shots/` rather than prose. Walk the flow yourself and note what the current UI
 actually says.
 
-### 5.3 The two capabilities, and the open question
+### 5.3 The two capabilities, and the plan question
 
 Confirmed from Linear's own documentation **[verified 2026-09-12 against `linear.app/docs/github`]**:
 
@@ -540,13 +544,17 @@ Confirmed from Linear's own documentation **[verified 2026-09-12 against `linear
    labels, and comments between a Linear team and a GitHub repo. It "only syncs issues
    going forward" — pre-existing issues do not backfill.
 
-**Open:** Linear's documentation does not state which **plan** includes Issues Sync. M12
-currently assumes a student on Free can complete the wiring. **Confirm this against
-`linear.app/pricing` with a real Free workspace before Week 2's M12 is written.** If Sync
-turns out to be paid-only, M12 falls back to PR/commit linking alone — which is sufficient
-for the status-automation objective M34 — and Week 6's sync content becomes something you
-demo rather than something students do. Record the answer in `NOTES.md` with its date, and
-delete the open question.
+**Which plan includes Issues Sync?** The integration page does not say, but the pricing
+page does **[fetched 2026-09-13 from `linear.app/pricing`]**: "Issue sync" is a Core
+feature on every plan, Free included, and the only plan-gated GitHub items in the docs are
+GitHub Enterprise Cloud support (Enterprise plan) and AI-written titles from magic words
+(Business and Enterprise). Free's real limits are **2 teams** and **250 issues** — one
+Instance is one team and a 15-ticket backlog, nowhere near either. **M12 is therefore
+written on the Free assumption** (decision 0.3(c)). What is left is a five-minute live
+check in your own Free workspace: Settings → Integrations → GitHub → the *GitHub Issues*
+section shows a **+** to link a repo. Do it in 5.2 and add the date to `NOTES.md`. Should
+it ever fail, the fallback is unchanged: M12 uses PR/commit linking alone — sufficient for
+the status-automation objective M34 — and Week 6's sync content becomes a demo.
 
 ### 5.4 What to tell students in Week 1
 
@@ -593,7 +601,8 @@ Tell them to finish it **before** the first meeting and to bring the output of
 | `/setup-matt-pocock-skills` not found | Skills not installed, or installed for a different agent | `/plugin install mattpocock-skills`, restart `claude` |
 | Every skill appears twice | Both install routes used | Remove one; keep the plugin |
 | `gh label create` errors on `wontfix` | It is a GitHub default and already exists | Harmless — see decision 0.3(b) |
-| Checker reports labels missing seconds after creation | Propagation delay | Wait, re-run |
+| Checker reports labels missing seconds after creation | Propagation delay | The checker retries three times over ~9 s; if it still fails, wait and re-run |
+| Checker fails `Label wontfix` | Student deleted the default label | `gh label create wontfix`; the mapping file names it |
 | Multi-line commands fail on Windows | `\` line continuation is bash; PowerShell uses a backtick | Put it on one line, or use Git Bash |
 | A1's `for L in ...` label loop fails | It is bash | Use the PowerShell form in the student handout |
 | Org membership check fails though they accepted | Membership still private | People → their row → **Public** |
@@ -893,7 +902,8 @@ failure means "nothing to grade yet," not "two problems."
 | File `docs/agents/triage-labels.md` | 3 | present on the default branch |
 | File `docs/agents/domain.md` | 3 | present on the default branch |
 | `CLAUDE.md` has `## Agent skills` | 3 | that literal heading appears |
-| Triage labels (5) | 4 | all five label strings exist |
+| Triage labels (4 created + 1 default) | 4 | the four labels a student creates exist; retried over ~9 s to cover propagation lag |
+| Label wontfix | 4 | present — a neutral note, since GitHub supplies it; **fails** only if the student deleted it |
 | `a1-writeup.md` present | 6 | present at the repo root |
 | Write-up length | 6 | ≥ 250 words |
 | Terminal evidence pasted | 5 | the text contains both `"baseRefName"` and `"headRefName"` |
@@ -966,7 +976,7 @@ Consolidated. Each is written up in `NOTES.md` with its source and date.
 1. **`wontfix` is free.** GitHub's default label set — `accessibility`, `bug`,
    `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`,
    `invalid`, `question`, `wontfix` — arrives on every new repository. A1 item 4 therefore
-   assesses four labels, not five. Decision 0.3(b).
+   assesses four labels, not five, and the checker now says so. Decision 0.3(b), accepted.
 2. **Label propagation lag.** Labels take a few seconds to appear on a newly created
    repository. Do not grade immediately after a student creates their Instance.
 3. **`templateRepository` has no `nameWithOwner`.** Already fixed in `check_a1.py`; recorded
@@ -983,10 +993,14 @@ Consolidated. Each is written up in `NOTES.md` with its source and date.
    the payload takes the blocker's **database id** (`gh api repos/O/R/issues/N --jq .id`),
    not the issue number. Week 2 content; Week 1 students only read dependencies.
 
+**Decided, with a consequence to act on**
+
+7. Linear Free includes Issues Sync per the pricing page — Part 5.3. M12 is written on that
+   basis; one live check in a Free workspace remains.
+8. Org stays on Team for now — decision 0.3(a). **Buy seats before inviting** (3.3).
+
 **Unresolved**
 
-7. Linear Free plan and Issues Sync — Part 5.3. Blocks M12's final wording.
-8. Org plan, Team versus Free — decision 0.3(a). Blocks inviting students.
 9. Whether a Pro subscription absorbs the cohort's CI review volume, or Max is needed —
    Week 5 dry run.
 
@@ -1008,8 +1022,8 @@ and every Linear UI step (5.2).
 
 ## Part 10 — Before you teach Week 2
 
-1. **Resolve decision 0.3(c)** — Linear Free and Issues Sync. It is the only open question
-   that blocks Week 2 content, and it takes a Free workspace and ten minutes.
+1. **Do the live Issues Sync check** left from decision 0.3(c) — Settings → Integrations →
+   GitHub in your Free workspace, five minutes — and date it in `NOTES.md`.
 2. **Re-verify the vendor-behaviour rows in `NOTES.md`.** Those are the ones that move.
    Before each cohort, not once.
 3. **Re-audit M06's claims** against the course repo's history as it grows. The page

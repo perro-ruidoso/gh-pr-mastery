@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Target — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M06 · Page 3 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>Your Target: This Course's Own Repository</h1>
+  <p class="lede">The repository holding these pages was built with the workflow it teaches. Read its history — all of it, including the parts that show nothing — and write up one pull request for A1.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M06 · Evidence</span>
+      <span class="chip bloom">Bloom: Analyze</span>
+      <span class="chip assessed">Assessed by: A1 (written)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Read the course repo's own issue graph and PR history as an exhibit and describe the workflow that produced it.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M06 pages</span>
+    <a href="index.html"><span class="num">1</span>Reading the Exhibit</a>
+    <a href="the-method.html"><span class="num">2</span>The Method</a>
+    <span class="here"><span class="num">3</span>Your Target</span>
+  </nav>
+
+  <h2>What is there to read</h2>
+  <p><code>perro-ruidoso/gh-pr-mastery</code> is being built using the workflow this course teaches: work is filed as an issue, built on a branch, opened as a pull request, and merged, with blocking relations recorded on the issues rather than only described in prose. That was done deliberately so you would have a real example to read in Week 1 — including the parts that went sideways.</p>
+
+  <p><strong>Be honest about how much history is there.</strong> The course is being written as you take it, so the repository's history is short and growing, and it is not uniformly dogfooded — the first commit is a squashed import of everything that existed before the repo had version control at all. That is itself worth reading: a single enormous initial commit tells you nothing about how the work was done, which is exactly why the commits after it are structured differently. Do not describe process the artifacts do not show.</p>
+
+  <h2>A snapshot, so you know what "reading it" looks like</h2>
+  <p>Here is the merged-PR history as it stood when this page was written. Yours will be longer; run the command and compare.</p>
+
+  <span class="code-label">$ gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged --json number,title,mergedAt,headRefName,closingIssuesReferences --jq '.[] | "\(.number)\t\(.mergedAt)\t\(.headRefName)\tcloses \([.closingIssuesReferences[].number])"'</span>
+  <pre><code>10  2026-09-12T17:01:49Z  9-no-instructor-guide-the-course-cannot-be-taught-…  closes [9]
+8   2026-09-12T16:33:38Z  7-build-roadmap                                       closes [7]
+6   2026-09-12T16:07:27Z  4-context-dependency-vocabulary                       closes [4]
+5   2026-09-12T15:31:40Z  2-a1-exhibit-target                                   closes [2]
+3   2026-09-12T15:27:45Z  1-org-qualify-references                              closes [1]</code></pre>
+
+  <span class="code-label">$ gh issue list --repo perro-ruidoso/gh-pr-mastery --state all --json number,state,closedAt --jq '.[] | "#\(.number)\t\(.state)\t\(.closedAt)"'</span>
+  <pre><code>#9  CLOSED  2026-09-12T17:01:50Z
+#7  CLOSED  2026-09-12T16:33:39Z
+#4  CLOSED  2026-09-12T16:07:28Z
+#2  CLOSED  2026-09-12T15:31:41Z
+#1  CLOSED  2026-09-12T15:27:46Z</code></pre>
+
+  <h3>What the snapshot supports</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Observation</th><th>Inference</th></tr></thead>
+      <tbody>
+        <tr><td>Five merged PRs; every one has a non-empty <code>closingIssuesReferences</code></td><td>The unit of work is one issue → one PR, at least so far. (Five is the whole population here, not a sample — say so.)</td></tr>
+        <tr><td>PR #3 merged <strong>15:27:45</strong>; issue #1 closed <strong>15:27:46</strong>. PR #10 merged <strong>17:01:49</strong>; issue #9 closed <strong>17:01:50</strong></td><td>One-second gaps, every time. The issues were closed by the merges via linking keywords — the same evidence as the <code>cli/cli</code> two-second gap on page 1, produced by the same mechanism.</td></tr>
+        <tr><td>Head branches are named <code>1-org-qualify-references</code>, <code>2-a1-exhibit-target</code>, … — issue number first</td><td>Branches were named after their issues. Week 3 (M13) teaches the tool that produces this shape; the name alone does not prove which tool was used.</td></tr>
+        <tr><td>Issue numbers 1, 2, 4, 7, 9 — and PR numbers 3, 5, 6, 8, 10</td><td>One shared number space (M05). The gaps in the issue list are not missing issues; they are pull requests.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Where the blocking relations live</h2>
+  <p>A blocking relation is stored on the <em>issue</em>, not on the pull request, and it is reached through an API endpoint rather than a <code>gh issue</code> flag:</p>
+
+  <span class="code-label">$ gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by --jq '.[] | "#\(.number) [\(.state)] \(.title)"'</span>
+  <pre><code>#1 [closed] Org-qualify course-repo references now that the repo has an address</code></pre>
+
+  <p>Issue #2 was recorded as blocked by #1. Run the same command for the other issues and you will find they have no recorded blockers — which is a finding too, and worth stating precisely: <em>"no blocking relation is recorded for #4, #7, or #9"</em>, not <em>"they had no dependencies."</em></p>
+
+  <div class="callout warn">
+    <span class="label">Dependencies are not sub-issues</span>
+    <p>That endpoint is GitHub's <strong>issue dependencies</strong> feature, which is not the same thing as a <strong>sub-issue</strong>. A sub-issue is a <em>hierarchy</em> — one parent, many children, up to eight levels — so it cannot express a ticket blocked by two others. A dependency is a <em>graph</em>: an issue may be blocked by many and block many. The Seed Repo's backlog has five tickets with two blockers each, which is the concrete reason the two mechanisms are not interchangeable (Week 2, M11). Naming which mechanism recorded the relation, and how you checked, is worth more than naming the blocker.</p>
+  </div>
+
+  <div class="exhibit">
+    <span class="label">Your assignment target</span>
+    <p>Pick <strong>one merged pull request</strong> in <code>perro-ruidoso/gh-pr-mastery</code> and write roughly 300 words answering: what did it change, what was it blocked by, and <em>how can you tell</em>? Every claim must name the artifact that supports it — a field in <code>--json</code> output, a linked issue number, a timestamp, a review thread. Put it in <code>a1-writeup.md</code> at the root of your Instance; the full brief is <a href="../../../assignments/a1.md"><code>assignments/a1.md</code></a>.</p>
+    <p>Some things you might notice: which issues have blocking edges declared; whether a PR's base was <code>main</code> or another feature branch; whether any issue was closed by hand rather than by a merge; how long the gap was between a PR opening and its first review; what <code>reviewDecision</code> says on a repository with, so far, one maintainer.</p>
+    <p>Start here:</p>
+    <pre><code>$ gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged \
+    --json number,title,mergedAt,headRefName
+
+$ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked_by \
+    --jq '.[] | "#\(.number) [\(.state)] \(.title)"'</code></pre>
+  </div>
+
+  <p>You may find decisions in there you disagree with. Say so — a well-argued criticism of the course repository's own process earns full marks, provided it is grounded in what the artifacts show. PR #5, for instance, exists because an earlier version of <em>this page</em> claimed more process than the repository could demonstrate; the issue that fixed it is #2, and you can read the whole correction in the diff.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <label class="check"><input type="checkbox"><span>Ran the merged-PR listing against the course repo and compared it with the snapshot above.</span></label>
+    <label class="check"><input type="checkbox"><span>Queried <code>dependencies/blocked_by</code> for every issue and recorded which have blockers and which have none.</span></label>
+    <label class="check"><input type="checkbox"><span>Chose one merged PR in the course repository as my A1 subject.</span></label>
+    <label class="check"><input type="checkbox"><span>Wrote ~300 words in <code>a1-writeup.md</code> where every claim names the artifact supporting it.</span></label>
+    <label class="check"><input type="checkbox"><span>Included at least one sentence about what the artifacts do <em>not</em> show.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Where is a blocking relation between two issues stored, and how do you read it?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">On the pull request, in <code>closingIssuesReferences</code></button></li>
+        <li><button data-opt="b">In the issue body, as a "Blocked by" line that GitHub parses</button></li>
+        <li><button data-opt="c">On the issue, via <code>gh api repos/O/R/issues/N/dependencies/blocked_by</code></button></li>
+        <li><button data-opt="d">On the branch, encoded in the branch name</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Issue dependencies are a property of the issue and are reached through the REST endpoint; there is no <code>gh issue</code> flag for them yet. A "Blocked by" line in a body is prose — GitHub does not act on it. The PR's closing references bind the PR to the issue it closes, which is a different relation.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Why can a sub-issue not express "ticket T04 is blocked by both T02 and T03"?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Sub-issues are limited to eight per parent</button></li>
+        <li><button data-opt="b">A sub-issue is a hierarchy with at most one parent, so an issue cannot sit under two blockers</button></li>
+        <li><button data-opt="c">Sub-issues can only be created from the web UI</button></li>
+        <li><button data-opt="d">Sub-issues are closed automatically when their parent closes</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> One parent, many children — a tree, not a graph. Two blockers is a join, and a tree has no joins. (The real limits are up to 100 sub-issues per parent and eight <em>levels</em> of nesting; the CLI supports them fine; and closing a parent does not close its children.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. The course repo's first commit is a squashed import of 31 files. What does it tell you about how that work was done?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">That the work was done in a single sitting</button></li>
+        <li><button data-opt="b">That no issues were filed for it</button></li>
+        <li><button data-opt="c">That it was not reviewed</button></li>
+        <li><button data-opt="d">Nothing — a squashed import records the result and erases the process, so say exactly that</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> One commit is one observation: the files arrived together. It does not show whether there were issues, drafts, reviews, or weeks of work behind it — the squash removed that information. The honest sentence is "the initial commit demonstrates nothing about process," which is also why the commits after it are structured to demonstrate something.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">4. You query <code>dependencies/blocked_by</code> for issue #7 and get an empty list. Which write-up sentence is defensible?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">"No blocking relation is recorded for #7."</button></li>
+        <li><button data-opt="b">"#7 had no dependencies on other work."</button></li>
+        <li><button data-opt="c">"#7 could have been started at any time."</button></li>
+        <li><button data-opt="d">"The author forgot to record #7's dependencies."</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The endpoint tells you what was <em>recorded</em>. B and C claim facts about the work itself that the artifact cannot show; D asserts a motive. Same rule as the review-comments case on the previous page: report the absence, not a story about it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m06-target">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Endpoint that lists the issues blocking issue <em>N</em> in <em>O/R</em>?</div><div class="fc-back"><code>gh api repos/O/R/issues/N/dependencies/blocked_by</code>. Stored on the issue, not the PR. No <code>gh issue</code> flag exists for it as of <code>gh</code> 2.92.</div></div>
+      <div class="fc"><div class="fc-front"><strong>Issue Dependency</strong> vs <strong>Sub-Issue</strong> — graph or hierarchy?</div><div class="fc-back">Dependency = graph (blocked by many, blocking many). Sub-issue = hierarchy (one parent, up to eight levels). Only the graph can express a two-blocker join.</div></div>
+      <div class="fc"><div class="fc-front">In the course repo, PR #3 merged at 15:27:45. When did issue #1 close, and what does that show?</div><div class="fc-back">15:27:46 — one second later. Closed by the merge via a linking keyword, the same mechanism as <code>cli/cli</code>'s two-second gap.</div></div>
+      <div class="fc"><div class="fc-front">Issue numbers 1, 2, 4, 7, 9 and PR numbers 3, 5, 6, 8, 10. Why the gaps?</div><div class="fc-back">One shared number space — the "missing" issue numbers are pull requests.</div></div>
+      <div class="fc"><div class="fc-front">What does the course repo's squashed initial commit tell you about process?</div><div class="fc-back">Nothing. It records the result and erases the process — and the honest write-up says exactly that.</div></div>
+      <div class="fc"><div class="fc-front"><code>blocked_by</code> returns <code>[]</code> for an issue. The defensible sentence?</div><div class="fc-back">"No blocking relation is <em>recorded</em> for #N." Not "it had no dependencies," and not a story about why.</div></div>
+      <div class="fc"><div class="fc-front">A1 item 6: what do you write, how long, and where does it go?</div><div class="fc-back">~300 words on one merged PR in <code>perro-ruidoso/gh-pr-mastery</code> — what changed, what blocked it, how you can tell — every claim naming its artifact, in <code>a1-writeup.md</code> at your Instance's root.</div></div>
+      <div class="fc"><div class="fc-front">Is criticising the course repository's own process allowed in A1?</div><div class="fc-back">Yes — a well-argued criticism earns full marks, provided it is grounded in what the artifacts show.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>The most useful question to ask Claude Code here is an adversarial one: paste your finished write-up and say "For each claim, tell me which <code>gh</code> command would prove it, and flag any claim no command could prove." Then cut or repair the flagged sentences. Bring anything still unclear — or any disagreement with how this repository was run — to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/issues/issue-dependencies">GitHub Docs: REST API endpoints for issue dependencies</a><span class="why">The <code>blocked_by</code> and <code>blocking</code> routes, and the detail that the payload for adding an edge takes the blocker's <em>database id</em>, not its number. You will use this in Week 2.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">GitHub Docs: Adding sub-issues</a><span class="why">The other mechanism, so you can see for yourself why it is a tree. Note the limits: 100 per parent, eight levels.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_api">GitHub CLI manual: <code>gh api</code></a><span class="why">How to reach any endpoint with your existing <code>gh</code> auth, including <code>--jq</code> on the response and <code>-X POST</code> for Week 2.</span></li>
+      <li><span class="tier">Course</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery">perro-ruidoso/gh-pr-mastery</a><span class="why">The exhibit itself. Read the Pull requests tab and the Issues tab side by side with the CLI output, and notice what each surface hides.</span></li>
+      <li><span class="tier">Course</span><a href="../../../CONTEXT.md">The course <code>CONTEXT.md</code></a><span class="why">The entries for <em>Work Dependency</em>, <em>Issue Dependency</em>, and <em>Sub-Issue</em> — the vocabulary your write-up should use, and the story of how PR #6 sharpened it.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li>The snapshot transcripts were captured by running the commands shown against <a href="https://github.com/perro-ruidoso/gh-pr-mastery">perro-ruidoso/gh-pr-mastery</a> on 2026-09-12; the repository has grown since, and the point of the page is that you run them again.</li>
+      <li><a href="https://docs.github.com/en/rest/issues/issue-dependencies">GitHub Docs: REST API endpoints for issue dependencies</a> — the routes were also probed live against <code>cli/cli</code>; the probe is recorded in the course's <code>NOTES.md</code></li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">GitHub Docs: Adding sub-issues</a> — "up to 100 sub-issues per parent," "up to eight levels of nesting"; verified 2026-09-12</li>
+      <li><a href="../../../assignments/a1.md">Assignment A1</a> — item 6 and its rubric</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="the-method.html"><span class="dir">Previous · M06, page 2</span>The Method</a>
+    <a class="next" href="../index.html"><span class="dir">Finish</span>Back to the Week 1 hub</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

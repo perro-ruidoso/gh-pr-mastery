@@ -17,7 +17,7 @@ HERE = Path(__file__).resolve().parent
 
 TITLE = "GitHub Pull Requests for Agentic Coders"
 SUBTITLE = "Build roadmap"
-AS_OF = "2026-09-12"
+AS_OF = "2026-09-13"
 
 ACCENT = RGBColor(0x6D, 0x4A, 0xB8)
 MUTED = RGBColor(0x66, 0x66, 0x66)
@@ -47,9 +47,11 @@ SECTIONS = [
              "MISSION.md, CONTEXT.md, NOTES.md, RESOURCES.md, ADRs 0001-0004, and the "
              "M01-M36 mastery-objectives workbook with its generator."),
             ("DONE", "Week 1 vertical slice",
-             "Course Home, the Week 1 hub, six Learning Pages (M01-M06), assignment A1 "
-             "with its rubric, and two checkers. Every terminal transcript was captured "
-             "from a real command run against a real repository."),
+             "Course Home, the Week 1 hub, thirteen Learning Pages across M01-M06 (one "
+             "folder per objective: an index.html entry page plus supporting pages, each "
+             "with a Self-Check, a flashcard deck, and a where-to-learn-more list), "
+             "assignment A1 with its rubric, and two checkers. Every terminal transcript "
+             "was captured from a real command run against a real repository."),
             ("DONE", "Seed Repo: perro-ruidoso/flashcards-seed",
              "Public, template flag set, CI green in 24s on Python 3.12. Tracer bullet "
              "only -- Card/Deck, json_store, `flashcards list` -- so the backlog is "
@@ -106,27 +108,37 @@ SECTIONS = [
              "capture dates, because they rot."),
             ("TODO", "Student roster tooling",
              "handles.txt and a batch run of check_a1.py across the cohort."),
+            ("DONE", "check_a1.py grades four labels and notes wontfix",
+             "Follows from the triage-label decision. The item now reads 'Triage "
+             "labels (4 created + 1 default)', wontfix is a note unless deleted, and "
+             "gh label list is retried over ~9 s to cover propagation lag. Exercised "
+             "against flashcards-seed and a nonexistent repo."),
+            ("TODO", "Confirm Issues Sync live in a Free Linear workspace",
+             "Settings > Integrations > GitHub > GitHub Issues shows the + to link a "
+             "repo. Do it when the instructor workspace is created (guide Part 5.2), "
+             "before M12 is finalised."),
         ],
     ),
     (
-        "Decisions you owe",
-        "None of these are mine to make, and each blocks something concrete.",
+        "Decisions",
+        "Three were made on 2026-09-13; one is still owed. The reasoning is in NOTES.md.",
         [
-            ("DECIDE", "Linear Free plan: does it include GitHub Issues Sync?",
-             "Blocks the final wording of M12, the last objective of Week 2. If Sync is "
-             "paid-only, M12 falls back to PR/commit linking alone and Week 6's sync "
-             "content becomes instructor-demoed. Confirm against linear.app/pricing with "
-             "a real Free workspace."),
-            ("DECIDE", "Org plan: pay for Team seats, or downgrade to Free?",
-             "perro-ruidoso is on Team with 2 seats, 1 filled. A cohort of 8-14 plus the "
-             "instructor needs 9-15 at $4/user/month. Downgrading costs the curriculum "
-             "nothing -- every gate the course uses works on a public repo at either "
-             "tier. Decide before inviting students."),
-            ("DECIDE", "The fifth triage label is free",
-             "wontfix is in GitHub's default label set, so A1 item 4 assesses four "
-             "labels, not five, and no change to the template can fix it. Options: "
-             "accept it; rename the fifth role to something outside the defaults; or "
-             "have check_a1.py assert the label was deliberately edited."),
+            ("DONE", "Org plan: stay on Team for now",
+             "Decided 2026-09-13. Re-checked: still Team, 2 seats, 1 filled. Nothing in "
+             "the curriculum depends on the tier, so the consequence is operational: "
+             "seats must be bought before inviting (see below). Downgrading to Free "
+             "remains the recommendation to revisit before cohort 2."),
+            ("DONE", "The fifth triage label is free: accepted",
+             "Decided 2026-09-13. wontfix is a GitHub default, so A1 item 4 assesses "
+             "four labels, not five, and the checker and A1 now say so. Renaming the "
+             "role would fork the Pocock skill's vocabulary; asserting an edit would "
+             "grade a colour change, not understanding."),
+            ("DONE", "Linear Free includes GitHub Issues Sync",
+             "Decided 2026-09-13 on the evidence of linear.app/pricing: Issue sync is a "
+             "Core feature on every plan; the docs gate only GitHub Enterprise Cloud "
+             "and AI magic-word enrichment. Free caps at 2 teams and 250 issues, ample "
+             "for one Instance. M12 is written on the Free assumption; one live check "
+             "remains under Infrastructure."),
             ("DECIDE", "Does a Pro subscription absorb the cohort's CI review volume?",
              "Or is Max needed? Measure during the Week 5 dry run, before it matters."),
         ],
@@ -137,6 +149,11 @@ SECTIONS = [
         [
             ("TODO", "Syllabus states that all student work is world-readable",
              "Required by adr/0003 before enrolment, not after."),
+            ("TODO", "Buy Team seats for the cohort",
+             "The org has 2 seats and stays on Team; a cohort of 8-14 plus the "
+             "instructor needs 9-15. Settings > Billing and licensing, then confirm "
+             "with gh api orgs/perro-ruidoso --jq .plan. Invitations beyond the seat "
+             "count will not go through."),
             ("TODO", "Invite students; each sets org membership to Public",
              "Private membership silently breaks the Claude GitHub App's write-access "
              "detection in Week 5."),

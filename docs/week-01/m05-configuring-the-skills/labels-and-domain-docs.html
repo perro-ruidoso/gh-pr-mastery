@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labels and Domain Docs — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M05 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Labels and Domain Docs</h1>
+  <p class="lede">The second and third decisions: the five words the skills use to move work through a state machine, and where they look to learn what your code is <em>about</em>. Then commit all of it.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M05 · Agent config</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A1 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Configure an Instance for the engineering skills with <span class="skill">/setup-matt-pocock-skills</span>: issue tracker, triage label vocabulary, and domain docs.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M05 pages</span>
+    <a href="index.html"><span class="num">1</span>Teaching Your Repo to the Skills</a>
+    <span class="here"><span class="num">2</span>Labels and Domain Docs</span>
+  </nav>
+
+  <h2>Decision B — The triage label vocabulary</h2>
+  <p>When <span class="skill">/triage</span> processes an incoming issue, the skill explains, "it moves it through a state machine — needs evaluation, waiting on reporter, ready for an AFK agent to pick up, ready for a human, or won't fix." To do that it applies labels, and it needs those labels to match strings you have actually configured. This file maps each of five canonical <em>roles</em> to the label string your repository uses:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Role</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>needs-triage</code></td><td>Maintainer needs to evaluate this issue</td></tr>
+        <tr><td><code>needs-info</code></td><td>Waiting on the reporter for more information</td></tr>
+        <tr><td><code>ready-for-agent</code></td><td>Fully specified — an agent can pick it up with no human context</td></tr>
+        <tr><td><code>ready-for-human</code></td><td>Requires human implementation</td></tr>
+        <tr><td><code>wontfix</code></td><td>Will not be actioned</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Accept the defaults. The mapping exists so that a repo already using, say, <code>bug:triage</code> can point the skills at its own vocabulary instead of growing a duplicate set of labels — but your Instance starts clean, so the canonical strings are correct.</p>
+
+  <div class="callout tip">
+    <span class="label"><code>ready-for-agent</code> is the one to watch</span>
+    <p>Of the five, that label carries the most weight in this course. It asserts something strong: <em>this issue is specified well enough that a fresh session, with no memory of the conversation that produced it, can execute it.</em> Week 2 is largely about earning the right to apply it, and the gap between an issue you understand and an issue that label describes is where most agentic work quietly fails.</p>
+  </div>
+
+  <h3>Make the labels real</h3>
+  <p>The mapping file names five strings. Nothing in the skill creates the labels themselves, so make them exist:</p>
+  <pre><code><span class="prompt">$</span> for L in needs-triage needs-info ready-for-agent ready-for-human wontfix; do
+    gh label create "$L" --repo perro-ruidoso/flashcards-<span class="dim">&lt;your-handle&gt;</span> || true
+  done</code></pre>
+  <p>Two things to know about that loop. <code>gh label create</code> takes optional <code>--color</code> and <code>--description</code>, and "if a color isn't provided, a random one will be chosen"; <code>--force</code> updates an existing label instead of failing. And the <code>|| true</code> is not paranoia: <strong><code>wontfix</code> already exists</strong>. It is in GitHub's default label set, which every new repository receives whether or not it came from a template — the course confirmed this by deleting <code>wontfix</code> from the template and watching it reappear on a fresh Instance. Four of the five are yours to create; the fifth arrives free.</p>
+
+  <h2>Decision C — Domain docs</h2>
+  <p>Some skills — the skill names <span class="skill">/improve-codebase-architecture</span>, <span class="skill">/diagnosing-bugs</span>, and <span class="skill">/tdd</span> — read a <code>CONTEXT.md</code> for the project's domain language, and <code>docs/adr/</code> for past architectural decisions. The skill asks whether this repo has one context or several.</p>
+  <p><strong>Choose single-context.</strong> Your Instance is one small application; a <code>CONTEXT.md</code> already ships with the template, defining what a <em>deck</em>, a <em>card</em>, an <em>interval</em>, and an <em>ease factor</em> mean in this codebase, and a <code>docs/adr/</code> with one decision already recorded. Multi-context — a <code>CONTEXT-MAP.md</code> pointing at several <code>CONTEXT.md</code> files — is for monorepos with genuinely separate frontend and backend vocabularies.</p>
+
+  <h2>What you end up with</h2>
+  <p>Before it writes anything, the skill shows you a draft and lets you edit. Then it produces:</p>
+  <ul>
+    <li><code>docs/agents/issue-tracker.md</code> — how to create, read, label, and close work</li>
+    <li><code>docs/agents/triage-labels.md</code> — the five roles mapped to your label strings</li>
+    <li><code>docs/agents/domain.md</code> — where <code>CONTEXT.md</code> and ADRs live, and the rules for reading them</li>
+    <li>An <code>## Agent skills</code> section added to your existing <code>CLAUDE.md</code>, summarising all three and pointing at the files</li>
+  </ul>
+
+  <p>Commit all of it. These files are part of the repository's contract with every future agent session, which makes them exactly as reviewable as code — and in Week 4 you will review a change to one.</p>
+
+  <div class="callout warn">
+    <span class="label">One number space, two kinds of thing</span>
+    <p>Worth internalising before Week 2: GitHub shares a single number space between issues and pull requests, so a bare <code>#42</code> may be either one. If you are scripting, resolve it explicitly — try <code>gh pr view 42</code> and fall back to <code>gh issue view 42</code>. This trips up more automation than any other GitHub quirk.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>A1's checker verifies that the three files exist and are committed, that <code>CLAUDE.md</code> has the section, and that the five labels exist on the repository.</p>
+    <label class="check"><input type="checkbox"><span>Accepted the five canonical triage labels in Decision B.</span></label>
+    <label class="check"><input type="checkbox"><span>Chose <strong>single-context</strong> domain docs in Decision C.</span></label>
+    <label class="check"><input type="checkbox"><span>Read the drafts before letting it write, and committed all three <code>docs/agents/</code> files plus the <code>CLAUDE.md</code> change.</span></label>
+    <label class="check"><input type="checkbox"><span>Created the triage labels with <code>gh label create</code>, and understood why <code>wontfix</code> reported that it already existed.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh label list</code> and saw all five course labels alongside GitHub's defaults.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">1. What is the strongest claim the <code>ready-for-agent</code> label makes?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">That an agent, rather than a human, must implement it</button></li>
+        <li><button data-opt="b">That the issue has been reviewed by a maintainer</button></li>
+        <li><button data-opt="c">That the work is small</button></li>
+        <li><button data-opt="d">That a fresh session with no memory of the originating conversation could execute it with no further human context</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> That is the bar — "fully specified, AFK-ready." Size correlates but is not the claim, and it does not forbid a human from picking the work up. Week 2 exists largely to teach you how to write an issue that genuinely earns the label.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. A script does <code>gh issue view 42</code> and errors, though you can see <code>#42</code> in the repository. Most likely cause?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">#42 is a pull request — issues and PRs share one number space</button></li>
+        <li><button data-opt="b">The issue is closed, and <code>view</code> only reads open issues</button></li>
+        <li><button data-opt="c">Your token lacks the <code>repo</code> scope</button></li>
+        <li><button data-opt="d">The issue is in a different repository than your current directory</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> GitHub numbers issues and pull requests from one sequence, so any bare reference is ambiguous. Resolve by trying <code>gh pr view</code> and falling back to <code>gh issue view</code>. (B is false — <code>view</code> reads closed issues fine. C and D are possible in general but would fail differently, and you said you can see it in this repo.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">3. <code>gh label create wontfix</code> fails with "already exists" on a brand-new Instance you have not touched. Why?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The setup skill created it when it wrote <code>triage-labels.md</code></button></li>
+        <li><button data-opt="b">The template repository's labels were copied into your Instance</button></li>
+        <li><button data-opt="c"><code>wontfix</code> is in GitHub's default label set, which every new repository receives</button></li>
+        <li><button data-opt="d">Another student's label creation leaked across the organization</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Verified by experiment when the template was built: <code>wontfix</code> was deleted from the template and still appeared on a freshly created Instance. Templates do not copy labels; GitHub's defaults arrive on every new repo. The skill writes a mapping <em>file</em> and never creates labels, and labels are per-repository, not per-org.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">4. Which layout do you choose in Decision C for your Instance, and what signals the other one?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Multi-context, because the app has separate domain, storage, and CLI layers</button></li>
+        <li><button data-opt="b">Single-context — one <code>CONTEXT.md</code> and <code>docs/adr/</code> at the root; a <code>CONTEXT-MAP.md</code> would signal multi-context</button></li>
+        <li><button data-opt="c">Multi-context, because the template ships more than one markdown file</button></li>
+        <li><button data-opt="d">Single-context, because the skill does not support anything else</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Layers inside one application share one vocabulary — a <em>card</em> means the same thing in the CLI as in storage. Multi-context is for repositories with genuinely separate bounded contexts (a monorepo's frontend and backend, say), marked by a root <code>CONTEXT-MAP.md</code> pointing at per-context <code>CONTEXT.md</code> files. The skill supports both; your Instance simply is not one of them.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m05-labels">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Recite the five canonical triage roles, in state-machine order.</div><div class="fc-back"><code>needs-triage</code> → <code>needs-info</code> → <code>ready-for-agent</code> / <code>ready-for-human</code> → <code>wontfix</code>.</div></div>
+      <div class="fc"><div class="fc-front">Meaning of <code>needs-triage</code> and <code>needs-info</code>?</div><div class="fc-back"><code>needs-triage</code>: a maintainer must evaluate it. <code>needs-info</code>: waiting on the reporter for more information.</div></div>
+      <div class="fc"><div class="fc-front">Meaning of <code>ready-for-agent</code> — the strong version?</div><div class="fc-back">Fully specified, AFK-ready: a fresh session with no memory of the originating conversation can execute it with no further human context.</div></div>
+      <div class="fc"><div class="fc-front">Meaning of <code>ready-for-human</code> and <code>wontfix</code>?</div><div class="fc-back"><code>ready-for-human</code>: requires human implementation. <code>wontfix</code>: will not be actioned.</div></div>
+      <div class="fc"><div class="fc-front">Why does <code>gh label create wontfix</code> fail on a brand-new Instance?</div><div class="fc-back"><code>wontfix</code> is a GitHub default label on every new repository. Templates do not copy labels. Four of the five are yours to create; the fifth is free.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>triage-labels.md</code> actually do — create labels, or something else?</div><div class="fc-back">Something else: it <em>maps</em> the five roles to the label strings your repo uses. You create the labels yourself with <code>gh label create</code>.</div></div>
+      <div class="fc"><div class="fc-front">Single-context vs multi-context: how does a skill tell them apart?</div><div class="fc-back">Single: <code>CONTEXT.md</code> + <code>docs/adr/</code> at the root. Multi: a root <code>CONTEXT-MAP.md</code> pointing at per-context <code>CONTEXT.md</code> files (monorepos).</div></div>
+      <div class="fc"><div class="fc-front">Name the four things the setup skill writes, and where.</div><div class="fc-back"><code>docs/agents/issue-tracker.md</code>, <code>docs/agents/triage-labels.md</code>, <code>docs/agents/domain.md</code>, and an <code>## Agent skills</code> section in <code>CLAUDE.md</code>.</div></div>
+      <div class="fc"><div class="fc-front">A bare <code>#42</code> — issue or pull request?</div><div class="fc-back">Could be either: one shared number space. Resolve explicitly — try <code>gh pr view 42</code>, fall back to <code>gh issue view 42</code>.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>After the run, ask Claude Code in your Instance: "Read <code>docs/agents/triage-labels.md</code> and <code>gh label list --json name</code>, and tell me whether every label the file names exists on the repository." That is the same check A1's grader performs — better to hear it from your own session first. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_label_create">GitHub CLI manual: <code>gh label create</code></a><span class="why"><code>--color</code>, <code>--description</code>, <code>--force</code>, and the random-colour default quoted above.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels">GitHub Docs: Managing labels</a><span class="why">GitHub's own list of default labels and how to edit, delete, or recreate them. Compare it with what <code>gh label list</code> shows on your Instance.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills</a><span class="why">The <code>triage</code> skill that consumes this vocabulary (Week 6), and the <code>triage-labels.md</code> and <code>domain.md</code> seed templates the setup skill starts from.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/memory">Anthropic: Memory / <code>CLAUDE.md</code></a><span class="why">Why the <code>## Agent skills</code> block is read at the start of every session, and what else belongs in that file.</span></li>
+      <li><span class="tier">Course</span><a href="../../../CONTEXT.md">This course's own <code>CONTEXT.md</code></a><span class="why">A worked example of a single-context domain document — the ubiquitous language every page on this site follows, including the term <em>Ready-for-Agent</em>.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>setup-matt-pocock-skills</code>, its <code>triage-labels.md</code> and <code>domain.md</code> seed templates; quotations from the installed version, read 2026-09-12</li>
+      <li><a href="https://cli.github.com/manual/gh_label_create">GitHub CLI manual: <code>gh label create</code></a> — flags and the random-colour default; fetched 2026-09-12</li>
+      <li>The <code>wontfix</code> default-label finding is recorded in the course's <code>NOTES.md</code> under "Template instantiation: what it copies — verified 2026-09-12"</li>
+      <li><a href="https://code.claude.com/docs/en/memory">Anthropic: Memory / CLAUDE.md</a></li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M05, page 1</span>Teaching Your Repo to the Skills</a>
+    <a class="next" href="../m06-reading-the-exhibit/index.html"><span class="dir">Next · M06</span>Reading the Exhibit</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

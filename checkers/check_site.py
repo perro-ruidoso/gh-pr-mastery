@@ -4,7 +4,11 @@
 
 Catches the failures that are invisible until a student hits them - a lesson linking to a
 page that does not exist, a page that uses a Mermaid diagram without loading Mermaid, a
-self-check whose data-answer names an option that is not there.
+self-check whose data-answer names an option that is not there, a flashcard with no back,
+an objective folder whose pages do not all link each other.
+
+Layout it expects: docs/week-NN/index.html is the Week Hub; docs/week-NN/mNN-slug/ is one
+objective, holding index.html (the entry Learning Page) plus any supporting pages.
 """
 
 from __future__ import annotations
@@ -21,6 +25,9 @@ HREF = re.compile(r'href="([^"]+)"')
 SRC = re.compile(r'src="([^"]+)"')
 QUESTION = re.compile(r'<div class="q" data-answer="([a-z])">(.*?)</div>\s*</div>', re.S)
 OPTION = re.compile(r'data-opt="([a-z])"')
+CARD = re.compile(r'<div class="fc">(.*?)</div>\s*</div>', re.S)
+CARD_FRONT = re.compile(r'<div class="fc-front">\s*\S')
+CARD_BACK = re.compile(r'<div class="fc-back">\s*\S')
 
 GREEN, RED, DIM, RESET = "\033[32m", "\033[31m", "\033[2m", "\033[0m"
 
@@ -46,14 +53,23 @@ def check_links(path: Path, html: str, problems: list[str]) -> int:
     return checked
 
 
+def is_lesson_page(path: Path) -> bool:
+    """A Learning Page lives in an objective folder: docs/week-NN/mNN-slug/*.html."""
+    return (path.parent.name.startswith("m")
+            and path.parent.parent.name.startswith("week-")
+            and path.suffix == ".html")
+
+
 def check_structure(path: Path, html: str, problems: list[str]) -> None:
     rel = path.relative_to(ROOT)
-    is_lesson = path.name.startswith("m") and path.parent.name.startswith("week-")
+    is_lesson = is_lesson_page(path)
 
     if "<title>" not in html:
         problems.append(f"{rel}: no <title>")
-    if 'href="../assets/styles.css"' not in html and 'href="assets/styles.css"' not in html:
-        problems.append(f"{rel}: stylesheet not linked")
+    depth = len(path.relative_to(DOCS).parts) - 1
+    expected_css = 'href="' + "../" * depth + 'assets/styles.css"'
+    if expected_css not in html:
+        problems.append(f"{rel}: stylesheet not linked as {expected_css}")
 
     # A page that renders Mermaid must also load it.
     if 'class="mermaid"' in html and "mermaid.min.js" not in html:
@@ -64,12 +80,30 @@ def check_structure(path: Path, html: str, problems: list[str]) -> None:
     if is_lesson:
         for required, label in (
             ('class="obj-banner"', "objective banner"),
+            ('class="pagemap"', "objective page map"),
             ('class="selfcheck"', "self-check"),
+            ('class="flashcards"', "flashcard deck"),
+            ('class="callout ask"', "ask-your-teacher callout"),
+            ('class="learnmore"', "where-to-learn-more section"),
             ('class="sources"', "sources section"),
             ('class="pager"', "pager"),
         ):
             if required not in html:
                 problems.append(f"{rel}: missing {label}")
+
+    # A page with a flashcard deck must load the component, and every card
+    # needs a non-empty front and back.
+    if 'class="flashcards"' in html and "flashcards.js" not in html:
+        problems.append(f"{rel}: has a flashcard deck but never loads flashcards.js")
+    if "flashcards.js" in html and 'class="flashcards"' not in html:
+        problems.append(f"{rel}: loads flashcards.js but has no deck")
+    for i, card in enumerate(CARD.findall(html), start=1):
+        if not CARD_FRONT.search(card):
+            problems.append(f"{rel}: flashcard {i} has no front")
+        if not CARD_BACK.search(card):
+            problems.append(f"{rel}: flashcard {i} has no back")
+    if 'class="flashcards"' in html and 'data-deck="' not in html:
+        problems.append(f"{rel}: flashcard deck has no data-deck id")
 
     # Every self-check answer must name an option that exists on that question.
     for answer, block in QUESTION.findall(html):
@@ -83,14 +117,27 @@ def check_structure(path: Path, html: str, problems: list[str]) -> None:
 
 
 def check_objective_coverage(problems: list[str]) -> None:
-    """Every objective with a learning page should be reachable from its week hub."""
+    """Every objective folder is reachable from its week hub, has an index.html, and its
+    pages all link each other through the page map."""
     for hub in sorted(DOCS.glob("week-*/index.html")):
-        html = hub.read_text(encoding="utf-8")
-        for lesson in sorted(hub.parent.glob("m*.html")):
-            if lesson.name not in html:
-                problems.append(
-                    f"{hub.relative_to(ROOT)}: does not link {lesson.name}"
-                )
+        hub_html = hub.read_text(encoding="utf-8")
+        for folder in sorted(d for d in hub.parent.iterdir() if d.is_dir() and d.name.startswith("m")):
+            frel = folder.relative_to(ROOT)
+            pages = sorted(folder.glob("*.html"))
+            if not (folder / "index.html").exists():
+                problems.append(f"{frel}: objective folder has no index.html")
+            for page in pages:
+                if f"{folder.name}/{page.name}" not in hub_html:
+                    problems.append(f"{hub.relative_to(ROOT)}: does not link {folder.name}/{page.name}")
+            for page in pages:
+                html = page.read_text(encoding="utf-8")
+                for sibling in pages:
+                    if sibling == page:
+                        continue
+                    if f'href="{sibling.name}"' not in html:
+                        problems.append(
+                            f"{page.relative_to(ROOT)}: page map does not link sibling {sibling.name}"
+                        )
 
 
 def main() -> int:

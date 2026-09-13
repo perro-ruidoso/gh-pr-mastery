@@ -3,7 +3,7 @@
    Two jobs, both progressive enhancement — every page reads correctly
    with JavaScript off.
 
-   1. Self-check questions. Markup contract:
+   1. Self-check questions, with a first-try tally per section. Markup contract:
         <div class="q" data-answer="b">
           <p class="q-text">…</p>
           <ol class="q-opts">
@@ -14,6 +14,9 @@
       Clicking an option marks it right/wrong; the rationale reveals once
       the correct option has been found. Options stay clickable so students
       can explore why the others are wrong.
+
+   Flashcard decks are a separate component, flashcards.js, loaded only by
+   pages that carry one.
 
    2. Mermaid diagrams. Markup contract:
         <figure class="diagram">
@@ -27,21 +30,51 @@
 
   /* ---------- self-check ---------- */
 
-  document.querySelectorAll(".q[data-answer]").forEach(function (q) {
-    var answer = q.getAttribute("data-answer");
-    var why = q.querySelector(".q-why");
+  // Each .selfcheck keeps a first-try tally so the student gets one honest
+  // number at the end, not just per-question colour.
+  document.querySelectorAll(".selfcheck").forEach(function (sc) {
+    var questions = sc.querySelectorAll(".q[data-answer]");
+    if (!questions.length) return;
+    var attempted = 0, firstTry = 0;
+    var score = document.createElement("p");
+    score.className = "sc-score";
+    sc.appendChild(score);
 
-    q.querySelectorAll(".q-opts button[data-opt]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var isCorrect = btn.getAttribute("data-opt") === answer;
-        btn.classList.remove("correct", "incorrect");
-        btn.classList.add(isCorrect ? "correct" : "incorrect");
-        if (isCorrect && why) {
-          why.hidden = false;
-          q.querySelectorAll("button.incorrect").forEach(function (other) {
-            if (other !== btn) other.classList.remove("incorrect");
-          });
-        }
+    function renderScore() {
+      if (!attempted) {
+        score.textContent = questions.length + " questions. Your first click on each one is the one that counts.";
+        return;
+      }
+      score.innerHTML = "First-try correct: <strong>" + firstTry + " / " + attempted + "</strong>" +
+        (attempted < questions.length ? " (" + (questions.length - attempted) + " left)" :
+          firstTry === questions.length ? " — all of them. Try the flashcards without looking back." :
+          " — re-read the sections behind the ones you missed before moving on.");
+    }
+    renderScore();
+
+    questions.forEach(function (q) {
+      var answer = q.getAttribute("data-answer");
+      var why = q.querySelector(".q-why");
+      var touched = false;
+
+      q.querySelectorAll(".q-opts button[data-opt]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var isCorrect = btn.getAttribute("data-opt") === answer;
+          if (!touched) {
+            touched = true;
+            attempted += 1;
+            if (isCorrect) firstTry += 1;
+            renderScore();
+          }
+          btn.classList.remove("correct", "incorrect");
+          btn.classList.add(isCorrect ? "correct" : "incorrect");
+          if (isCorrect && why) {
+            why.hidden = false;
+            q.querySelectorAll("button.incorrect").forEach(function (other) {
+              if (other !== btn) other.classList.remove("incorrect");
+            });
+          }
+        });
       });
     });
   });

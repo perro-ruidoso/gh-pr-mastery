@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Merge Base — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M03 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>The Merge Base</h1>
+  <p class="lede">One idea explains why a pull request shows what it shows and why your local <code>git diff</code> sometimes accuses you of deleting a colleague's work. Two dots versus three.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M03 · Diffs</span>
+      <span class="chip bloom">Bloom: Understand</span>
+      <span class="chip assessed">Assessed by: Quiz 1</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Distinguish two-dot from three-dot diffs and explain why a PR's Files-changed view is computed from the merge base.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M03 pages</span>
+    <span class="here"><span class="num">1</span>The Merge Base</span>
+    <a href="what-github-shows.html"><span class="num">2</span>What GitHub Shows You</a>
+  </nav>
+
+  <h2>The situation that creates the confusion</h2>
+  <p>You branch off <code>main</code> and add a line to one file. While you work, a colleague merges a change to a completely different file. Now two branches have diverged from a shared ancestor:</p>
+
+  <span class="code-label">$ git log --all --oneline --graph</span>
+  <pre><code>* 12ccbf6 Add my line to shared.txt          <span class="dim">&lt;- your branch: feature</span>
+| * 8c7a482 Someone else edits untouched.txt <span class="dim">&lt;- main moved on</span>
+|/
+* 9c332a8 Initial commit                    <span class="dim">&lt;- the shared ancestor</span></code></pre>
+
+  <p>That bottom commit — the most recent commit both branches have in common — is the <strong>merge base</strong>. Git will tell you which one it is:</p>
+
+  <span class="code-label">$ git merge-base main feature</span>
+  <pre><code>9c332a8037d289c6588c65b802bdae0797dda779</code></pre>
+
+  <h2>Two ways to compare, and they disagree</h2>
+  <p>Now ask "what did I change?" two different ways. First with two dots:</p>
+
+  <span class="code-label">$ git diff main..feature --stat</span>
+  <pre><code> shared.txt    | 1 +
+ untouched.txt | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)</code></pre>
+
+  <p>Two files. But you only touched one. Look at what it claims you did to the other:</p>
+
+  <span class="code-label">$ git diff main..feature</span>
+  <pre><code>diff --git a/untouched.txt b/untouched.txt
+--- a/untouched.txt
++++ b/untouched.txt
+@@ -1 +1 @@
+<span class="dim">-CHANGED BY SOMEONE ELSE
++original</span></code></pre>
+
+  <p>It reads as though you deleted your colleague's work and restored the old text. You did not. Now the same question with three dots:</p>
+
+  <span class="code-label">$ git diff main...feature --stat</span>
+  <pre><code> shared.txt | 1 +
+ 1 file changed, 1 insertion(+)</code></pre>
+
+  <p>One file, one line. That is what you actually did — and that is what GitHub shows in a pull request.</p>
+
+  <h2>Why they differ</h2>
+  <p>GitHub's documentation states the rule in a two-row table. A <strong>three-dot</strong> comparison, <code>git diff A...B</code>, compares <em>"the most recent common commit of both branches (merge base) and the most recent version of the topic branch."</em> A <strong>two-dot</strong> comparison, <code>git diff A..B</code>, compares <em>"the most recent state of the base branch (for example, <code>main</code>) and the most recent version of the topic branch."</em> And the sentence above the table: <strong>"Pull requests on GitHub show a three-dot diff."</strong></p>
+
+  <div class="compare">
+    <div class="side no">
+      <h3>Two dots — <code>main..feature</code></h3>
+      <p>Compares the <strong>tip of main</strong> to the tip of your branch.</p>
+      <p>Answers: "what would I have to do to turn main into my branch?"</p>
+      <p>Includes, in reverse, every change on <code>main</code> that your branch lacks. Moves every time <code>main</code> moves.</p>
+    </div>
+    <div class="side yes">
+      <h3>Three dots — <code>main...feature</code></h3>
+      <p>Compares the <strong>merge base</strong> to the tip of your branch.</p>
+      <p>Answers: "what did my branch introduce?"</p>
+      <p>Ignores everything that happened on <code>main</code> after you branched. Stable while <code>main</code> moves.</p>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  MB["merge base<br/>9c332a8"] --> M1["main<br/>8c7a482"]
+  MB --> F1["feature<br/>12ccbf6"]
+  M1 -.->|"two-dot: main..feature<br/>tip to tip"| F1
+  MB ==>|"three-dot: main...feature<br/>what the branch introduced"| F1
+    </pre>
+    <span class="caption">Two dots measure from the tip of the base. Three dots measure from the merge base. A pull request always uses three.</span>
+  </div>
+
+  <div class="callout note">
+    <span class="label">When the two agree</span>
+    <p>GitHub's docs add a useful corollary: "When you merge the base branch, the diffs shown by two-dot and three-dot comparisons are the same." Merging <code>main</code> into your branch moves the merge base up to main's tip, so there is nothing left for the two-dot view to show in reverse. That is why "merge main into your branch" makes the phantom changes vanish — and why the docs recommend doing it often.</p>
+  </div>
+
+  <div class="callout tip">
+    <span class="label">A habit worth forming today</span>
+    <p>When you want "what does my branch add," type three dots. When you genuinely want "how do these two tips differ" — comparing two releases, say — type two. If you are unsure which you want, you want three.</p>
+  </div>
+
+  <p>The <a href="what-github-shows.html">next page</a> takes this into the Files changed tab, explains the cases where unrelated files <em>still</em> show up, and says why it decides whether you can trust an agent's review.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Reproduce the divergence above in your own Instance. It takes four minutes and you will never forget the result.</p>
+    <label class="check"><input type="checkbox"><span>Created a branch, changed one file on it, and committed.</span></label>
+    <label class="check"><input type="checkbox"><span>Switched back to <code>main</code>, changed a <em>different</em> file, and committed.</span></label>
+    <label class="check"><input type="checkbox"><span>Found the merge base with <code>git merge-base main &lt;branch&gt;</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran both <code>git diff main..&lt;branch&gt; --stat</code> and <code>git diff main...&lt;branch&gt; --stat</code> and saw them disagree.</span></label>
+    <label class="check"><input type="checkbox"><span>Merged <code>main</code> into the branch and re-ran both — and saw them agree.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. <code>git diff main..feature</code> lists a file you never opened, showing its lines being reverted. What happened?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Your branch is corrupt and should be recreated</button></li>
+        <li><button data-opt="b">Someone force-pushed over your branch</button></li>
+        <li><button data-opt="c">That file changed on <code>main</code> after you branched; two-dot compares tip to tip, so main's newer content shows as something your branch removes</button></li>
+        <li><button data-opt="d">Git is showing a merge conflict preview</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Two dots compare the tip of <code>main</code> with the tip of your branch. Your branch simply does not contain the colleague's newer commit, so relative to main's tip that content is "missing" — and the diff renders it as a deletion. Use three dots and it disappears, because three dots measure from the merge base, before their change existed.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. What exactly is the merge base of two branches?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The first commit in the repository</button></li>
+        <li><button data-opt="b">The most recent commit that both branches have in common</button></li>
+        <li><button data-opt="c">The commit the pull request will create when merged</button></li>
+        <li><button data-opt="d">The tip of the base branch at the moment the PR was opened</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The merge base is their most recent common ancestor — <code>git merge-base</code> reports it. (D is a tempting trap: the merge base is not frozen at PR-open time; it is recomputed, and it moves if you merge the base into your branch.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. You merge <code>main</code> into your feature branch. How do <code>main..feature</code> and <code>main...feature</code> now compare?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">They show the same diff, because the merge base is now main's tip</button></li>
+        <li><button data-opt="b">The two-dot view is now empty and the three-dot view is unchanged</button></li>
+        <li><button data-opt="c">The three-dot view now includes main's commits in reverse</button></li>
+        <li><button data-opt="d">They still differ; only a rebase can make them agree</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Straight from the docs: "When you merge the base branch, the diffs shown by two-dot and three-dot comparisons are the same." After the merge, the most recent common commit of both branches <em>is</em> main's tip, so tip-to-tip and merge-base-to-tip measure from the same point. A rebase also works, but it is not the only way.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">4. Which comparison does a pull request's Files changed tab use?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Two-dot, so reviewers see everything the branch lacks relative to the base</button></li>
+        <li><button data-opt="b">Whichever the author chose when opening the pull request</button></li>
+        <li><button data-opt="c">Two-dot for same-repo PRs and three-dot for fork PRs</button></li>
+        <li><button data-opt="d">Three-dot, measured from the merge base</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> "Pull requests on GitHub show a three-dot diff." There is no author choice and no dependence on where the head lives. This is what makes the Files changed tab answer "what did this branch introduce?" rather than "how do these two tips differ?"</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m03-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Define the <strong>merge base</strong> of two branches.</div><div class="fc-back">Their most recent common ancestor — the newest commit that is in both branches' histories.</div></div>
+      <div class="fc"><div class="fc-front">Command that prints the merge base of <code>main</code> and <code>feature</code>?</div><div class="fc-back"><code>git merge-base main feature</code></div></div>
+      <div class="fc"><div class="fc-front">What does <code>git diff main..feature</code> (two dots) compare?</div><div class="fc-back">The <em>tip</em> of <code>main</code> against the tip of <code>feature</code>. It answers "how do these two tips differ?" and moves whenever <code>main</code> moves.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>git diff main...feature</code> (three dots) compare?</div><div class="fc-back">The <em>merge base</em> against the tip of <code>feature</code>. It answers "what did this branch introduce?" and is stable while <code>main</code> moves.</div></div>
+      <div class="fc"><div class="fc-front">Which comparison does a GitHub pull request show?</div><div class="fc-back">Three-dot. GitHub Docs: "Pull requests on GitHub show a three-dot diff."</div></div>
+      <div class="fc"><div class="fc-front">Two-dot shows a colleague's file with their lines <em>removed</em>. Did you delete anything?</div><div class="fc-back">No. Their commit is on <code>main</code>'s tip but not on your branch, so tip-to-tip renders it as a deletion. Three-dot measures from before it existed.</div></div>
+      <div class="fc"><div class="fc-front">When do two-dot and three-dot show the same diff?</div><div class="fc-back">After you merge the base branch into your topic branch — the merge base becomes the base's tip. GitHub Docs: "the diffs shown by two-dot and three-dot comparisons are the same."</div></div>
+      <div class="fc"><div class="fc-front">Unsure which you want — two dots or three?</div><div class="fc-back">You want three. Two is only for genuinely comparing two tips, such as two releases.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>If the two-dot result still looks wrong to you, that is the right instinct — ask Claude Code, in the repository where you ran the experiment: "Explain, commit by commit, why <code>git diff main..feature</code> shows <code>untouched.txt</code> and <code>main...feature</code> does not." Make it name the merge base. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/branches">GitHub Docs: Branches (reference) — "Three-dot and two-dot Git diff comparisons"</a><span class="why">The primary source for this page, including the "merging often" advice. The older "About comparing branches in pull requests" address redirects here.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-merge-base">Git reference: <code>git merge-base</code></a><span class="why">What "best common ancestor" means precisely, including the case where there is more than one.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-diff">Git reference: <code>git diff</code></a><span class="why">The one-line definition: "<code>git diff A...B</code> is equivalent to <code>git diff $(git merge-base A B) B</code>." Also documents <code>--merge-base</code>, which does the same thing without the dots.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/gitrevisions">Git reference: <code>gitrevisions</code> — "Dotted Range Notations"</a><span class="why">Where <code>r1..r2</code> and <code>r1...r2</code> are defined as <em>sets of commits</em> for <code>git log</code>. Read it to see why the same three dots mean "symmetric difference" there but "diff from the merge base" in <code>git diff</code> — a famous source of confusion.</span></li>
+      <li><span class="tier">Book</span><a href="https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging">Pro Git, ch. 3.2: Basic Branching and Merging</a><span class="why">If the log graph at the top of this page did not read naturally, this chapter builds the mental picture from scratch in twenty minutes.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/branches">GitHub Docs: Branches — Three-dot and two-dot Git diff comparisons</a> — the two definitions, "Pull requests on GitHub show a three-dot diff," and the merging-often corollary; fetched 2026-09-12 (canonical URL)</li>
+      <li><a href="https://git-scm.com/docs/git-merge-base">Git reference: <code>git merge-base</code></a></li>
+      <li>Transcripts on this page were produced by running the commands shown against a purpose-built repository on 2026-09-12; you can reproduce every one of them in four commands.</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m02-what-a-pull-request-is/heads-forks-and-drafts.html"><span class="dir">Previous · M02</span>Heads, Forks, and Drafts</a>
+    <a class="next" href="what-github-shows.html"><span class="dir">Next · M03, page 2</span>What GitHub Shows You</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

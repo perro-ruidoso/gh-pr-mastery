@@ -11,7 +11,7 @@ through GitHub pull requests while directing Claude Code as the implementer.
 | [`RESOURCES.md`](RESOURCES.md) | Source tiers and the specific pages each objective is grounded in |
 | [`objectives/`](objectives/) | The M01–M36 mastery-objectives workbook and its generator |
 | [`adr/`](adr/) | Architecture decisions, including the two that verification forced |
-| [`docs/`](docs/) | The student-facing site — Course Home, Week Hubs, Learning Pages, shared assets |
+| [`docs/`](docs/) | The student-facing site — Course Home, Week Hubs, Learning Pages (one folder per objective), shared assets |
 | [`assignments/`](assignments/) | Assignment briefs and rubrics |
 | [`instructors/`](instructors/) | Instructor guide (course + Week 1 setup, teaching notes, grading) and the student setup handout |
 | [`checkers/`](checkers/) | `check_a1.py` (grades repo state) and `check_site.py` (validates the site) |
@@ -62,9 +62,13 @@ python checkers/check_a1.py --org ORG --handle H   # one student's A1 repo state
 ## Status
 
 Backbone, the **Week 1 vertical slice**, and the **Seed Repo** are complete and validated:
-Course Home, the Week 1 hub, six Learning Pages (M01–M06), assignment A1 with its rubric,
-and two checkers. Every terminal transcript in the lessons was captured from a real
-command run against a real repository.
+Course Home, the Week 1 hub, thirteen Learning Pages across M01–M06 (each objective is a
+folder under `docs/week-01/` with an `index.html` entry page and one or two supporting
+pages), assignment A1 with its rubric, and two checkers. Every page ends with a Self-Check,
+a flashcard deck (`docs/assets/flashcards.js`), and a where-to-learn-more list whose URLs
+were fetched before shipping. Every terminal transcript in the lessons was captured from a
+real command run against a real repository. `objectives/mastery-objectives.md` carries a
+Learning Pages column linking each objective to its pages.
 
 [`perro-ruidoso/flashcards-seed`](https://github.com/perro-ruidoso/flashcards-seed) is
 live — public, template flag set, CI green in 24 s on Python 3.12, and all 15 backlog
@@ -77,7 +81,8 @@ reading `templateRepository.nameWithOwner`, a field `gh` does not return, so eve
 would have failed the "created from template" check — now fixed. And `wontfix`, one of the
 five triage labels A1 asks students to create, is a GitHub default that arrives on every
 new repository, so that item assesses four labels rather than five. Both are written up in
-[`NOTES.md`](NOTES.md); the second is an open question.
+[`NOTES.md`](NOTES.md); the second was accepted, and the checker now grades the four
+labels a student creates and only notes that `wontfix` is present.
 
 Not yet built: Weeks 2–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
 authored on an Instance where T03 has landed, not against the template), the

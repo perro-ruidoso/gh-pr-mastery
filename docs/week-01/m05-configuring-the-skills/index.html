@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teaching Your Repo to the Skills — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M05 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Teaching Your Repo to the Skills</h1>
+  <p class="lede">Three decisions, written to three files, that every engineering skill you use for the next five weeks will read before it does anything. This page covers the first: where issues live.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M05 · Agent config</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A1 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Configure an Instance for the engineering skills with <span class="skill">/setup-matt-pocock-skills</span>: issue tracker, triage label vocabulary, and domain docs.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M05 pages</span>
+    <span class="here"><span class="num">1</span>Teaching Your Repo to the Skills</span>
+    <a href="labels-and-domain-docs.html"><span class="num">2</span>Labels and Domain Docs</a>
+  </nav>
+
+  <h2>What a skill is, and why it needs configuring</h2>
+  <p>A <strong>skill</strong> is a packaged set of instructions Claude Code loads when a task matches it. This course uses a family of engineering skills — <span class="skill">/to-spec</span>, <span class="skill">/to-tickets</span>, <span class="skill">/implement</span>, <span class="skill">/code-review</span>, <span class="skill">/qa</span>, <span class="skill">/triage</span> — that form the workflow spine of Weeks 2 through 6.</p>
+
+  <p>Several of them read from and write to your issue tracker. But a skill cannot guess whether "file this ticket" means <code>gh issue create</code>, a markdown file in a scratch folder, or something else entirely. So they all read a small set of configuration files, and <span class="skill">/setup-matt-pocock-skills</span> is the one-time run that writes them. Its own description: "Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."</p>
+
+  <div class="callout note">
+    <span class="label">Run it once, in your Instance</span>
+    <p>This is a setup skill, not a working one. Run it today in <code>flashcards-&lt;your-handle&gt;</code>, commit what it writes, and then forget about it — the other skills pick the files up automatically. You will edit them by hand if your conventions change; the skill says re-running "is only necessary if they want to switch issue trackers or restart from scratch."</p>
+  </div>
+
+  <h2>The run</h2>
+  <p>Open Claude Code in your Instance and invoke it:</p>
+  <pre><code><span class="prompt">$</span> cd flashcards-<span class="dim">&lt;your-handle&gt;</span>
+<span class="prompt">$</span> claude</code></pre>
+  <pre><code>&gt; /setup-matt-pocock-skills</code></pre>
+
+  <p>It is, in its own words, "a prompt-driven skill, not a deterministic script." It <strong>explores</strong> first — <code>git remote -v</code>, whether <code>CLAUDE.md</code> or <code>AGENTS.md</code> exists and already has an <code>## Agent skills</code> section, <code>CONTEXT.md</code>, any <code>docs/adr/</code>, any prior <code>docs/agents/</code> output — then walks you through three decisions <strong>one at a time</strong>. Read each one; do not just accept defaults you have not understood.</p>
+
+  <h2>Decision A — Where do issues live?</h2>
+  <p>The skill offers four options: <strong>GitHub</strong> (via the <code>gh</code> CLI), <strong>GitLab</strong> (via the <code>glab</code> CLI), <strong>local markdown</strong> (files under <code>.scratch/</code>, "good for solo projects or repos without a remote"), or <strong>other</strong> — Jira, Linear, anything else — which you describe in a paragraph of prose. Its default posture is to propose GitHub when a remote points at GitHub.</p>
+
+  <p><strong>Choose GitHub.</strong> Your remote points at GitHub, and this course's entire premise is that GitHub Issues is the source of truth for work. That choice writes a file telling every skill exactly how to operate:</p>
+
+  <div class="exhibit">
+    <span class="label">Extract from docs/agents/issue-tracker.md</span>
+    <ul>
+      <li><strong>Create an issue</strong>: <code>gh issue create --title "..." --body "..."</code></li>
+      <li><strong>List issues</strong>: <code>gh issue list --state open --json number,title,body,labels,comments</code></li>
+      <li><strong>Apply / remove labels</strong>: <code>gh issue edit &lt;number&gt; --add-label "..."</code></li>
+    </ul>
+    <p>Those are the same commands you learned in <a href="../m04-reading-work-from-the-terminal/index.html">M04</a>. That is not a coincidence — you and your agent drive GitHub through one interface, which is why reading that interface fluently was worth a lesson.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Why not Linear, given Week 2?</span>
+    <p>You <em>will</em> connect Linear at the end of Week 2 — but as the project-management layer above GitHub, not as the tracker the skills write to. These skills support GitHub, GitLab, and local markdown natively; Linear falls under "other," where you would have to describe the whole workflow in prose and maintain it yourself. Keeping GitHub as the source of truth keeps the tooling first-class and lets Linear do what it is genuinely better at. Week 6's M35 asks you to defend that choice — or argue against it.</p>
+  </div>
+
+  <h3>The follow-up question: PRs as a request surface</h3>
+  <p>Because you picked GitHub, the skill asks one more thing: should <span class="skill">/triage</span> pull <em>external pull requests</em> into the same queue as issues? Its explainer: "Open-source repos often receive feature requests as pull requests, not just issues — a PR is an issue with attached code." The default is <strong>no</strong>.</p>
+  <p><strong>Answer no for your Instance.</strong> Nobody else contributes to it. You will flip this to <code>yes</code> in Week 6, on the shared upstream repository, where classmates' incoming PRs are exactly the queue you are triaging. Note now how it works, because it is a neat piece of filtering — the skill keeps only PRs whose <code>authorAssociation</code> is <code>CONTRIBUTOR</code>, <code>FIRST_TIME_CONTRIBUTOR</code>, or <code>NONE</code>, dropping <code>OWNER</code>, <code>MEMBER</code>, and <code>COLLABORATOR</code>, so a maintainer's own in-flight work is left alone.</p>
+
+  <p>Decisions B and C — the label vocabulary and the domain docs — are on the <a href="labels-and-domain-docs.html">next page</a>, along with what the skill writes and how to commit it.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>The first half of the run. A1's checker verifies the resulting <code>docs/agents/issue-tracker.md</code> exists and says GitHub, PRs-as-request-surface <strong>no</strong>.</p>
+    <label class="check"><input type="checkbox"><span>Ran <span class="skill">/setup-matt-pocock-skills</span> inside my Instance and read what it found in the explore step.</span></label>
+    <label class="check"><input type="checkbox"><span>Chose <strong>GitHub</strong> as the issue tracker.</span></label>
+    <label class="check"><input type="checkbox"><span>Answered <strong>no</strong> to PRs as a request surface — and can say when "yes" would be right.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Why do the engineering skills need an <code>issue-tracker.md</code> at all?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">To store your GitHub credentials</button></li>
+        <li><button data-opt="b">To cache issue contents so skills run offline</button></li>
+        <li><button data-opt="c">Because "file this ticket" has no single meaning — the file tells skills whether that means <code>gh issue create</code>, a markdown file, or something else</button></li>
+        <li><button data-opt="d">Because GitHub's API requires a manifest file in the repo</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The skills are tracker-agnostic by design; the config file is what binds an abstract instruction ("publish to the issue tracker") to concrete commands in your repository. Credentials live in your <code>gh</code> token, not in the repo.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. You answer "no" to PRs as a request surface in your Instance. When would "yes" be right?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">When you want <span class="skill">/code-review</span> to run automatically</button></li>
+        <li><button data-opt="b">On a repo where outsiders send feature requests as pull requests, so <span class="skill">/triage</span> should process them with the same labels and states as issues</button></li>
+        <li><button data-opt="c">Whenever the repository is public</button></li>
+        <li><button data-opt="d">When you have more than one collaborator</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The flag exists for repos where a PR is effectively an issue with code attached — the open-source case. It filters on <code>authorAssociation</code> so that collaborators' own in-flight PRs are left alone. You will turn it on for the shared upstream repo in Week 6, and it has nothing to do with visibility or collaborator count.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Your Instance has a <code>CLAUDE.md</code> and no <code>AGENTS.md</code>. Where does the skill put its <code>## Agent skills</code> block?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">In the existing <code>CLAUDE.md</code>, updating any existing block in place rather than appending a duplicate</button></li>
+        <li><button data-opt="b">In a new <code>AGENTS.md</code>, because that is the cross-tool standard it prefers</button></li>
+        <li><button data-opt="c">In both files, so that any agent will find it regardless of which one it reads</button></li>
+        <li><button data-opt="d">In <code>docs/agents/README.md</code>, leaving <code>CLAUDE.md</code> untouched</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The skill's rule: if <code>CLAUDE.md</code> exists, edit it; else if <code>AGENTS.md</code> exists, edit that; if neither, ask. It "never create[s] <code>AGENTS.md</code> when <code>CLAUDE.md</code> already exists (or vice versa)," and an existing block is updated in place. The template ships a <code>CLAUDE.md</code>, so that is where yours goes.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">4. Which <code>authorAssociation</code> values does the PRs-as-request-surface filter <em>keep</em>?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>OWNER</code>, <code>MEMBER</code>, and <code>COLLABORATOR</code> — the people with write access</button></li>
+        <li><button data-opt="b">Every association; the filter only removes bots</button></li>
+        <li><button data-opt="c">Only <code>FIRST_TIME_CONTRIBUTOR</code>, so first PRs get extra attention</button></li>
+        <li><button data-opt="d"><code>CONTRIBUTOR</code>, <code>FIRST_TIME_CONTRIBUTOR</code>, and <code>NONE</code> — outsiders, not maintainers</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The point is to triage <em>external</em> requests while leaving maintainers' own in-flight PRs alone, so the filter keeps the associations that mean "not on the team" and drops <code>OWNER</code>, <code>MEMBER</code>, and <code>COLLABORATOR</code>. You will see the field in Week 6's maintainer rotation.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m05-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">What is a <strong>skill</strong>, in Claude Code?</div><div class="fc-back">A packaged set of instructions Claude Code loads when a task matches it — invoked as <code>/name</code>.</div></div>
+      <div class="fc"><div class="fc-front">What does <span class="skill">/setup-matt-pocock-skills</span> configure, in its own three words?</div><div class="fc-back">Issue tracker, triage label vocabulary, domain doc layout. "Run once before first use of the other engineering skills."</div></div>
+      <div class="fc"><div class="fc-front">The four issue-tracker options the skill offers?</div><div class="fc-back">GitHub (<code>gh</code>), GitLab (<code>glab</code>), local markdown (<code>.scratch/</code>), or "other" described in prose. Choose GitHub.</div></div>
+      <div class="fc"><div class="fc-front">Why does this course pick GitHub, not Linear, as the tracker the skills write to?</div><div class="fc-back">GitHub Issues is the source of truth; the skills support it natively. Linear is "other" (prose you maintain) and sits <em>above</em> GitHub as the PM layer from Week 2.</div></div>
+      <div class="fc"><div class="fc-front">PRs as a request surface — default answer, your answer this week, and when it flips?</div><div class="fc-back">Default no; answer no for your Instance; yes in Week 6 on the shared upstream repo where classmates' PRs are the triage queue.</div></div>
+      <div class="fc"><div class="fc-front">Which <code>authorAssociation</code> values does the request-surface filter keep, and which does it drop?</div><div class="fc-back">Keeps <code>CONTRIBUTOR</code>, <code>FIRST_TIME_CONTRIBUTOR</code>, <code>NONE</code>. Drops <code>OWNER</code>, <code>MEMBER</code>, <code>COLLABORATOR</code>.</div></div>
+      <div class="fc"><div class="fc-front">The skill finds <code>CLAUDE.md</code> but no <code>AGENTS.md</code>. Which file gets the <code>## Agent skills</code> block?</div><div class="fc-back"><code>CLAUDE.md</code>, edited in place. It never creates the other file when one already exists; if neither exists it asks you.</div></div>
+      <div class="fc"><div class="fc-front">When is it necessary to <em>re-run</em> the setup skill?</div><div class="fc-back">Only to switch issue trackers or restart from scratch. Otherwise edit <code>docs/agents/*.md</code> by hand.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>The skill itself is your teacher here — its explainers are written for someone who does not know the terms. If an explainer still does not land, ask Claude Code, before answering the prompt: "Before I choose, show me what each option would write to <code>docs/agents/issue-tracker.md</code>." Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills</a><span class="why">The skill's source, including the seed templates for <code>issue-tracker.md</code>. The version you run is the one installed under <code>~/.claude/skills/setup-matt-pocock-skills/</code> — open its <code>SKILL.md</code> and read the whole process before you run it.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/skills">Anthropic: Skills</a><span class="why">What a skill is, where Claude Code finds them, and how <code>/name</code> invocation works.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/memory">Anthropic: Memory / <code>CLAUDE.md</code></a><span class="why">Why a block in <code>CLAUDE.md</code> is read on every session — the mechanism that makes the <code>## Agent skills</code> section work.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_list">GitHub CLI manual: <code>gh issue list</code></a><span class="why">The command the generated <code>issue-tracker.md</code> tells skills to run. Knowing its flags means you can read what the skills did.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>setup-matt-pocock-skills</code>; every quotation on this page is from the installed <code>SKILL.md</code>, read 2026-09-12</li>
+      <li><a href="https://code.claude.com/docs/en/skills">Anthropic: Skills</a> — what a skill is and how Claude Code loads one</li>
+      <li><a href="https://code.claude.com/docs/en/memory">Anthropic: Memory / CLAUDE.md</a> — how the <code>## Agent skills</code> block gets read on every session</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m04-reading-work-from-the-terminal/filter-and-diff.html"><span class="dir">Previous · M04</span>Filter and Diff</a>
+    <a class="next" href="labels-and-domain-docs.html"><span class="dir">Next · M05, page 2</span>Labels and Domain Docs</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -18,6 +18,7 @@ import json
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -29,13 +30,22 @@ REQUIRED_FILES = [
     "docs/agents/domain.md",
 ]
 
-REQUIRED_LABELS = [
+# The four labels a student actually creates. The fifth, `wontfix`, is in GitHub's
+# default label set and arrives on every new repository (verified 2026-09-12 by deleting
+# it from the template and watching it reappear on a fresh Instance). It is checked for
+# presence but reported as a note, not a pass -- decided 2026-09-13, see NOTES.md.
+CREATED_LABELS = [
     "needs-triage",
     "needs-info",
     "ready-for-agent",
     "ready-for-human",
-    "wontfix",
 ]
+DEFAULT_LABELS = ["wontfix"]
+
+# Labels take a few seconds to appear on a newly created repository: an immediate
+# `gh label list` can return an empty set. Retry before calling anything missing.
+LABEL_RETRIES = 3
+LABEL_RETRY_SECONDS = 3.0
 
 WRITEUP = "a1-writeup.md"
 WRITEUP_MIN_WORDS = 250
@@ -147,23 +157,39 @@ def check_files(res: Result, org: str, handle: str) -> None:
         res.add("CLAUDE.md has '## Agent skills'", False, "CLAUDE.md not found")
 
 
+def _label_names(repo: str) -> set[str]:
+    return {
+        lbl["name"]
+        for lbl in gh_json("label", "list", "--repo", repo, "--json", "name") or []
+    }
+
+
 def check_labels(res: Result, org: str, handle: str) -> None:
     repo = f"{org}/flashcards-{handle}"
     try:
-        names = {
-            lbl["name"]
-            for lbl in gh_json("label", "list", "--repo", repo, "--json", "name") or []
-        }
+        names = _label_names(repo)
+        for _ in range(LABEL_RETRIES):
+            if not names:
+                time.sleep(LABEL_RETRY_SECONDS)
+                names = _label_names(repo)
     except GhError as exc:
         res.add("Triage labels", False, str(exc).splitlines()[0])
         return
 
-    missing = [lbl for lbl in REQUIRED_LABELS if lbl not in names]
+    missing = [lbl for lbl in CREATED_LABELS if lbl not in names]
     res.add(
-        "Triage labels (5)",
+        "Triage labels (4 created + 1 default)",
         not missing,
         "" if not missing else f"missing: {', '.join(missing)}",
     )
+    # wontfix is present on every new repo, so its presence proves nothing about the
+    # student; its absence means they deleted it and the mapping file now names a
+    # label that does not exist.
+    for lbl in DEFAULT_LABELS:
+        if lbl in names:
+            res.add(f"Label {lbl}", None, "GitHub default, present -- not graded")
+        else:
+            res.add(f"Label {lbl}", False, "deleted? it is named in triage-labels.md")
 
 
 def check_writeup(res: Result, org: str, handle: str) -> None:

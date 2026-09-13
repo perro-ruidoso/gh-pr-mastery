@@ -624,3 +624,195 @@ th { background: var(--bg-inset); font-weight: 650; }
 .compare .side.yes { border-left: 4px solid var(--good); }
 .compare .side.no { border-left: 4px solid var(--bad); }
 .compare .side > :last-child { margin-bottom: 0; }
+
+/* ---------- objective page map (an objective spread over several pages) ---------- */
+
+.pagemap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+  margin: -0.9rem 0 1.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.pagemap .lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pagemap a, .pagemap .here {
+  display: inline-block;
+  padding: 0.15rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--bg-raised);
+}
+
+.pagemap a:hover { border-color: var(--accent); color: var(--accent-ink); }
+.pagemap .here { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 650; }
+.pagemap .num { font-family: var(--font-mono); font-size: 0.8em; opacity: 0.8; margin-right: 0.35em; }
+
+/* ---------- self-check score (filled in by app.js) ---------- */
+
+.sc-score {
+  margin: 1.2rem 0 0;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.sc-score strong { color: var(--ink); }
+
+/* ---------- flashcards ---------- */
+
+.flashcards {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 1.1rem 1.25rem;
+  margin: 1.25rem 0;
+}
+
+.flashcards h2, .flashcards h3 { margin-top: 0; }
+.flashcards .fc-hint { font-size: 0.92rem; color: var(--ink-soft); margin-top: 0; }
+
+/* no-JS / print fallback: the deck renders as a plain Q&A list */
+.fc-deck { display: grid; gap: 0.6rem; margin: 0.8rem 0 0; }
+
+/* display:grid/flex on these blocks would otherwise beat the UA's [hidden] rule */
+.flashcards [hidden] { display: none !important; }
+
+.fc {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.fc .fc-front { font-weight: 650; }
+.fc .fc-back { margin-top: 0.35rem; color: var(--ink-soft); }
+.fc .fc-back::before { content: "→ "; color: var(--accent); }
+
+/* JS-enhanced stage */
+.fc-stage { margin: 0.8rem 0 0; }
+
+.fc-card {
+  position: relative;
+  min-height: 9.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  padding: 1.1rem 1.25rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.fc-card:hover, .fc-card:focus-visible { border-color: var(--accent); outline: none; }
+
+.fc-card .side-label {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.fc-card.flipped { background: var(--accent-soft); border-color: var(--accent); }
+.fc-card.flipped .side-label { color: var(--accent-ink); }
+.fc-card .fc-text { margin-top: 0.6rem; }
+.fc-card .fc-text code { font-size: 0.9em; }
+
+.fc-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.7rem;
+}
+
+.fc-controls button {
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.fc-controls button:hover { border-color: var(--accent); }
+.fc-controls button.again { border-color: var(--bad); color: var(--bad); }
+.fc-controls button.got { border-color: var(--good); color: var(--good); }
+.fc-controls button.again:hover { background: var(--bad-soft); }
+.fc-controls button.got:hover { background: var(--good-soft); }
+.fc-controls button[disabled] { opacity: 0.45; cursor: default; }
+.fc-controls .fc-progress { margin-left: auto; font-size: 0.85rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.fc-done {
+  border: 1px solid var(--good);
+  background: var(--good-soft);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  font-size: 0.95rem;
+}
+
+.fc-done p { margin: 0.25rem 0; }
+.fc-meta { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.6rem; }
+.fc-meta button { font: inherit; font-size: inherit; color: var(--info); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; }
+
+@media print {
+  .fc-stage, .fc-meta { display: none !important; }
+  .fc-deck { display: grid !important; }
+}
+
+/* ---------- where to learn more ---------- */
+
+.learnmore {
+  border-top: 1px solid var(--line);
+  margin-top: 2rem;
+  padding-top: 0.5rem;
+}
+
+.learnmore ul { padding-left: 1.2rem; }
+.learnmore li { margin: 0.45rem 0; }
+.learnmore .tier {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--bg-inset);
+  color: var(--ink-soft);
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+.learnmore .tier.t1 { background: var(--accent-soft); color: var(--accent-ink); }
+.learnmore .tier.t2 { background: var(--info-soft); color: var(--info); }
+.learnmore .tier.t3 { background: var(--good-soft); color: var(--good); }
+.learnmore .why { display: block; font-size: 0.9rem; color: var(--ink-soft); }
+
+/* ---------- ask your teacher ---------- */
+
+.callout.ask { background: var(--accent-soft); border-color: transparent; }
+.callout.ask .label { color: var(--accent-ink); }

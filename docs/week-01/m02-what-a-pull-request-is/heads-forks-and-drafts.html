@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heads, Forks, and Drafts — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M02 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Heads, Forks, and Drafts</h1>
+  <p class="lede">The head branch can live in someone else's repository. Draft is a state, not a folder. And a pull request is a GitHub idea, not a git one.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M02 · The PR model</span>
+      <span class="chip bloom">Bloom: Understand</span>
+      <span class="chip assessed">Assessed by: Quiz 1</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Explain a pull request as a request to merge one ref into another, naming base and head, and identify both for any open PR.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M02 pages</span>
+    <a href="index.html"><span class="num">1</span>Two Refs and a Conversation</a>
+    <span class="here"><span class="num">2</span>Heads, Forks, and Drafts</span>
+  </nav>
+
+  <h2>head can live somewhere else entirely</h2>
+  <p>Listing open PRs on <code>cli/cli</code> shows something the single-PR view on the <a href="index.html">previous page</a> hid:</p>
+
+  <span class="code-label">$ gh pr list -R cli/cli --limit 3</span>
+  <pre><code>14398  Check for merged state when viewing a PR via the issues command  <span class="dim">timmattison:issue-12195</span>  OPEN   2026-09-08T18:25:17Z
+14373  docs: Add step to install working version on Ubuntu Pro          <span class="dim">acoulton:patch-1</span>        OPEN   2026-09-07T10:43:26Z
+14355  Remove obsolete Git test seams                                   <span class="dim">williammartin-clean-git-test-seams</span>  DRAFT  2026-09-04T15:50:28Z</code></pre>
+
+  <p>Look at the third column. Two of these heads are written <code>owner:branch</code> — <code>timmattison:issue-12195</code> — and one is a bare branch name. That is the difference between a <strong>cross-repository</strong> pull request, whose head branch lives in a contributor's fork, and a <strong>same-repository</strong> one, whose head branch lives in <code>cli/cli</code> itself. In <code>--json</code> output the same fact is the boolean <code>isCrossRepository</code>.</p>
+
+  <p>The base repository still owns the pull request. GitHub's documentation explains how: "When you open a pull request, GitHub creates temporary Git references that point to the pull request's head branch and, when possible, to a simulated merge result." Those refs are how CI, reviews, and the merge button can operate on code that lives in somebody else's copy — and, the docs add, they are "most relevant when you are building automation, debugging CI behavior, or fetching pull request state locally." You will meet them again in Week 5.</p>
+
+  <h2>Two development models</h2>
+  <p>GitHub names the two ways a project can use pull requests, and this course uses both — on purpose, in different weeks:</p>
+  <div class="compare">
+    <div class="side yes">
+      <h3>Shared repository model</h3>
+      <p>Contributors have write access. They push branches to the repository itself and open same-repo PRs. Head and base live together.</p>
+      <p><strong>Weeks 1–5</strong>: your Instance, and the Upstream Repo in write-access mode.</p>
+    </div>
+    <div class="side no">
+      <h3>Fork and pull model</h3>
+      <p>Anyone with read access forks the "upstream" repository, works in the fork, and opens a cross-repository PR back. Head lives in the fork.</p>
+      <p><strong>Week 6</strong>: one deliberate drill, so you feel what an outside contributor feels.</p>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <span class="label">This distinction returns, and it bites</span>
+    <p>In Week 5 you will learn that a pull request from a fork cannot read the base repository's Actions secrets — so agentic review in CI cannot run on it. That limit is a direct consequence of what you just read: the head branch is untrusted code from outside the repository. Same-repo PR, secrets available. Fork PR, no secrets. Remember where you first saw the distinction; the reasoning is written up in <a href="../../../adr/0004-two-modes-on-the-upstream-repo.md"><code>adr/0004</code></a>.</p>
+  </div>
+
+  <h2>Draft is a state, not a folder</h2>
+  <p>PR 14355 above is <code>DRAFT</code>. GitHub's docs describe two states — draft and ready for review — and draft means two concrete things:</p>
+  <ul>
+    <li>It <strong>cannot be merged</strong>, regardless of approvals or green checks.</li>
+    <li>Code owners are <strong>not automatically requested</strong> for review (Week 5's CODEOWNERS routing simply does not fire).</li>
+  </ul>
+  <p>Drafts let you "share work-in-progress without formally requesting reviews," and "you can convert a pull request to a draft at any time." Marking a draft ready "will request reviews from any code owners." For an agentic workflow this is more useful than it looks: opening a draft PR the moment the branch exists gives you a stable URL, a running CI signal, and a place to accumulate notes while the agent works — without putting a reviewer on the hook.</p>
+
+  <h2>What a pull request is <em>not</em></h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Not this</th><th>Actually</th></tr></thead>
+      <tbody>
+        <tr><td>A snapshot of your changes, uploaded</td><td>A live comparison of two refs that both keep moving</td></tr>
+        <tr><td>Owned by your branch</td><td>Owned by the base repository — that is where it is numbered and stored</td></tr>
+        <tr><td>A git concept</td><td>A GitHub concept. Git has no pull requests; it has branches and merges</td></tr>
+        <tr><td>Always <code>something → main</code></td><td>Any ref into any ref, including one PR's branch into another's</td></tr>
+        <tr><td>Closed by merging, only</td><td>Closeable without merging; merging is one of two exits</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. In <code>gh pr list</code>, one PR's head shows as <code>acoulton:patch-1</code> and another as <code>clean-git-test-seams</code>. What does the difference tell you?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The first is a draft and the second is ready for review</button></li>
+        <li><button data-opt="b">The first has been approved and the second has not</button></li>
+        <li><button data-opt="c">The first's head branch lives in a fork; the second's lives in the base repository</button></li>
+        <li><button data-opt="d">The first targets a non-default base branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The <code>owner:branch</code> form marks a cross-repository pull request whose head lives in a contributor's fork. A bare branch name means the head branch is in the base repository itself. Draft state, approvals, and the base branch are all shown elsewhere.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Which statement about draft pull requests is correct?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Drafts do not run CI</button></li>
+        <li><button data-opt="b">Drafts are private until marked ready</button></li>
+        <li><button data-opt="c">A draft can be merged if it has an approval and green checks</button></li>
+        <li><button data-opt="d">A draft cannot be merged, and code owners are not automatically requested</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Those are exactly the two behaviours GitHub's docs attach to draft state. CI still runs (that is much of the point of opening a draft early), and a draft on a public repository is as visible as any other PR.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">3. Week 6 has you fork the Upstream Repo and open a PR from the fork. Which development model is that, in GitHub's terms?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The shared repository model</button></li>
+        <li><button data-opt="b">The fork and pull model</button></li>
+        <li><button data-opt="c">The stacked pull request model</button></li>
+        <li><button data-opt="d">The draft pull request model</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Fork and pull: fork the upstream, work in the fork, open a cross-repository PR back. Weeks 1–5 use the shared repository model, where contributors push branches to the repository itself. C and D are not development models — stacking is a base-branch choice (Week 3) and draft is a PR state.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">4. A PR's head branch lives in a contributor's fork, yet CI on the base repository builds it. What makes that possible?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">GitHub creates temporary refs in the base repository that point at the head branch</button></li>
+        <li><button data-opt="b">The fork is automatically merged into the base repository when the PR opens</button></li>
+        <li><button data-opt="c">The contributor must push the branch to the base repository as well</button></li>
+        <li><button data-opt="d">CI clones the fork directly using the contributor's credentials</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> "GitHub creates temporary Git references that point to the pull request's head branch and, when possible, to a simulated merge result." Nothing is merged and nothing is pushed twice. Those refs are also why a fork PR's code is treated as untrusted — it is external code checked out inside the base repository's automation — which is the reason secrets are withheld from it (Week 5).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m02-heads">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">In <code>gh pr list</code>, what does a head written <code>owner:branch</code> mean?</div><div class="fc-back">A cross-repository PR — the head branch lives in <em>owner</em>'s fork, not in the base repository. A bare branch name means same-repo.</div></div>
+      <div class="fc"><div class="fc-front">Which <code>--json</code> field says whether a PR's head is in a fork?</div><div class="fc-back"><code>isCrossRepository</code> — <code>true</code> for a fork PR, <code>false</code> when head and base share a repository.</div></div>
+      <div class="fc"><div class="fc-front">How can the base repository run CI on code that lives in a fork?</div><div class="fc-back">GitHub creates temporary Git references in the base repo pointing at the head branch and, when possible, a simulated merge result.</div></div>
+      <div class="fc"><div class="fc-front">Name GitHub's two collaborative development models, and the weeks this course uses each.</div><div class="fc-back">Shared repository model (Weeks 1–5: push branches directly) and fork and pull model (Week 6: one deliberate drill).</div></div>
+      <div class="fc"><div class="fc-front">State the two concrete consequences of <strong>draft</strong> state.</div><div class="fc-back">The PR cannot be merged, and code owners are not automatically requested for review. CI still runs.</div></div>
+      <div class="fc"><div class="fc-front">Why can agentic review in CI not run on a PR from a fork?</div><div class="fc-back">Secrets are withheld from workflows triggered by a fork PR — the head is untrusted external code. Same-repo PR: secrets available. Fork PR: none. (Week 5, <code>adr/0004</code>.)</div></div>
+      <div class="fc"><div class="fc-front">Is a pull request a git concept?</div><div class="fc-back">No. Git has branches and merges; the pull request is a GitHub construct owned, numbered, and stored by the <em>base</em> repository.</div></div>
+      <div class="fc"><div class="fc-front">Name the two ways a pull request can end.</div><div class="fc-back">Merged, or closed without merging.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>If cross-repository PRs still feel abstract, ask Claude Code: "Run <code>gh pr list -R cli/cli --limit 20 --json number,isCrossRepository,headRepositoryOwner</code> and tell me how many open PRs come from forks, and who owns them." Then check its count against the raw output yourself. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/pull-requests">GitHub Docs: Pull requests (reference)</a><span class="why">The sections on drafts, pull request refs, and collaborative development models are all on this one page.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request">GitHub Docs: Changing the stage of a pull request</a><span class="why">Draft to ready and back, with who can do it and what it triggers.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request-from-a-fork">GitHub Docs: Creating a pull request from a fork</a><span class="why">The fork-and-pull how-to you will follow in Week 6. Skim it now to see where <code>owner:branch</code> comes from.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets">GitHub Docs: Using secrets in GitHub Actions</a><span class="why">Search the page for "forked repository" — one sentence that reorganised Weeks 5 and 6 of this course.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_list">GitHub CLI manual: <code>gh pr list</code></a><span class="why">Note the <code>--head</code> filter: the manual says the <code>owner:branch</code> syntax is <em>not</em> supported there, so to find fork PRs use <code>--json isCrossRepository</code> and filter with <code>--jq</code> instead (M04).</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/pull-requests">GitHub Docs: Pull requests</a> — draft behaviour, temporary refs, and the two development models; fetched 2026-09-12 (canonical URL)</li>
+      <li><a href="https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets">GitHub Docs: Using secrets in GitHub Actions</a> — secrets are not passed to runs triggered from a fork; the quotation is recorded in the course's <code>NOTES.md</code></li>
+      <li>Live data: open pull requests in <a href="https://github.com/cli/cli">cli/cli</a>, read 2026-09-12.</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M02, page 1</span>Two Refs and a Conversation</a>
+    <a class="next" href="../m03-the-merge-base/index.html"><span class="dir">Next · M03</span>The Merge Base</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

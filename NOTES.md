@@ -96,7 +96,9 @@ receive it for free and `check_a1.py` genuinely assesses only **four** of the fi
 template cannot prevent this — `seed/SPEC.md` §1 lists `wontfix` under "must not ship",
 and that item is unachievable by any change to the template. A1's
 `gh label create ... || true` loop already swallows the collision, so nothing breaks;
-the objective is just softer than intended. See the open question below.
+the objective is just softer than intended. **Decided 2026-09-13: accepted.** `check_a1.py`
+now grades the four created labels and reports `wontfix` as a note (present, not graded;
+failing only if a student deleted it). See the open questions below for the reasoning.
 
 **Also observed:** labels take a few seconds to appear on a newly created repository. An
 immediate `gh label list` returned an empty set; the same call moments later returned all
@@ -144,7 +146,7 @@ Rejected on both cost and plan grounds. The course uses the **Claude Code GitHub
 (instructor OAuth token) plus local `/code-review` instead. Revisit if the plan
 requirement relaxes.
 
-### Linear GitHub integration — verified 2026-09-12, INCOMPLETE
+### Linear GitHub integration — verified 2026-09-12; plan gate checked 2026-09-13
 
 Two distinct capabilities confirmed:
 1. **PR/commit linking** — branch names, PR titles, and magic words (`Fixes`, `Closes`,
@@ -155,11 +157,25 @@ Two distinct capabilities confirmed:
 
 Source: [Linear Docs — GitHub](https://linear.app/docs/github)
 
-**OPEN:** the docs page does not state which Linear **plan** includes Issues Sync. Must
-be confirmed against `linear.app/pricing` against a real Free workspace before Week 2's
-M12 is written, since M12 assumes students on Free can complete the wiring. If Sync is
-paid-only, M12 falls back to PR/commit linking alone (which is sufficient for the
-status-automation objectives M34) and Week 6's sync content becomes instructor-demoed.
+The docs page does not state which Linear **plan** includes Issues Sync. The pricing page
+does — fetched 2026-09-13:
+
+| Fact | Source |
+|---|---|
+| "Issue sync" is a line item in the **Core** feature group, shown available on all four plans (Free, Basic, Business, Enterprise) with no per-plan gate. | [linear.app/pricing](https://linear.app/pricing) |
+| The only plan-gated GitHub items on the integration page are GitHub Enterprise Cloud support ("Available to workspaces on our Enterprise plan") and AI-written titles/labels from magic words ("On Business and Enterprise plans"). Issues Sync carries no such note. | [Linear Docs — GitHub](https://linear.app/docs/github) |
+| Free plan limits: unlimited members, **2 teams**, **250 issues**, 10 MB file uploads. | [linear.app/pricing](https://linear.app/pricing) |
+
+**Reading:** Issues Sync is available on Free. The 250-issue cap is the limit that actually
+matters, and it is comfortable: a student workspace syncing one Instance holds the
+15-ticket backlog plus whatever they add — nowhere near 250. The 2-team cap is one team per
+Instance; students wire one.
+
+**Residual, not yet done:** one live confirmation in a real Free workspace — open Settings
+→ Integrations → GitHub and check the *GitHub Issues* section offers the **+** to link a
+repo. Five minutes; do it when the instructor's own workspace is created (instructor guide
+Part 5.2). Until then M12 can be written on the Free assumption with the PR/commit-linking
+fallback kept as a footnote, not a fork in the content.
 
 ### Seed Repo toolchain pins — verified 2026-09-12
 
@@ -195,21 +211,98 @@ Token scopes were `gist, read:org, repo, workflow`; after the refresh the scopes
 cleared. `perro-ruidoso` exists (created 2026-09-12) and held **no repositories** at the
 time the Seed Repo build started.
 
+### GitHub Docs reorganised; some quoted wording changed — verified 2026-09-13
+
+While re-fetching every URL for the Week 1 Learning Pages, several `docs.github.com` addresses
+first recorded in `RESOURCES.md` were found to **redirect** (301 → 200) to new canonical pages
+under `/reference/` and `/how-tos/`. Old links still work, but the course rule is to cite what
+was fetched, so Week 1 pages and `RESOURCES.md` now carry the canonical URLs:
+
+| Recorded URL (path under `docs.github.com/en/`) | Now resolves to |
+|---|---|
+| `pull-requests/…/about-pull-requests` | `pull-requests/reference/pull-requests` |
+| `pull-requests/…/about-collaborative-development-models` | `pull-requests/reference/pull-requests` (merged into the same page) |
+| `pull-requests/…/about-comparing-branches-in-pull-requests` | `pull-requests/reference/branches` |
+| `pull-requests/…/working-with-forks/about-forks` | `pull-requests/reference/forks` |
+| `pull-requests/…/changing-the-stage-of-a-pull-request` | `pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request` |
+| `pull-requests/…/comparing-commits` | `pull-requests/how-tos/commit-changes/comparing-commits` |
+| `actions/security-for-github-actions/security-guides/using-secrets-in-github-actions` | `actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets` |
+| `account-and-profile/…/publicizing-or-hiding-organization-membership` | `account-and-profile/how-tos/organization-membership/publicizing-or-hiding-organization-membership` |
+
+`jqlang.github.io/jq/` likewise redirects to `jqlang.org/`.
+
+**Wording moved with the pages.** The M03 lesson had quoted the branches page as saying a
+three-dot view "remains consistent even when the base branch updates" and that two-dot could be
+"potentially obscuring the topic branch's actual contributions." Neither phrase is on the
+canonical page any more. The current text, now quoted on M03 page 2:
+
+> "When you use a two-dot comparison, the diff changes when the base branch is updated, even if
+> you haven't made any changes to the topic branch. A two-dot comparison also focuses on the base
+> branch, which can make the changes introduced by the topic branch harder to understand. In
+> contrast, a three-dot comparison keeps showing the changes introduced by the topic branch
+> since the branches diverged."
+
+Two additions on the same page were worth teaching and are now on M03: **"Pull requests on
+GitHub show a three-dot diff"** stated flatly above the definitions table, and a "Merging often"
+section — "When you merge the base branch, the diffs shown by two-dot and three-dot comparisons
+are the same." The pull-requests reference page also gained content the M02 pages now use: the
+five tabs (Conversation, Commits, Checks, Files changed, **Findings**), the merge-status box,
+"temporary Git references that point to the pull request's head branch and, when possible, to a
+simulated merge result," and a caution that compare pages and PR pages "can calculate changed
+files from different merge bases."
+
+Still present and re-confirmed: the template page's "starts with a single commit" / "entire
+commit history" / contributions-graph sentences; the PR page's "Draft pull requests cannot be
+merged, and code owners are not automatically requested"; the secrets page's fork sentence.
+
+**Consequence:** re-fetch and re-quote before writing each later week; the Tier 1 source moves.
+
+### `gh` manual details used on Week 1 pages — verified 2026-09-12/13
+
+- `gh auth refresh`: `--scopes` adds; "the minimum set of scopes (`repo`, `read:org`, and
+  `gist`) cannot be removed"; `--remove-scopes` and `--reset-scopes` exist.
+- `gh pr list`: `--limit` default **30**, `--state` default **`open`** (`open|closed|merged|all`).
+  `--head` "`<owner>:<branch>` syntax not supported" — so fork PRs are found with
+  `--json isCrossRepository` + `--jq`, not `--head`. That query was run and is on M04 page 2.
+- `gh pr view --json` fields re-captured: 46 fields including `closingIssuesReferences` (an
+  array of `{id, number, repository, url}` objects, not bare numbers — the M06 transcript was
+  corrected to match), `headRepositoryOwner`, `isCrossRepository`, `reviewDecision`,
+  `statusCheckRollup`, `mergedBy`.
+- `gh repo view --json`: `isTemplate`, `isFork`, `parent`, `templateRepository` all valid;
+  `flashcards-seed` returns `{"isFork":false,"isTemplate":true,"parent":null,"templateRepository":null}`.
+- `gh label create`: `--color`, `--description`, `--force`; "if a color isn't provided, a random one will be chosen."
+- `reviewDecision` values seen on `cli/cli`'s last 30 merged PRs: `APPROVED`, `REVIEW_REQUIRED`.
+- The installed `code-review` skill captures its diff as `git diff <fixed-point>...HEAD`
+  "(three-dot, so the comparison is against the merge-base)" — quoted on M03 page 2 as the
+  Week 4 tool's own scoping rule, in place of the earlier vaguer "accepts a ref range".
+
 ## Open questions
 
-- Linear Free plan's Issues Sync availability (above) — blocks final wording of M12.
-- **The fifth triage label is free.** `wontfix` is in GitHub's default label set, so A1
-  item 4 assesses four labels, not five (verified above). Three ways out, none of them
-  obviously right: accept it; rename the course's fifth role to something outside the
-  defaults (`declined`?), which costs a change to `docs/agents/triage-labels.md` and the
-  Pocock skill's own vocabulary; or have `check_a1.py` assert that `wontfix` was *edited*
-  (description or colour changed from GitHub's default) as evidence the student handled it
-  deliberately. Decide before the first cohort.
-- **Org plan: pay for Team seats, or downgrade to Free?** `perro-ruidoso` was created on
-  GitHub **Team** (2 seats, 1 filled). A cohort of 8-14 plus the instructor needs 9-15
-  seats at $4/user/month. Downgrading to Free costs the curriculum **nothing** - every gate
-  the course uses works on a public repo at either tier (see `adr/0003`). Decide before
-  inviting students.
+- ~~Linear Free plan's Issues Sync availability~~ — **resolved on paper 2026-09-13**
+  (above): the pricing page lists Issue sync as a Core feature on every plan. One live
+  check in a Free workspace remains; M12 is written on the Free assumption.
+- ~~**The fifth triage label is free.**~~ — **decided 2026-09-13: accept it, and make the
+  grading honest.** `wontfix` is in GitHub's default label set, so A1 item 4 assesses four
+  labels, not five (verified above). The alternatives were rejected: renaming the fifth
+  role (`declined`?) forks the course from the Pocock skill's own vocabulary — the whole
+  point of M05 is that the skill writes the mapping file — and asserting that `wontfix` was
+  *edited* grades a colour change, not understanding. What changed: `check_a1.py` grades
+  the four created labels under "Triage labels (4 created + 1 default)", reports `wontfix`
+  as a `note` when present (failing only if the student deleted it, since the mapping file
+  names it), and retries `gh label list` to cover the propagation lag noted above. A1 item
+  4 says so. M05 already teaches why the fifth arrives free.
+- ~~**Org plan: pay for Team seats, or downgrade to Free?**~~ — **decided 2026-09-13: stay
+  on Team for now.** `perro-ruidoso` was created on GitHub **Team** (2 seats, 1 filled;
+  re-checked 2026-09-13, unchanged). The recommendation was to downgrade — every gate the
+  course uses works on a public repo at either tier (`adr/0003`), Team's extras are
+  private-repo features, and GitHub's pricing page shows Team at "$4 USD per user/month for
+  the first 12 months*", so 9-15 seats is $36-60/month for nothing the curriculum uses.
+  The instructor chose to keep the paid plan for now; nothing in the course depends on it
+  either way. **Consequence:** seats must be bought before inviting — the org has 2 and a
+  cohort of 8-14 plus the instructor needs 9-15. Settings → Billing and licensing. Team
+  members past the seat count cannot be invited. Revisit before cohort 2; the downgrade
+  path is documented at
+  [Downgrading your account's plan](https://docs.github.com/en/billing/managing-the-plan-for-your-github-account/downgrading-your-accounts-plan).
 - ~~Week 1's M06 assigns students a merged PR in `gh-pr-mastery` and that repo has no PR
   history~~ — **resolved 2026-09-12.** The repo is pushed, public, and has begun being
   dogfooded; A1 item 6 now has a real target. The history is still short, and both A1 and
@@ -356,3 +449,69 @@ time the Seed Repo build started.
   facts, sources, or open-question reasoning kept here; it links back instead, so the two
   cannot drift into contradicting each other. If a roadmap item and this file disagree,
   this file is right.
+
+- **2026-09-13** — Week 1 Learning Pages rebuilt as **one folder per objective** with an
+  `index.html` entry page and supporting pages: 13 pages replace the 6 flat ones (M01, M02,
+  M03, M04, M05: two pages each; M06: three). The split follows the objective's own seams —
+  concept versus procedure, or one decision per page — so each page fits in working memory
+  and can be done in one sitting. All previously captured transcripts were kept verbatim;
+  four new commands were added and **each was run as written** before shipping (fork-PR jq
+  query, `group_by(.isCrossRepository)`, the course-repo snapshot listings, `gh repo view
+  --json isTemplate,…`).
+  - Every page now carries, in order: objective banner, a **page map** of the objective's
+    pages, content, hands-on checklist (Apply/Analyze pages), **Self-Check** (2–4 reveal
+    questions, now with a first-try tally in `app.js`), a **flashcard deck**, an
+    **ask-your-teacher** callout, **where to learn more** (tiered, every URL fetched, one
+    line on why to read it), and sources. `CONTEXT.md`'s rule is kept: these are Self-Checks,
+    not quizzes — "quiz" stays reserved for the two graded concept quizzes.
+  - New shared component `docs/assets/flashcards.js` (+ styles): a one-card-at-a-time
+    Leitner loop — flip, *Again* returns the card to the queue, *Got it* retires it; keyboard
+    Space/1/2; progressive enhancement (plain Q&A list without JS and in print); persists only
+    last-studied date and lapse count per deck in `localStorage`, to nudge a spaced second
+    pass. 13 decks, 101 cards, every card grounded in a fact already on its page.
+  - Self-Check questions were redistributed to the page that teaches them and **29 new
+    questions** written (23 kept, 52 total across 13 pages), each grounded in a fetched source (e.g. the minimum-scope rule,
+    `--limit`/`--state` defaults, the compare-page caution, `wontfix` as a default label,
+    where a blocking relation is stored). Rationales name the source.
+  - `checkers/check_site.py` learned the layout: a Learning Page is any HTML under
+    `week-NN/mNN-slug/`; stylesheet depth is computed; required sections now include page
+    map, flashcards, ask callout, learn-more; every card needs a front and a back; a deck
+    must load `flashcards.js`; the hub must link every page of every objective folder and
+    each page must link its siblings. Verified by injecting three faults (empty card back,
+    component not loaded, broken sibling link) — all caught, then reverted. Currently
+    **15 pages, 163 internal links, clean.**
+  - `objectives/build_objectives.py` gained a `PAGES` table and a **Learning Pages** column:
+    the `.md` links each objective to its pages (repo-relative, so they resolve on GitHub),
+    the `.xlsx` cell lists them and hyperlinks to the entry page on the published site. The
+    build asserts every listed page exists and each objective's first page is `index.html`.
+    Both outputs regenerated; `roadmap.docx` regenerated for the changed Week 1 blurb.
+  - Re-fetching every cited URL surfaced the **GitHub Docs reorganisation** recorded above:
+    eight addresses redirect and the M03 quotations had drifted. `RESOURCES.md` now carries
+    canonical URLs, a URL-rot note, and the Week 1 pages' additional Tier 1 sources.
+  - The M06 worked-example transcript showed `"closes": [14404]`, which is not a real
+    `gh pr view` field shape; corrected to the actual `closingIssuesReferences` array (abridged
+    and marked as such). M06 page 3 adds a dated snapshot of the course repo's own history —
+    five merged PRs, each closing its issue within one second, one recorded blocking edge
+    (#2 blocked by #1) — captured from the commands printed on the page.
+  - **Render-tested in Chrome** over a local `http.server`, not just parsed: Mermaid draws,
+    the first-try tally counts a wrong first click as a miss, a deck runs to its finish state
+    and writes its `localStorage` record, every page shows a live deck and no horizontal
+    overflow. The test caught one real bug the checker cannot see: `.fc-deck { display: grid }`
+    beat the UA's `[hidden]` rule, so the Q&A list stayed visible under the stage. Fixed with
+    `.flashcards [hidden] { display: none !important; }` — a reminder that any block given
+    `display: grid/flex` needs an explicit hidden rule if JS toggles `.hidden` on it.
+  - The Bash tool in this session mangled single quotes inside heredocs; HTML and the larger
+    Python edits were written with the file tool and helper scripts in the scratchpad
+    instead. No effect on the repo, noted so the next builder is not surprised.
+
+- **2026-09-13** — Three of the four open decisions closed. **Linear:** `linear.app/pricing`
+  lists Issue sync as a Core feature on every plan and the docs gate only GitHub Enterprise
+  Cloud and AI magic-word enrichment, so M12 is written on the Free assumption; one live
+  check in a Free workspace remains a TODO. **`wontfix`:** accepted; `check_a1.py` now
+  grades four created labels, notes `wontfix`, and retries `gh label list` for the
+  propagation lag — exercised against `flashcards-seed` (correctly fails the four withheld
+  labels, notes `wontfix`) and a nonexistent repo. **Org plan:** stay on Team for now;
+  seats must be bought before inviting. `adr/0003`, the instructor guide (0.3, 3.3, 5.3,
+  8.2, Parts 9 and 10), A1 item 4, the README, and the roadmap were updated to match. The
+  remaining open decision is the Pro-versus-Max question, which waits for the Week 5 dry
+  run.
