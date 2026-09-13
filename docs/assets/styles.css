@@ -810,6 +810,7 @@ th { background: var(--bg-inset); font-weight: 650; }
 .learnmore .tier.t1 { background: var(--accent-soft); color: var(--accent-ink); }
 .learnmore .tier.t2 { background: var(--info-soft); color: var(--info); }
 .learnmore .tier.t3 { background: var(--good-soft); color: var(--good); }
+.learnmore .tier.t4 { background: var(--warn-soft); color: var(--warn-ink); }
 .learnmore .why { display: block; font-size: 0.9rem; color: var(--ink-soft); }
 
 /* ---------- ask your teacher ---------- */

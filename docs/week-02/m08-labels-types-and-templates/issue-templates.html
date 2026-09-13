@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue Templates — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M08 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Issue Templates</h1>
+  <p class="lede">A template shapes what a <em>human</em> is prompted to write. An agent never sees it. Knowing which of your collaborators is which decides where the four-section shape has to live.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M08 · Issues</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Apply labels, issue types, and issue templates so a backlog is filterable and ready work is findable.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M08 pages</span>
+    <a href="index.html"><span class="num">1</span>Labels and Issue Types</a>
+    <span class="here"><span class="num">2</span>Issue Templates</span>
+  </nav>
+
+  <h2>What a template is</h2>
+  <p>GitHub offers two kinds. A <strong>Markdown template</strong> is a <code>.md</code> file with YAML front matter whose body becomes the starting text of a new issue. An <strong>issue form</strong> is a <code>.yml</code> file describing "customizable web form fields" — dropdowns, required text areas — and is "currently in public preview and subject to change." Both live in one place: the <code>.github/ISSUE_TEMPLATE</code> folder, and both take effect only "once these changes are merged into the default branch."</p>
+
+  <p>Two small rules that bite: the template's <code>name</code> "must be more than 3 characters" or "the template won't be shown when creating an issue," and if you have several, "prefix the filenames with a number" (<code>1-bug.yml</code>, <code>2-feature-request.yml</code>) to control their order in the chooser.</p>
+
+  <h2>The course's one template</h2>
+  <p>Your Instance needs exactly one: the ticket shape from <a href="../m07-issues-an-agent-can-execute/index.html">M07</a>. This file was committed to a throwaway Instance's <code>main</code> and used for the transcripts below.</p>
+
+  <span class="code-label">.github/ISSUE_TEMPLATE/ticket.md</span>
+  <pre><code>---
+name: Ticket
+about: One unit of agent-executable work. Fill every section; an agent will read it cold.
+title: ""
+labels: needs-triage
+type: Task
+---
+
+## Context
+
+Why this exists, in two sentences. What is true today, and what will be true after.
+
+## Acceptance criteria
+
+- [ ] Observable, checkable statements
+- [ ] Including the test that must exist
+
+## Out of scope
+
+Explicitly, what this ticket does not do.
+
+## Blocked by
+
+Nothing, or the issues that must land first and why.</code></pre>
+
+  <p>GitHub documents the metadata keys in one sentence: "You can also add these details in the issue template with <code>title</code>, <code>labels</code>, <code>type</code>, or <code>assignees</code> in a YAML frontmatter format." Three of them carry metadata from <a href="index.html">page 1</a>: <code>labels: needs-triage</code> puts every human-filed issue into the triage state by default (it is not ready for anything until someone says so), and <code>type: Task</code> sets the issue type. The body is prompts, not content — the placeholder under Acceptance criteria describes what a criterion <em>is</em> without pre-filling any. That restraint is deliberate: <code>seed/SPEC.md</code> §8 says a template "must not pre-fill the acceptance criteria M07 asks students to write," because a pre-filled template becomes a form people submit without thinking.</p>
+
+  <h2>Who a template is for</h2>
+  <p>This is the part that surprises people. Try to use the template from a script:</p>
+
+  <pre><code><span class="prompt">$</span> gh issue create --template Ticket --title "Due-date filtering"
+<span class="dim">must provide `--title` and `--body` when not running interactively</span>
+
+<span class="prompt">$</span> gh issue create --template Ticket --title "Due-date filtering" --body-file -
+<span class="dim">`--template` is not supported when using `--body` or `--body-file`</span></code></pre>
+
+  <p>Both captured as shown. <code>--template</code> is "starting body text" for an <em>interactive</em> session — it pre-fills the editor a human is about to type into, and it is refused when a body is supplied from a file or a pipe. So a template is reached in exactly two ways: the web UI's issue chooser (which <code>gh issue create --web</code> opens), and an interactive <code>gh issue create</code> at a terminal. An agent uses neither. Claude Code files issues with <code>gh issue create --title … --body-file …</code>, exactly as <code>docs/agents/issue-tracker.md</code> told it to in M05, and it gets the four-section shape from what it has already read: <code>CLAUDE.md</code>, and the <span class="skill">/to-tickets</span> skill's own issue template.</p>
+
+  <div class="compare">
+    <div class="side yes">
+      <h3>Humans</h3>
+      <p>Get the shape from the <strong>issue template</strong>: the web chooser or interactive <code>gh issue create</code>.</p>
+      <p>Get the labels and type from the template's <strong>front matter</strong>.</p>
+    </div>
+    <div class="side yes">
+      <h3>Agents</h3>
+      <p>Get the shape from <strong><code>CLAUDE.md</code></strong> and the skill's own template; never see <code>.github/ISSUE_TEMPLATE</code>.</p>
+      <p>Get the labels and type from <strong>flags</strong>: <code>--label</code>, <code>--type</code>, <code>--parent</code>, <code>--blocked-by</code>.</p>
+    </div>
+  </div>
+
+  <p>The consequence for you: the four sections have to be stated in <em>both</em> places, and kept the same. A repository whose template says one thing and whose <code>CLAUDE.md</code> says another will produce two shapes of issue depending on who filed it — and a filter that assumes one shape will silently miss half the backlog.</p>
+
+  <div class="callout note">
+    <span class="label">Verifying it landed</span>
+    <p>Templates are files, so the check is a file check on the default branch — the same <code>contents</code> endpoint <code>check_a1.py</code> used for <code>docs/agents/</code>:</p>
+    <pre><code><span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-<span class="dim">&lt;your-handle&gt;</span>/contents/.github/ISSUE_TEMPLATE --jq '.[].name'
+ticket.md</code></pre>
+    <p>What the API cannot tell you is whether the chooser shows it. Open <code>gh issue create --web</code> once, confirm "Ticket" appears with its <code>about</code> line, and cancel. If it is missing, the usual cause is a <code>name</code> of three characters or fewer, or the file sitting on a branch that is not the default.</p>
+  </div>
+
+  <h2>The optional <code>config.yml</code></h2>
+  <p>A second file in the same folder controls the chooser itself. Setting <code>blank_issues_enabled: false</code> means "Contributors with Read or Triage roles will only see the configured templates" — useful on the shared upstream repository in Week 6, where outside contributors file issues, and unnecessary on your Instance, where the only human is you.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p><code>check_a2.py</code> verifies a Markdown template exists under <code>.github/ISSUE_TEMPLATE/</code> on the default branch, its front matter names a <code>type</code>, and its body contains the four headings without a pre-filled criterion.</p>
+    <label class="check"><input type="checkbox"><span>Committed <code>.github/ISSUE_TEMPLATE/ticket.md</code> to <code>main</code> with <code>name</code>, <code>about</code>, <code>labels</code>, <code>type</code>, and the four headings.</span></label>
+    <label class="check"><input type="checkbox"><span>Opened <code>gh issue create --web</code>, saw the template in the chooser, and cancelled.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed <code>CLAUDE.md</code> states the same four sections for agent-filed issues (add a short "Issue shape" note if the M05 run did not).</span></label>
+    <label class="check"><input type="checkbox"><span>Tried <code>--template</code> with <code>--body-file</code> once, read the error, and can say who a template is for.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. Claude Code files a ticket in your Instance with <code>gh issue create --title … --body-file …</code>. Which of these shaped the body?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The <code>.github/ISSUE_TEMPLATE/ticket.md</code> file, applied automatically on creation</button></li>
+        <li><button data-opt="b">What the agent had read — <code>CLAUDE.md</code> and the skill's own issue template — not the repository template</button></li>
+        <li><button data-opt="c">The <code>config.yml</code> in the template folder, which sets the default body for the API</button></li>
+        <li><button data-opt="d">GitHub's default issue form, which every API-created issue passes through</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> A template pre-fills an interactive editor and is refused alongside <code>--body-file</code> ("not supported when using <code>--body</code> or <code>--body-file</code>"). Nothing is applied automatically to API-created issues (A, D), and <code>config.yml</code> only configures the chooser (C).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. You add a template on a feature branch and open the repository's issue chooser. What do you see?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The new template, because GitHub reads templates from every branch</button></li>
+        <li><button data-opt="b">The new template, but only for collaborators with write access</button></li>
+        <li><button data-opt="c">An error, because templates on non-default branches are invalid</button></li>
+        <li><button data-opt="d">No change — a template takes effect once merged into the default branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> GitHub: "Once these changes are merged into the default branch, the template will be available for contributors." Until then it is just a file on a branch.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Why does the course template leave the Acceptance criteria section as a description rather than a filled-in example?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">A pre-filled criterion gets submitted unread; the section is the part M07 grades the author on writing</button></li>
+        <li><button data-opt="b">GitHub strips checklist items from templates, so an example would not survive</button></li>
+        <li><button data-opt="c">Front matter cannot coexist with checklist syntax in a Markdown template</button></li>
+        <li><button data-opt="d">Examples would make the file longer than the size limit for templates</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> <code>seed/SPEC.md</code> §8 makes it a rule: templates "must not pre-fill the acceptance criteria M07 asks students to write." The other options describe restrictions that do not exist.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m08-templates">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Where do issue templates live, and when do they take effect?</div><div class="fc-back"><code>.github/ISSUE_TEMPLATE/</code>, once merged into the default branch.</div></div>
+      <div class="fc"><div class="fc-front">Two kinds of template?</div><div class="fc-back">Markdown templates (<code>.md</code> with YAML front matter) and issue forms (<code>.yml</code>, web form fields, "public preview").</div></div>
+      <div class="fc"><div class="fc-front">Front-matter keys the course template uses?</div><div class="fc-back"><code>name</code>, <code>about</code>, <code>title</code>, <code>labels</code> (needs-triage), <code>type</code> (Task).</div></div>
+      <div class="fc"><div class="fc-front">What happens to <code>gh issue create --template X --body-file f</code>?</div><div class="fc-back">Refused: "<code>--template</code> is not supported when using <code>--body</code> or <code>--body-file</code>." Templates are for interactive use.</div></div>
+      <div class="fc"><div class="fc-front">Who is a template for, and where do agents get the shape instead?</div><div class="fc-back">Humans (web chooser, interactive <code>gh</code>). Agents get it from <code>CLAUDE.md</code> and the skill's own template — so state the shape in both.</div></div>
+      <div class="fc"><div class="fc-front">Template not showing in the chooser — the two usual causes?</div><div class="fc-back">A <code>name</code> of three characters or fewer, or the file is not on the default branch.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>blank_issues_enabled: false</code> in <code>config.yml</code> do?</div><div class="fc-back">Contributors with Read or Triage roles see only the configured templates. Useful upstream in Week 6, not on your Instance.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code: "Read <code>.github/ISSUE_TEMPLATE/ticket.md</code> and <code>CLAUDE.md</code>. If a human and you each filed a ticket for the same work, would the two bodies have the same headings? If not, what should change, and in which file?" The right answer changes <code>CLAUDE.md</code>, not the template. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository">GitHub Docs: Configuring issue templates for your repository</a><span class="why">Folder, naming, ordering, front matter, <code>config.yml</code>, and the default-branch rule — everything on this page comes from it.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms">GitHub Docs: Syntax for issue forms</a><span class="why">The <code>.yml</code> alternative, with required fields and dropdowns. Worth knowing for Week 6's upstream repository, where you want outside contributors to be unable to skip the reproduction steps.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_create">GitHub CLI manual: <code>gh issue create</code></a><span class="why"><code>--template</code> ("Template name to use as starting body text"), <code>--web</code>, <code>--body-file</code>, and the new metadata flags.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository">GitHub Docs: Configuring issue templates for your repository</a> — every quotation about templates (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_issue_create">GitHub CLI manual: <code>gh issue create</code></a> — <code>--template</code> semantics; both error transcripts captured with <code>gh</code> 2.100.0 on 2026-09-13</li>
+      <li><code>seed/SPEC.md</code> §8 in the course repo — the no-pre-filled-criteria rule</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M08, page 1</span>Labels and Issue Types</a>
+    <a class="next" href="../m09-conversation-to-spec/index.html"><span class="dir">Next · M09</span>From Conversation to Spec</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

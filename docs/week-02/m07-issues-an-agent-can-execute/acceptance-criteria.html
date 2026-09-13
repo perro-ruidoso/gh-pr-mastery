@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Criteria That Can Fail — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M07 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Criteria That Can Fail</h1>
+  <p class="lede">An acceptance criterion is a sentence that a wrong implementation makes false. If you cannot describe the wrong implementation, you have not written a criterion — you have written a wish.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M07 · Issues</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A2 (rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Write an issue body a fresh agent session can execute without asking a question: context, acceptance criteria, and explicit out-of-scope.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M07 pages</span>
+    <a href="index.html"><span class="num">1</span>The Ticket as a Contract</a>
+    <span class="here"><span class="num">2</span>Criteria That Can Fail</span>
+  </nav>
+
+  <h2>The falsifiability test</h2>
+  <p>For each line under Acceptance criteria, ask: <em>what would an implementation look like that makes this line false?</em> If the answer is specific — "one that returns 2 for <code>round(2.5)</code>", "one that raises on an empty deck" — the criterion is doing its job. If the answer is "a bad one", rewrite it.</p>
+
+  <p>Here are four criteria from the Seed Repo's backlog, each paired with the wrong implementation it rules out. The right-hand column is the whole reason the left-hand column is phrased the way it is.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Criterion (from the backlog)</th><th>The wrong implementation it catches</th></tr></thead>
+      <tbody>
+        <tr><td>"Intervals follow <code>I(1)=1</code>, <code>I(2)=6</code>, <code>I(n)=I(n-1)*EF</code>, rounded <strong>half-up</strong> with a floor of 1 day; bare <code>round()</code> is wrong" (#3)</td><td>Python's <code>round()</code>, which is banker's rounding: <code>round(2.5) == 2</code>. Off by one day, only on exact halves — the kind of bug tests miss unless one is written for it.</td></tr>
+        <tr><td>"<code>today</code> is obtained once, in <code>cli/</code>, and passed down — no layer below reads the clock" (#5)</td><td>A <code>date.today()</code> call inside the scheduler. The command works; the tests become time-dependent and flaky.</td></tr>
+        <tr><td>"a deck file written before this change still loads - missing fields fall back to the T01 defaults" (#2)</td><td>A loader that <code>KeyError</code>s on any deck saved before review state existed. Every existing user's data becomes unreadable.</td></tr>
+        <tr><td>"A card with two tags is counted under both, and the totals row says so rather than silently exceeding the deck size" (#14)</td><td>A totals row that sums per-tag counts — 12 cards reported for a 10-card deck, with no explanation.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout note">
+    <span class="label">Name the test, not just the behaviour</span>
+    <p>Every Seed Repo ticket ends its criteria with a line like "<code>tests/storage/test_json_store.py</code> covers the round trip, the old-file fallback, and a malformed date." That line does two things. It tells the agent where "done" is checked, so the diff arrives with the test in it rather than with a promise to add one. And it gives the Week 4 reviewer a concrete thing to look for — if the malformed-date case is missing from the test, that is a finding, not a matter of taste. <span class="skill">/to-tickets</span> advises against file paths because "they go stale fast"; a <em>test</em> path is the exception this course makes, because the test is part of the deliverable.</p>
+  </div>
+
+  <h2>Rewriting weak criteria</h2>
+  <p>The same three moves fix most weak criteria: name the input, name the observable output, and name where it is checked.</p>
+
+  <div class="compare">
+    <div class="side no">
+      <h3>Before</h3>
+      <p>"The review command works end to end."</p>
+      <p>"Handles invalid input."</p>
+      <p>"Well tested."</p>
+    </div>
+    <div class="side yes">
+      <h3>After</h3>
+      <p>"<code>flashcards review --deck &lt;path&gt;</code> shows one card's front, waits, reveals the back, and reads a grade of 0–5."</p>
+      <p>"An invalid grade re-prompts rather than crashing."</p>
+      <p>"<code>tests/cli/test_main.py</code> drives the command with scripted stdin and a fixed <code>today</code>, and asserts the saved deck."</p>
+    </div>
+  </div>
+
+  <p>The right-hand column is ticket <a href="https://github.com/perro-ruidoso/flashcards-seed/issues/5">#5</a>, verbatim. Notice that "re-prompts rather than crashing" chooses one of two reasonable behaviours (the other being "exits with an error"). An agent left to decide would pick one; the reviewer would then argue about it in the PR. Deciding in the ticket moves the argument to where it is cheap.</p>
+
+  <h2>Out of scope is a fence, not a disclaimer</h2>
+  <p>A weak Out-of-scope section says "everything else." A useful one names the two or three things an implementer would <em>plausibly do</em> while working this ticket, and assigns each to where it belongs. From #5 again:</p>
+  <blockquote><p>"Choosing <em>which</em> card — T05 does due-filtering, and until then the command takes the first card. Limits (T06) and tags (T10)."</p></blockquote>
+  <p>That sentence also makes a decision ("takes the first card") so the ticket is completable before its neighbours exist. Out of scope is where you say what the stub behaviour is, not merely what is deferred.</p>
+
+  <h2>Context is state, not story</h2>
+  <p>Two sentences: what is true now, and why it must change. Ticket <a href="https://github.com/perro-ruidoso/flashcards-seed/issues/14">#14</a> adds a third that earns its place — "note that its two parents sit six tickets apart, in different layers" — because that fact changes how the agent should read the Blocked-by list. A Context paragraph that recounts the discussion ("we considered three designs…") is conversation residue; if a design decision matters, it belongs in an ADR the ticket cites, as #3 cites <code>docs/adr/0001</code>.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>This is the A2 rubric's M07 item, done once by hand before <span class="skill">/to-tickets</span> does it for you in M10 — so you can judge the skill's output.</p>
+    <label class="check"><input type="checkbox"><span>Wrote a ticket for the Seed backlog's T05 (due-date filtering) in my own Instance — from the one-line description in <code>seed/SPEC.md</code> §6, without reading the Seed Repo's #6 first.</span></label>
+    <label class="check"><input type="checkbox"><span>For every criterion I wrote, I can name the wrong implementation it rules out.</span></label>
+    <label class="check"><input type="checkbox"><span>Named the test file that must exist, and one case it must cover.</span></label>
+    <label class="check"><input type="checkbox"><span>Out of scope names at least two neighbouring tickets and states the stub behaviour until they land.</span></label>
+    <label class="check"><input type="checkbox"><span>Then compared with <code>gh issue view 6 -R perro-ruidoso/flashcards-seed</code> and noted one thing the reference does better and one thing mine does.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. Which of these is an acceptance criterion in the sense this page means?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">"The scheduler is implemented cleanly and follows the project's conventions"</button></li>
+        <li><button data-opt="b">"<code>review(card, 5, today)</code> on a card with interval 5 and ease 2.5 returns interval 13"</button></li>
+        <li><button data-opt="c">"The scheduler handles all grades from 0 to 5 correctly and robustly"</button></li>
+        <li><button data-opt="d">"The scheduler is tested thoroughly, including the important edge cases"</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> It names an input and an observable output: 5 × 2.5 = 12.5, which rounds half-up to 13. An implementation using bare <code>round()</code> returns 12 and makes the sentence false — that is the planted bug from <code>seed/SPEC.md</code> §7. A, C, and D cannot be false: "cleanly", "correctly", "thoroughly" have no failing case.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Why does this course name a test file path in acceptance criteria when <span class="skill">/to-tickets</span> warns that file paths "go stale fast"?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because the skill's advice applies only to local-markdown trackers, not GitHub</button></li>
+        <li><button data-opt="b">Because the rubric requires a file path in every acceptance-criteria section</button></li>
+        <li><button data-opt="c">Because test paths never change once the layered layout is fixed</button></li>
+        <li><button data-opt="d">Because the test is part of the deliverable, so where "done" is checked has to be stated</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> A named test tells the agent to ship the test in the diff and tells the Week 4 reviewer where to look for the missing case. It is a deliberate exception to the skill's rule, made because the test is not implementation detail — it is the evidence of completion.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Ticket #5 says "until then the command takes the first card." What job is that sentence doing?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Stating the stub behaviour so the ticket is completable before its neighbour (T05) lands</button></li>
+        <li><button data-opt="b">Declaring a dependency on T05 that should also be recorded as an issue dependency</button></li>
+        <li><button data-opt="c">Adding an acceptance criterion that the reviewer must verify with a test</button></li>
+        <li><button data-opt="d">Documenting a known bug that a later ticket is expected to fix</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> It sits under Out of scope and makes the fence usable: the implementer knows what to do at the boundary without doing the neighbour's work. It is not a dependency (B) — #5 is blocked by #2 and #3, not by T05 — and it is not a bug (D); it is a decided interim behaviour.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m07-criteria">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The falsifiability test for a criterion?</div><div class="fc-back">Can you describe the wrong implementation that makes it false? If not, it is a wish, not a criterion.</div></div>
+      <div class="fc"><div class="fc-front">Three moves that fix most weak criteria?</div><div class="fc-back">Name the input, name the observable output, name where it is checked (the test).</div></div>
+      <div class="fc"><div class="fc-front">Why is "bare <code>round()</code> is wrong" written into ticket #3?</div><div class="fc-back">Python rounds half to even — <code>round(2.5) == 2</code>. The criterion rules out the one wrong implementation a naive test would miss.</div></div>
+      <div class="fc"><div class="fc-front">What does a good Out-of-scope section contain besides deferrals?</div><div class="fc-back">The stub behaviour at the boundary — e.g. "until then the command takes the first card" — so the ticket is completable alone.</div></div>
+      <div class="fc"><div class="fc-front">Where does design reasoning go if not in Context?</div><div class="fc-back">In an ADR the ticket cites (ticket #3 cites <code>docs/adr/0001</code>). Context is state and reason, two sentences.</div></div>
+      <div class="fc"><div class="fc-front">"An invalid grade re-prompts rather than crashing" — why decide this in the ticket?</div><div class="fc-back">Two behaviours are reasonable; deciding in the ticket moves the argument from the PR (expensive) to the spec (cheap).</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Give Claude Code your hand-written T05 ticket and ask it to "implement this wrongly in three different ways that would each pass a lazy test, and say which acceptance criterion catches each one." If a wrong implementation passes every criterion, the ticket needs another line. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/issues/3">flashcards-seed#3 — SM-2 scheduler</a><span class="why">The densest criteria in the backlog: every line is an arithmetic fact from the ADR that a plausible implementation gets wrong. Week 4's planted bugs are deviations from exactly these lines.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/docs/adr/0001-sm2-rounding-and-the-clock.md">flashcards-seed: <code>docs/adr/0001</code></a><span class="why">The decision the tickets cite instead of restating. Read it to see how a ticket and an ADR divide the work between "what" and "why".</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>tdd</code></a><span class="why">The skill <span class="skill">/implement</span> reaches for "at pre-agreed seams." A criterion that names the test is the seam agreed in advance.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/issues">perro-ruidoso/flashcards-seed issues #2, #3, #5, #14</a> — every quoted criterion was read from the live issue body on 2026-09-13</li>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>to-tickets</code> ("go stale fast") and <code>implement</code> ("pre-agreed seams"), installed <code>SKILL.md</code> files read 2026-09-13</li>
+      <li><code>seed/SPEC.md</code> §5 and §7 in the course repo — the SM-2 rules and the planted bugs the criteria are written to catch</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M07, page 1</span>The Ticket as a Contract</a>
+    <a class="next" href="../m08-labels-types-and-templates/index.html"><span class="dir">Next · M08</span>Labels and Issue Types</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

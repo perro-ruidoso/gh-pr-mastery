@@ -160,9 +160,12 @@ load-bearing here. An Issue Dependency is a **graph** — an issue can be blocke
 and block many. A Sub-Issue is a **hierarchy** — one parent, up to eight levels deep. Five
 of the Seed Repo's fifteen tickets have *two* blockers, which a hierarchy structurally
 cannot express. Week 1 asks students only to *read* a dependency; Week 2 (M11) assesses
-the distinction. There is no `gh issue edit` flag for dependencies as of `gh` 2.92.0 —
-they are reached through `gh api`, and the payload takes the blocker's **database id**,
-not its issue number.
+the distinction. On `gh` 2.92.0 there was no `gh issue edit` flag for dependencies — they
+were reached through `gh api`, whose payload takes the blocker's **database id**, not its
+issue number. **`gh` 2.94.0 (2026-06-10) added `--blocked-by`, `--add-blocked-by`,
+`--parent`, `--add-sub-issue`, and `--type`**; Week 2 requires 2.94.0 or later and its
+pages were captured with 2.100.0. Upgrade the teaching machine before Week 2
+(`winget upgrade GitHub.cli`), and tell students to upgrade at the Week 1 meeting.
 
 ---
 
@@ -989,9 +992,11 @@ Consolidated. Each is written up in `NOTES.md` with its source and date.
    are not passed to the runner when a workflow is triggered from a forked repository."
    This broke the original Week 5/6 design and forced `adr/0004`. It is now taught
    deliberately as M30. Do not promise students agentic review on fork PRs.
-6. **No `gh issue edit` flag for issue dependencies** as of `gh` 2.92.0. `gh api` only, and
-   the payload takes the blocker's **database id** (`gh api repos/O/R/issues/N --jq .id`),
-   not the issue number. Week 2 content; Week 1 students only read dependencies.
+6. **Issue dependencies need `gh` 2.94.0+ for the CLI flags** (`--blocked-by`,
+   `--add-blocked-by`; sub-issues `--parent`, `--add-sub-issue`; types `--type`). On older
+   releases it is `gh api` only, and the payload takes the blocker's **database id**
+   (`gh api repos/O/R/issues/N --jq .id`), not the issue number. Week 2 content; Week 1
+   students only read dependencies. Verified 2026-09-13; see `NOTES.md`.
 
 **Decided, with a consequence to act on**
 
@@ -1031,8 +1036,14 @@ and every Linear UI step (5.2).
 4. **Collect A1 write-ups into a calibration set.** Two or three good ones and one
    over-reading one make the Week 4 review objectives much easier to teach, because you can
    show the cohort its own work.
-5. Week 2 is M07–M12 and does not exist yet. `roadmap/roadmap.docx` has the build order;
-   `objectives/mastery-objectives.md` has the objectives it must hit.
+5. **Week 2 is built** (M07–M12, twelve Learning Pages, `assignments/a2.md`,
+   `checkers/check_a2.py`). Three things it needs from you before it is taught: `gh` 2.94.0+
+   on every machine (the hub says so); the Linear live walk in item 1, because M12 quotes
+   the docs and says on the page that the UI has not been captured; and a decision on the
+   throwaway Instance `perro-ruidoso/flashcards-w2probe` (private) that its transcripts came
+   from — delete it, or keep it as a reference. Every student's Instance starts with **zero
+   issues**; A2 has them build their own backlog with `/to-spec` and `/to-tickets`, and the
+   Seed Repo's fifteen tickets are the exhibit they compare against.
 
 ---
 

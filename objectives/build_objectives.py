@@ -174,6 +174,30 @@ PAGES = {
         ("week-01/m06-reading-the-exhibit/the-method.html", "The Method"),
         ("week-01/m06-reading-the-exhibit/your-target.html", "Your Target"),
     ],
+    "M07": [
+        ("week-02/m07-issues-an-agent-can-execute/index.html", "The Ticket as a Contract"),
+        ("week-02/m07-issues-an-agent-can-execute/acceptance-criteria.html", "Criteria That Can Fail"),
+    ],
+    "M08": [
+        ("week-02/m08-labels-types-and-templates/index.html", "Labels and Issue Types"),
+        ("week-02/m08-labels-types-and-templates/issue-templates.html", "Issue Templates"),
+    ],
+    "M09": [
+        ("week-02/m09-conversation-to-spec/index.html", "From Conversation to Spec"),
+        ("week-02/m09-conversation-to-spec/checking-the-spec.html", "Checking the Spec"),
+    ],
+    "M10": [
+        ("week-02/m10-decomposing-into-tickets/index.html", "Tracer Bullets and Blocking Edges"),
+        ("week-02/m10-decomposing-into-tickets/the-seed-backlog.html", "Reading the Seed Backlog"),
+    ],
+    "M11": [
+        ("week-02/m11-recording-dependencies/index.html", "Two Features, Two Shapes"),
+        ("week-02/m11-recording-dependencies/reading-the-graph-back.html", "Reading the Graph Back"),
+    ],
+    "M12": [
+        ("week-02/m12-wiring-linear/index.html", "Linear Above GitHub"),
+        ("week-02/m12-wiring-linear/verify-without-touching.html", "Verify Without Touching"),
+    ],
 }
 
 HEADERS = ["ID", "Week", "Unit", "Category", "Mastery Objective",

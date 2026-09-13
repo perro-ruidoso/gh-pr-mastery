@@ -165,7 +165,7 @@ $ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked
     <h2>Flashcards</h2>
     <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
     <div class="fc-deck">
-      <div class="fc"><div class="fc-front">Endpoint that lists the issues blocking issue <em>N</em> in <em>O/R</em>?</div><div class="fc-back"><code>gh api repos/O/R/issues/N/dependencies/blocked_by</code>. Stored on the issue, not the PR. No <code>gh issue</code> flag exists for it as of <code>gh</code> 2.92.</div></div>
+      <div class="fc"><div class="fc-front">Endpoint that lists the issues blocking issue <em>N</em> in <em>O/R</em>?</div><div class="fc-back"><code>gh api repos/O/R/issues/N/dependencies/blocked_by</code>. Stored on the issue, not the PR. From <code>gh</code> 2.94.0, <code>gh issue view N --json blockedBy</code> reads the same relation.</div></div>
       <div class="fc"><div class="fc-front"><strong>Issue Dependency</strong> vs <strong>Sub-Issue</strong> — graph or hierarchy?</div><div class="fc-back">Dependency = graph (blocked by many, blocking many). Sub-issue = hierarchy (one parent, up to eight levels). Only the graph can express a two-blocker join.</div></div>
       <div class="fc"><div class="fc-front">In the course repo, PR #3 merged at 15:27:45. When did issue #1 close, and what does that show?</div><div class="fc-back">15:27:46 — one second later. Closed by the merge via a linking keyword, the same mechanism as <code>cli/cli</code>'s two-second gap.</div></div>
       <div class="fc"><div class="fc-front">Issue numbers 1, 2, 4, 7, 9 and PR numbers 3, 5, 6, 8, 10. Why the gaps?</div><div class="fc-back">One shared number space — the "missing" issue numbers are pull requests.</div></div>
@@ -204,7 +204,7 @@ $ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked
 
   <nav class="pager">
     <a href="the-method.html"><span class="dir">Previous · M06, page 2</span>The Method</a>
-    <a class="next" href="../index.html"><span class="dir">Finish</span>Back to the Week 1 hub</a>
+    <a class="next" href="../../week-02/index.html"><span class="dir">Next · Week 2</span>Issues as Units of Agent Work</a>
   </nav>
 </main>
 

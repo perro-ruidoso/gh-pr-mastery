@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checking the Spec — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M09 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Checking the Spec</h1>
+  <p class="lede">The skill publishes as its last step, so "check before filing" really means two things: read the proposal before you say yes to the seams, and audit the issue before anything downstream reads it. A spec with an invented decision in it produces ten tickets with the same invented decision.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M09 · Specification</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Turn a design conversation into a published spec issue with <span class="skill">/to-spec</span>, and check the result before filing.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M09 pages</span>
+    <a href="index.html"><span class="num">1</span>From Conversation to Spec</a>
+    <span class="here"><span class="num">2</span>Checking the Spec</span>
+  </nav>
+
+  <h2>The one gate the skill gives you</h2>
+  <p>Step 2 of the process — "Check with the user that these seams match their expectations" — is the only moment the skill pauses. Everything after your answer runs to publication. So treat that pause as the review it is. Three questions, in order of how often they catch something:</p>
+  <ol>
+    <li><strong>Is the seam one I can name in the Seed Repo's vocabulary?</strong> For the review loop, the highest existing seam is the CLI command with scripted stdin and a fixed <code>today</code> — the pattern ticket #5's criteria already describe. If the proposal is "test the scheduler function directly," that is a lower seam, and the skill's own rule says it should have preferred a higher existing one.</li>
+    <li><strong>Does the seam count exceed one?</strong> "The ideal number is one." Two seams is not wrong, but ask which of them could be dropped.</li>
+    <li><strong>Does it respect the ADR?</strong> Any seam that freezes time by patching the clock contradicts <code>docs/adr/0001</code>'s decision that <code>today</code> is passed down. The skill is told to respect ADRs; verify that it did.</li>
+  </ol>
+
+  <h2>Auditing the published issue</h2>
+  <p>Once it is filed, read it back from GitHub rather than from the chat — the chat shows you what the agent <em>intended</em> to publish, and the issue shows what it did:</p>
+  <pre><code><span class="prompt">$</span> gh issue list --label ready-for-agent --search "type:Feature" --json number,title
+<span class="prompt">$</span> gh issue view <span class="dim">&lt;n&gt;</span> --json title,body,labels,issueType --jq '.title, (.labels|map(.name)), .issueType.name, "", .body'</code></pre>
+
+  <p>Then walk the seven sections against the right-hand column of the table on <a href="index.html">page 1</a>. The checks that matter most, with the failure each catches:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Check</th><th>What a failure looks like</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Every Implementation Decision has a source in the conversation</strong></td><td>"Cards will be stored in SQLite." You never said that; the Seed Repo uses a JSON deck file.</td><td><code>gh issue edit --body-file</code> after correcting it in chat — or if the decision is genuinely open, say so under Further Notes rather than inventing it.</td></tr>
+        <tr><td><strong>Testing prior art exists</strong></td><td>"Follow the pattern in the existing CLI integration tests" — but <code>tests/cli/test_main.py</code> holds five tests of one command, <code>list</code>, and none of them script stdin.</td><td>Name the real file and say what the new tests add (scripted stdin, a fixed <code>today</code>); a ticket will point at it.</td></tr>
+        <tr><td><strong>Out of Scope names neighbours</strong></td><td>"Tags and stats are out of scope" with no pointer to where they live.</td><td>Reference the Seed backlog tickets (T07–T15) so <span class="skill">/to-tickets</span> does not re-decompose them.</td></tr>
+        <tr><td><strong>User stories cover the failure paths</strong></td><td>Twelve stories about grading, none about an invalid grade or an empty deck.</td><td>Add them; each becomes an acceptance criterion in M10.</td></tr>
+        <tr><td><strong>Domain vocabulary</strong></td><td>"flashcard", "score", "next review date" where <code>CONTEXT.md</code> says Card, Grade, Due.</td><td>Edit. A ticket that says "score" will produce code that says <code>score</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">The spec is upstream of everything</span>
+    <p>M10 decomposes this issue into six to ten tickets, M11 records their edges, and Weeks 3–4 implement and review them. An error here is not one error; it is one error per ticket. Ten minutes reading the published body is the highest-leverage ten minutes of the week — which is why this is a page and not a checklist item.</p>
+  </div>
+
+  <h2>Editing after publication</h2>
+  <p>The spec is an issue; edit it like one. Small fixes go straight in with <code>gh issue edit N --body-file corrected.md</code>. Larger ones are cheaper in the chat that produced it — "the storage decision is wrong, we use the JSON deck file; regenerate the Implementation Decisions section" — followed by a <code>--body-file</code> edit. Do not re-run <span class="skill">/to-spec</span>; it would publish a second issue, and you would have two specs with two numbers, one of which <span class="skill">/to-tickets</span> is going to be handed.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p><code>check_a2.py</code> reads the spec back with the same <code>gh issue view --json</code> call shown above and checks the seven headings, the label, and the type. The content audit is yours.</p>
+    <label class="check"><input type="checkbox"><span>At the seam question, named the seam in the Seed Repo's vocabulary and checked it against <code>docs/adr/0001</code> before answering.</span></label>
+    <label class="check"><input type="checkbox"><span>Read the published body from <code>gh issue view</code>, not from the chat.</span></label>
+    <label class="check"><input type="checkbox"><span>For each Implementation Decision, found the sentence in the conversation it came from — or moved it to Further Notes as open.</span></label>
+    <label class="check"><input type="checkbox"><span>Out of Scope names the Seed backlog tickets that neighbour the review loop.</span></label>
+    <label class="check"><input type="checkbox"><span>Corrected anything with <code>gh issue edit --body-file</code>, not by re-running the skill.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. The published spec says cards will be persisted in SQLite. You never discussed storage. What is the right response?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Accept it — the skill explored the repo and presumably has a reason</button></li>
+        <li><button data-opt="b">Treat it as an invented decision: correct it to the JSON deck file, or mark it open under Further Notes</button></li>
+        <li><button data-opt="c">Re-run <span class="skill">/to-spec</span> so it publishes a corrected specification</button></li>
+        <li><button data-opt="d">Leave the spec alone and fix the storage choice in each ticket instead</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> An Implementation Decision with no source in the conversation is a hallucination, and the Seed Repo's existing <code>json_store</code> makes this one contradict the codebase too. Re-running publishes a second spec (C), and fixing it per ticket (D) means fixing it up to ten times.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Why read the spec back with <code>gh issue view</code> rather than in the chat that produced it?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because the chat truncates long outputs and the spec is usually long</button></li>
+        <li><button data-opt="b">Because the label and type are only visible through the API</button></li>
+        <li><button data-opt="c">Because the checker requires you to paste <code>gh</code> output into the write-up</button></li>
+        <li><button data-opt="d">Because the chat shows what the agent intended to publish; the issue shows what it did</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The M06 discipline — observation before inference — applies to your own agent's work. What downstream skills and sessions will read is the issue body on GitHub, so that is the thing to audit.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. The proposed seam is "unit-test the scheduler function." Why might you push back?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">A higher existing seam is available — the CLI command with scripted stdin — and the skill's own rule prefers the highest seam possible</button></li>
+        <li><button data-opt="b">Scheduler functions are pure and therefore cannot be tested without a clock</button></li>
+        <li><button data-opt="c">The Seed Repo's ADR forbids testing the domain layer directly</button></li>
+        <li><button data-opt="d">Unit tests are out of scope for this course, which grades only integration tests</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> "Use the highest seam possible … existing seams should be preferred to new ones." A pure function is easy to test (B is backwards), the ADR says nothing of the sort (C), and the course has no such rule (D). The push-back is about leverage, not correctness: a seam at the command exercises every layer the tracer bullet touches.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m09-checking">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The only pause <span class="skill">/to-spec</span> gives you — and what to check there?</div><div class="fc-back">The seam question. Check: named in repo vocabulary, as few seams as possible, consistent with the ADRs.</div></div>
+      <div class="fc"><div class="fc-front">Where do you read the spec back from, and why?</div><div class="fc-back">From GitHub (<code>gh issue view</code>) — the chat shows intent, the issue shows what was published.</div></div>
+      <div class="fc"><div class="fc-front">The test for an Implementation Decision?</div><div class="fc-back">Can you point to the sentence in the conversation it came from? If not, it is invented: fix it or mark it open.</div></div>
+      <div class="fc"><div class="fc-front">Why is a spec error more expensive than a ticket error?</div><div class="fc-back">It is upstream: one wrong decision in the spec becomes one wrong decision in every ticket <span class="skill">/to-tickets</span> derives.</div></div>
+      <div class="fc"><div class="fc-front">How to fix a published spec — and how not to?</div><div class="fc-back"><code>gh issue edit N --body-file</code>. Not by re-running the skill, which publishes a second spec.</div></div>
+      <div class="fc"><div class="fc-front">What should Out of Scope on the spec point at?</div><div class="fc-back">The neighbouring Seed backlog tickets (T07–T15), so decomposition does not re-invent them.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Paste the published spec body into a <em>new</em> Claude Code session — one with no memory of the design — and ask: "Which decisions in this spec would you have to guess the reasoning for?" A fresh session is the reader the spec is written for, and its confusion is the audit. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>to-spec</code></a><span class="why">Re-read step 2 and the Testing Decisions section of the template after your first run; they read differently once you have seen a real proposal.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_edit">GitHub CLI manual: <code>gh issue edit</code></a><span class="why"><code>--body-file</code> for the corrected body, <code>--type</code>, and the label flags — the edit surface you use instead of re-running the skill.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/CONTEXT.md">flashcards-seed: <code>CONTEXT.md</code></a><span class="why">The vocabulary the spec must use — Card, Deck, Grade, Interval, Ease Factor, Repetition, Due. Audit the spec against it word by word.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>to-spec</code>, installed <code>SKILL.md</code> read 2026-09-13</li>
+      <li><a href="https://cli.github.com/manual/gh_issue_edit">GitHub CLI manual: <code>gh issue edit</code></a> — flags confirmed against <code>gh</code> 2.100.0 <code>--help</code>, 2026-09-13</li>
+      <li><code>seed/SPEC.md</code> §3–§5 in the course repo — the vocabulary, the layer rules, and the clock decision the audit checks against</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M09, page 1</span>From Conversation to Spec</a>
+    <a class="next" href="../m10-decomposing-into-tickets/index.html"><span class="dir">Next · M10</span>Tracer Bullets and Blocking Edges</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

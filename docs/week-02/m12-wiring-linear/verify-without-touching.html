@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify Without Touching — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M12 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Verify Without Touching</h1>
+  <p class="lede">"Connected" is a claim. The evidence is an issue you created with <code>gh</code> appearing in Linear, and a status in Linear changing because of something that happened on GitHub — with your hands off the Linear UI the whole time.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M12 · PM integration</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Connect Linear to the Instance and verify that issues and PRs appear and update without manual touching.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M12 pages</span>
+    <a href="index.html"><span class="num">1</span>Linear Above GitHub</a>
+    <span class="here"><span class="num">2</span>Verify Without Touching</span>
+  </nav>
+
+  <h2>The protocol</h2>
+  <p>Every step below happens on the GitHub side, from the terminal; Linear is only ever <em>looked at</em>. That is what "without manual touching" means, and it is what makes the result evidence rather than a demo.</p>
+
+  <h3>1. An issue appears</h3>
+  <p>Create a new issue in your Instance the way every ticket this week was created. It must be <em>new</em> — Issues Sync is forward-only — so give it a title you will recognise:</p>
+  <pre><code><span class="prompt">$</span> gh issue create --title "Sync probe: created from gh on 2026-09-13" \
+    --body "Filed from the terminal to verify Issues Sync. Close via gh; do not touch in Linear." \
+    --label needs-triage --type Task</code></pre>
+  <p>Open your Linear team. Within moments an issue with the same title should exist, carrying your team's key (<code>FLASH-<span class="dim">n</span></code>). Linear syncs "title, description, status, assignee, labels, sub-issues, comments," so the body and the <code>needs-triage</code> label should be there too. Note the time and take a capture — a screenshot with the date visible — for the A2 write-up.</p>
+
+  <h3>2. A status updates from GitHub</h3>
+  <p>Close the issue from the terminal:</p>
+  <pre><code><span class="prompt">$</span> gh issue close <span class="dim">&lt;n&gt;</span> --reason completed</code></pre>
+  <p>The Linear copy should move to its done state without anyone in Linear doing anything. Capture that too. If it does not move, the sync is one-way in the wrong direction, or the status mapping in Linear's integration settings needs a look — but do not fix it by dragging the card. Fix the configuration, reopen the issue with <code>gh issue reopen</code>, and try again.</p>
+
+  <h3>3. A comment crosses</h3>
+  <pre><code><span class="prompt">$</span> gh issue comment <span class="dim">&lt;n&gt;</span> --body "Comment from gh; should appear in Linear."</code></pre>
+  <p>Comments are in the synced list. Seeing one cross confirms the sync is live for more than creation events.</p>
+
+  <h3>4. A PR moves a status (preview of Week 3)</h3>
+  <p>This is the other capability — PR and commit linking — and it needs a branch and a pull request, which are Week 3's subject. Do the smallest possible version now, so the write-up can say both capabilities were seen:</p>
+  <ol>
+    <li>In Linear, <em>look at</em> the synced probe issue and use "Copy git branch name" (<kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd>). Reading a name off the UI is not touching the issue.</li>
+    <li>Reopen the probe issue if you closed it, create the branch locally with that name, make a one-line change (a comment in <code>README.md</code> is enough), push, and open a PR whose <strong>title includes the Linear ID</strong> — Linear: "Include the Linear issue ID (e.g. ID-123) in the title when creating pull requests."</li>
+    <li>Watch the Linear issue: "by default, we will move linked issues to 'In Progress' when PRs are open."</li>
+    <li>Close the PR without merging (<code>gh pr close</code>) — merging is Week 3's work, done properly with a linking keyword. Delete the branch.</li>
+  </ol>
+
+  <div class="callout note">
+    <span class="label">Magic words, for later</span>
+    <p>Linear also reads a PR description for magic words. Closing ones — "close, closes, closed, closing, fix, fixes, fixed, fixing, resolve, resolves, resolved, resolving, complete, completes, completed, completing, implement, implements, implemented, implementing" — move the issue "to the status configured for <em>On PR or commit merge</em> when the PR or commit is merged." Non-closing ones — "ref, refs, references, part of, contributes to, toward, towards" — link without closing. Notice the overlap with GitHub's own closing keywords from <a href="../../week-01/m06-reading-the-exhibit/index.html">M06</a>: one word in a PR body, <code>Closes #12</code>, can close the GitHub issue on merge <em>and</em> move the Linear copy, which is the whole of M34. Not needed this week.</p>
+  </div>
+
+  <h2>What the checker can and cannot see</h2>
+  <p><code>check_a2.py</code> runs against GitHub with your <code>gh</code> token. It cannot log in to Linear. So it checks the GitHub side of the protocol — an issue whose title starts with <code>Sync probe</code>, created after the spec, closed with reason <code>completed</code>, with at least one comment — and it looks for the capture file your write-up references. The Linear side is graded from the captures by a human, which is why each capture needs a visible date and the issue's Linear ID in frame.</p>
+
+  <div class="callout warn">
+    <span class="label">If the sync cannot be made to work</span>
+    <p>The course has not yet run this protocol in a live Free workspace (page 1 says so). If, in the meeting, the <em>GitHub Issues</em> section of the integration settings turns out to be unavailable on Free, the objective falls back to capability 1 alone — PR and commit linking, steps 4 above — which is sufficient for M34 and does not depend on Issues Sync. Report what you saw; the page will be corrected with a dated capture.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <label class="check"><input type="checkbox"><span>Created the sync-probe issue with <code>gh issue create</code> and captured it in Linear, date visible.</span></label>
+    <label class="check"><input type="checkbox"><span>Closed it with <code>gh issue close --reason completed</code> and captured the Linear status change.</span></label>
+    <label class="check"><input type="checkbox"><span>Added a comment with <code>gh issue comment</code> and saw it in Linear.</span></label>
+    <label class="check"><input type="checkbox"><span>Opened a PR whose title carries the Linear ID, saw the status move to In Progress, closed the PR unmerged.</span></label>
+    <label class="check"><input type="checkbox"><span>Never created, edited, or moved anything inside Linear by hand, and my write-up says so.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. Why does the verification protocol create a <em>new</em> issue instead of checking that the spec appeared?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because specs are type Feature, and Issues Sync copies only type Task</button></li>
+        <li><button data-opt="b">Because Issues Sync copies only issues created after the link was made</button></li>
+        <li><button data-opt="c">Because the spec's body is too long for Linear's Free-plan description limit</button></li>
+        <li><button data-opt="d">Because sub-issues are not synced and the spec has children</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> "This will only sync issues going forward." Types (A), body length (C), and sub-issues (D) are not the constraint; timing is.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. The Linear copy did not move when you closed the GitHub issue. What is the right next step?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Drag the Linear card to Done so the two systems agree, then continue</button></li>
+        <li><button data-opt="b">Delete the Linear workspace and reconnect from scratch</button></li>
+        <li><button data-opt="c">Close the issue again from the Linear side to trigger the sync</button></li>
+        <li><button data-opt="d">Check the sync direction and status mapping in the integration settings, reopen with <code>gh</code>, retry</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Fixing the symptom by hand (A, C) destroys the evidence the objective asks for — a status that moved <em>because of GitHub</em>. Reconnecting (B) is disproportionate; configuration is the usual cause.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. What can <code>check_a2.py</code> verify about M12, and what can it not?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It can see the GitHub side — the probe issue, its close reason, its comment; it cannot see Linear at all</button></li>
+        <li><button data-opt="b">It can query Linear's API with the same token, so it checks both sides</button></li>
+        <li><button data-opt="c">It can see Linear's copy through the sync bot's comments on the GitHub issue</button></li>
+        <li><button data-opt="d">It verifies nothing for M12; the objective is graded entirely by the rubric</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The checker runs <code>gh</code> with a GitHub token; Linear is a different service with different auth. The Linear side is graded from your dated captures. Whether Linear leaves any trace on the GitHub issue has not been verified, so the checker does not rely on it (C).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m12-verify">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">What "without manual touching" means operationally?</div><div class="fc-back">Every action happens on GitHub from the terminal; Linear is only looked at. A status that moved because of a GitHub event is the evidence.</div></div>
+      <div class="fc"><div class="fc-front">The four steps of the verification protocol?</div><div class="fc-back">Create an issue with <code>gh</code> → close it with <code>gh</code> → comment with <code>gh</code> → open a PR with the Linear ID in its title (preview of Week 3).</div></div>
+      <div class="fc"><div class="fc-front">Linear's default status moves for linked PRs?</div><div class="fc-back">"In Progress" when a PR is open, "Done" when it merges.</div></div>
+      <div class="fc"><div class="fc-front">Two ways a PR gets linked to a Linear issue?</div><div class="fc-back">The issue ID in the branch name (use "Copy git branch name") or in the PR title; magic words in the description also link.</div></div>
+      <div class="fc"><div class="fc-front">Name four closing magic words and two non-closing ones.</div><div class="fc-back">Closing: closes, fixes, resolves, implements (and their forms). Non-closing: refs, part of, contributes to, towards.</div></div>
+      <div class="fc"><div class="fc-front">The Linear copy did not move on <code>gh issue close</code>. First move?</div><div class="fc-back">Check sync direction and status mapping in the integration settings — never drag the card.</div></div>
+      <div class="fc"><div class="fc-front">What must each A2 capture show?</div><div class="fc-back">A visible date and the issue's Linear ID in frame — the checker cannot see Linear, so the human grades from these.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>After the protocol, ask Claude Code: "List every GitHub event I generated in the last hour with <code>gh api repos/O/R/issues/N/timeline</code>, and next to each one say what Linear should have done in response." That is the beginning of M34's discipline — driving status from git activity — and it will tell you whether anything you saw in Linear lacked a GitHub cause. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t4">Tier 4</span><a href="https://linear.app/docs/github">Linear Docs: GitHub</a><span class="why">The magic-word lists, the default status moves, the "Copy git branch name" action, and the Issues Sync field list — all quoted on this page.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_close">GitHub CLI manual: <code>gh issue close</code></a><span class="why"><code>--reason completed|"not planned"</code> — the state reason Linear's status mapping may distinguish, and the one <code>check_a2.py</code> reads.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests">GitHub Docs: Using keywords in issues and pull requests</a><span class="why">GitHub's closing keywords, to compare with Linear's magic words. The overlap is what lets one PR body drive both systems in M34.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://linear.app/docs/github">Linear Docs: GitHub</a> — synced fields, forward-only, PR title rule, default status moves, magic-word lists (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_issue_close">GitHub CLI manual: <code>gh issue close</code></a> — <code>--reason</code>; the protocol's <code>gh</code> commands were run against a throwaway Instance on 2026-09-13 (the Linear side was not, and the page says so)</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M12, page 1</span>Linear Above GitHub</a>
+    <a class="next" href="../index.html"><span class="dir">Finish</span>Back to the Week 2 hub</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

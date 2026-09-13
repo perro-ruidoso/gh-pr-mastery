@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading the Graph Back — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M11 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Reading the Graph Back</h1>
+  <p class="lede">Recording an edge is half the objective. The other half is reading every edge back, checking the graph is one an agent can actually work, and drawing it where the next reader will look — in the issue itself.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M11 · Work dependencies</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A2 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Record work dependencies as GitHub issue dependencies via the <code>gh</code> CLI, distinguish them from sub-issues and say why a sub-issue cannot express a two-parent join, and render the resulting graph as a Mermaid diagram.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M11 pages</span>
+    <a href="index.html"><span class="num">1</span>Two Features, Two Shapes</a>
+    <span class="here"><span class="num">2</span>Reading the Graph Back</span>
+  </nav>
+
+  <h2>Three surfaces, one relation</h2>
+  <p>The same stored edge is readable three ways. Knowing all three means you are never stuck when one of them is missing — an older <code>gh</code>, a script in another language, a colleague who only uses the browser.</p>
+
+  <h3>1. <code>gh issue view --json</code></h3>
+  <p>The fields <code>blockedBy</code>, <code>blocking</code>, <code>parent</code>, <code>subIssues</code>, and <code>subIssuesSummary</code> all arrived in 2.94.0. Each relation field is an object with <code>nodes</code> and <code>totalCount</code> — so the <code>--jq</code> path is <code>.blockedBy.nodes[]</code>, not <code>.blockedBy[]</code>:</p>
+  <span class="code-label">$ gh issue view 2 --json blocking --jq '[.blocking.nodes[].number]'</span>
+  <pre><code>[4,3]</code></pre>
+  <p>Same edge as page 1's <code>blockedBy</code> on #3 and #4, read from the other end. The plain (non-JSON) <code>gh issue view</code> prints the same data as <code>blocked-by:</code> and <code>blocking:</code> header lines, alongside <code>parent:</code> and <code>sub-issues:</code>.</p>
+
+  <h3>2. The REST API</h3>
+  <p>Four routes, quoted from the reference page:</p>
+  <pre><code>GET    /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by
+POST   /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by
+DELETE /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by/{issue_id}
+GET    /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking</code></pre>
+  <span class="code-label">$ gh api repos/perro-ruidoso/flashcards-seed/issues/14/dependencies/blocked_by --jq '.[] | "#\(.number) [\(.state)] \(.title)  (id \(.id))"'</span>
+  <pre><code>#11 [open] `stats` command  (id 5434030684)
+#7 [open] Tag persistence in the deck file  (id 5434030220)</code></pre>
+
+  <div class="callout warn">
+    <span class="label"><code>issue_id</code> is the database id, not the number</span>
+    <p>The POST body's one required parameter is <code>issue_id</code> — "The id of the issue that blocks the current issue" — and it is the <strong>database id</strong>, the ten-digit integer <code>gh api repos/O/R/issues/N --jq .id</code> returns, not the <code>#14</code> you see in the UI and not the GraphQL <code>node_id</code>. The sub-issue endpoint's <code>sub_issue_id</code> works the same way. This is the single most common way to get a 422 from these endpoints, and it is why the <code>gh</code> flags — which take numbers and resolve the id for you — are worth the upgrade. When you do go through REST, resolve first:</p>
+    <pre><code><span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-<span class="dim">&lt;handle&gt;</span>/issues/5 --jq '{number, id, node_id}'
+{"id":5440629998,"node_id":"I_kwDOUZEMts8AAAABREls7g","number":5}</code></pre>
+  </div>
+
+  <h3>3. The web UI</h3>
+  <p>The issue sidebar shows "Blocked by" and "Blocking" lists, and a parent issue shows its sub-issues with a progress bar (that is what <code>subIssuesSummary</code>'s <code>percentCompleted</code> feeds). It is the surface the rest of your team will read. It cannot show you the whole graph at once, which is why the last section of this page exists.</p>
+
+  <h2>What GitHub does <em>not</em> check for you</h2>
+  <p>A dependency graph an agent can work has to be a DAG — no cycles. GitHub does not enforce that. On the throwaway Instance, with #5 (transitively) blocked by #2, this was accepted without complaint:</p>
+  <pre><code><span class="prompt">$</span> gh issue edit 2 -R perro-ruidoso/flashcards-w2probe --add-blocked-by 5
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w2probe/issues/2</span>
+<span class="prompt">$</span> gh issue view 2 -R perro-ruidoso/flashcards-w2probe --json blockedBy --jq '[.blockedBy.nodes[].number]'
+[5]</code></pre>
+  <p>#2 is now blocked by #5, which is blocked by #3 and #4, which are blocked by #2. Nothing in the backlog can ever start. The only relation GitHub refused was the degenerate one:</p>
+  <pre><code><span class="prompt">$</span> gh issue edit 5 -R perro-ruidoso/flashcards-w2probe --add-blocked-by 5
+<span class="dim">GraphQL: … Validation failed: Target issue cannot be the same as the source issue (addBlockedBy)</span></code></pre>
+
+  <p>So the check is yours. The course script from <a href="../m10-decomposing-into-tickets/the-seed-backlog.html">M10</a> runs Kahn's algorithm, which cannot finish on a cycle, and says so:</p>
+  <pre><code><span class="prompt">$</span> python seed/tools/waves_from_github.py --repo perro-ruidoso/flashcards-w2probe
+cycle among [2, 3, 4, 5]
+
+<span class="prompt">$</span> gh issue edit 2 -R perro-ruidoso/flashcards-w2probe --remove-blocked-by 5
+<span class="prompt">$</span> python seed/tools/waves_from_github.py --repo perro-ruidoso/flashcards-w2probe
+4 issues, 4 blocking edges, 1 joins (2+ blockers): #5
+wave 1  #2
+wave 2  #3  #4
+wave 3  #5
+3 waves, max parallel width 2</code></pre>
+
+  <div class="callout note">
+    <span class="label">Always pass <code>-R</code> when the repo is not your working directory</span>
+    <p>The first attempt to remove that edge was run from the course repo's directory without <code>-R</code>, and <code>gh</code> resolved <code>2</code> and <code>5</code> against <em>that</em> repository — where #5 is a pull request — and failed with "Could not resolve to an Issue with the number of 5." Harmless there; in a repo where both numbers were issues it would have edited the wrong graph without a word. The transcripts above carry <code>-R</code> for that reason.</p>
+  </div>
+
+  <h2>Drawing it where the next reader looks</h2>
+  <p>GitHub renders Mermaid in issue bodies natively: "To create a Mermaid diagram, add Mermaid syntax inside a fenced code block with the <code>mermaid</code> language identifier," and it works "in GitHub Issues, GitHub Discussions, pull requests, wikis, and Markdown files." The script prints the graph in that syntax:</p>
+
+  <span class="code-label">$ python seed/tools/waves_from_github.py --repo perro-ruidoso/flashcards-&lt;handle&gt; --mermaid</span>
+  <pre><code>graph LR
+  I2["#2 Add review state to Card: repetitions, ease factor, interval, due date"]
+  I3["#3 Persist review state in the deck file"]
+  I4["#4 SM-2 scheduler: next interval and ease update"]
+  I5["#5 review command: one card, prompt, grade, schedule"]
+  I2 --> I3
+  I2 --> I4
+  I4 --> I5
+  I3 --> I5</code></pre>
+
+  <p>Paste that into the <strong>spec issue's body</strong>, under a <code>## Dependency graph</code> heading, inside a <code>```mermaid</code> fence — the spec is the parent of every ticket, so it is where someone looking for the shape of the work will look. Rendered, it is the same picture as this:</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  I2["#2 review state on Card"]
+  I3["#3 persist review state"]
+  I4["#4 SM-2 scheduler"]
+  I5["#5 review command"]
+  I2 --> I3
+  I2 --> I4
+  I4 --> I5
+  I3 --> I5
+    </pre>
+    <span class="caption">The throwaway Instance's four tickets, read back from GitHub after the cycle was removed. One root, one join at #5, width 2.</span>
+  </div>
+
+  <p>Note that the script skips issues that <em>have</em> sub-issues — the spec itself — so the parent does not appear as a spurious wave-1 node with no blockers. Pass <code>--include-parents</code> if you want it, or <code>--label ready-for-agent</code> to narrow the set another way.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p><code>check_a2.py</code> runs the same Kahn pass over your Instance's <code>blockedBy</code> data (no cycle, ≥ 1 join) and looks for a <code>mermaid</code> fence in the spec issue's body.</p>
+    <label class="check"><input type="checkbox"><span>Read one edge back all three ways: <code>--json blockedBy</code>, the REST <code>dependencies/blocked_by</code> route, and the issue sidebar.</span></label>
+    <label class="check"><input type="checkbox"><span>Resolved an issue number to its database id with <code>gh api … --jq .id</code> and can say which of the three ids the REST body wants.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>waves_from_github.py</code> on my Instance: no cycle, and I can state the waves.</span></label>
+    <label class="check"><input type="checkbox"><span>Pasted the <code>--mermaid</code> output into the spec issue's body inside a <code>```mermaid</code> fence and confirmed it renders in the browser.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. <code>gh api -X POST …/issues/9/dependencies/blocked_by -F issue_id=6</code> returns 422. The most likely cause?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Issue #6 is closed, and closed issues cannot block anything</button></li>
+        <li><button data-opt="b">6 is an issue <em>number</em>; the endpoint wants the blocker's database id</button></li>
+        <li><button data-opt="c">The token lacks the <code>project</code> scope that dependencies require</button></li>
+        <li><button data-opt="d">Dependencies must be added from the blocking side, not the blocked side</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> "<code>issue_id</code>: The id of the issue that blocks the current issue" — the ten-digit database id from <code>gh api repos/O/R/issues/6 --jq .id</code>. Closed issues can block (A), no extra scope is needed (C), and the blocked-by route is exactly the one to POST to (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. You record #2 as blocked by #5 while #5 is already (transitively) blocked by #2. What happens?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">GitHub rejects the edge with a validation error naming the cycle</button></li>
+        <li><button data-opt="b">GitHub accepts it and automatically removes the older edge to break the cycle</button></li>
+        <li><button data-opt="c">GitHub accepts it and marks both issues with a warning in the sidebar</button></li>
+        <li><button data-opt="d">GitHub accepts it silently; the backlog now has a cycle only your own check will find</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Verified on 2026-09-13: the edge was accepted, and <code>waves_from_github.py</code> reported "cycle among [2, 3, 4, 5]." The only relation GitHub refused was an issue blocking itself.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">3. Where should the Mermaid graph of a decomposition live, and why?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">In each ticket's body, so every agent session sees the whole graph</button></li>
+        <li><button data-opt="b">In <code>README.md</code>, so it is rendered on the repository's front page</button></li>
+        <li><button data-opt="c">In the spec issue's body, because the spec is the parent every ticket points at</button></li>
+        <li><button data-opt="d">In a wiki page, because Mermaid renders only in wikis and Markdown files</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The spec is where someone looking for the shape of the work arrives, via any ticket's <code>parent</code>. Per ticket (A) is fifteen copies to keep in sync; the README (B) outlives the decomposition; and Mermaid renders in issues (D is false).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">4. Why does <code>waves_from_github.py</code> skip issues that have sub-issues by default?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">They are parents (specs), not tickets; with no blockers they would appear as a false wave-1 node</button></li>
+        <li><button data-opt="b">GitHub's API does not return <code>blockedBy</code> for issues that have sub-issues</button></li>
+        <li><button data-opt="c">Kahn's algorithm cannot process a node with more than eight children</button></li>
+        <li><button data-opt="d">Parent issues are always closed, and the script lists only open issues</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> On the throwaway Instance the spec (#1) appeared in wave 1 beside the real root until the script learned to skip parents. The other options invent API and algorithm limits that do not exist.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m11-graph">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The <code>--jq</code> path for blockers in <code>gh issue view --json blockedBy</code>?</div><div class="fc-back"><code>.blockedBy.nodes[].number</code> — the field is an object with <code>nodes</code> and <code>totalCount</code>.</div></div>
+      <div class="fc"><div class="fc-front">The four REST routes for dependencies?</div><div class="fc-back">GET/POST <code>…/dependencies/blocked_by</code>, DELETE <code>…/dependencies/blocked_by/{issue_id}</code>, GET <code>…/dependencies/blocking</code>.</div></div>
+      <div class="fc"><div class="fc-front">Which id does the REST POST body want?</div><div class="fc-back">The <strong>database id</strong> (<code>gh api …/issues/N --jq .id</code>, ten digits) — not the number, not the <code>node_id</code>.</div></div>
+      <div class="fc"><div class="fc-front">Does GitHub reject a dependency cycle?</div><div class="fc-back">No (verified 2026-09-13). It rejects only an issue blocking itself. Cycle detection is your job — <code>waves_from_github.py</code>.</div></div>
+      <div class="fc"><div class="fc-front">Where does Mermaid render on GitHub?</div><div class="fc-back">"GitHub Issues, GitHub Discussions, pull requests, wikis, and Markdown files" — a fenced block with the <code>mermaid</code> language identifier.</div></div>
+      <div class="fc"><div class="fc-front">Where should the decomposition's graph be pasted, and why?</div><div class="fc-back">The spec issue's body — every ticket's <code>parent</code> points there.</div></div>
+      <div class="fc"><div class="fc-front">Why pass <code>-R</code> to <code>gh issue edit</code>?</div><div class="fc-back">Without it, numbers resolve against the working directory's repo — possibly editing the wrong graph without a word.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code to "write a one-line <code>gh api --paginate</code> pipeline that prints every blocked-by edge in this repository as <code>blocker → blocked</code>, without using the 2.94 <code>--json</code> fields." It will need the REST route and one call per issue; compare its result with <code>waves_from_github.py --mermaid</code>. If they differ, one of them is wrong, and finding out which is the exercise. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/issues/issue-dependencies">GitHub Docs: REST API endpoints for issue dependencies</a><span class="why">The four routes and the <code>issue_id</code> parameter. Short; read the whole thing.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/issues/sub-issues">GitHub Docs: REST API endpoints for sub-issues</a><span class="why">The parallel five routes for the hierarchy, including <code>GET …/parent</code> — which returns a 404 "No parent issue found" on a Seed backlog ticket, because the Seed's tickets have no spec parent.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams">GitHub Docs: Creating diagrams</a><span class="why">Mermaid in Markdown, with the exact fence syntax and where it renders.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_api">GitHub CLI manual: <code>gh api</code></a><span class="why"><code>-X</code>, <code>-F</code> (typed fields — an integer stays an integer), <code>--jq</code>, and <code>--paginate</code> for the exercise above.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://mermaid.js.org/syntax/flowchart.html">Mermaid: Flowchart syntax</a><span class="why">The <code>graph LR</code> dialect the script emits, plus <code>subgraph</code> for grouping nodes into waves as M10's diagram does. Practitioner docs; the rendering rules are GitHub's.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/rest/issues/issue-dependencies">GitHub Docs: REST API endpoints for issue dependencies</a> — routes and <code>issue_id</code> (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/rest/issues/sub-issues">GitHub Docs: REST API endpoints for sub-issues</a> — routes, <code>sub_issue_id</code>, <code>replace_parent</code> (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams">GitHub Docs: Creating diagrams</a> — Mermaid fence syntax and render locations (fetched 2026-09-13)</li>
+      <li>All transcripts run 2026-09-13 with <code>gh</code> 2.100.0: the Seed Repo's #14 (read-only), and <code>perro-ruidoso/flashcards-w2probe</code> for the cycle and self-dependency probes; GraphQL error text quoted verbatim</li>
+      <li><code>seed/tools/waves_from_github.py</code> in the course repo — the Kahn pass and the <code>--mermaid</code> output shown</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M11, page 1</span>Two Features, Two Shapes</a>
+    <a class="next" href="../m12-wiring-linear/index.html"><span class="dir">Next · M12</span>Linear Above GitHub</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

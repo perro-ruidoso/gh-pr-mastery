@@ -73,12 +73,13 @@ SECTIONS = [
         "The recommended order. Week 2 repeats a vertical slice already proven end to end; "
         "the upstream repo is not needed until Week 5.",
         [
-            ("NEXT", "Week 2 -- M07 to M12",
-             "Week 2 hub plus Learning Pages for M07-M12: issue bodies an agent can "
-             "execute, labels and issue types, /to-spec, tracer-bullet decomposition "
-             "with /to-tickets, issue dependencies and Mermaid graphs, and wiring "
-             "Linear. Assignment A2 with its checker."),
-            ("TODO", "Weeks 3 to 6 -- M13 to M36",
+            ("DONE", "Week 2 -- M07 to M12",
+             "Week 2 hub plus twelve Learning Pages (two per objective), assignment A2 "
+             "with its rubric, and check_a2.py. Transcripts captured with gh 2.100.0 "
+             "against the Seed Repo and a throwaway Instance; the two-parent sub-issue "
+             "experiment and the accepted dependency cycle are on the M11 pages. M12's "
+             "Linear UI steps are quoted from the docs and marked as not run live."),
+            ("NEXT", "Weeks 3 to 6 -- M13 to M36",
              "Four more vertical slices, ~24 Learning Pages, assignments A3-A6, two "
              "graded concept quizzes, and the capstone."),
             ("TODO", "Upstream Repo: flashcards-upstream",
@@ -115,8 +116,9 @@ SECTIONS = [
              "against flashcards-seed and a nonexistent repo."),
             ("TODO", "Confirm Issues Sync live in a Free Linear workspace",
              "Settings > Integrations > GitHub > GitHub Issues shows the + to link a "
-             "repo. Do it when the instructor workspace is created (guide Part 5.2), "
-             "before M12 is finalised."),
+             "repo. M12 is written and says on the page that this has not been done; "
+             "run the M12 verification protocol once in the instructor workspace and "
+             "add dated captures under docs/assets/shots/."),
         ],
     ),
     (

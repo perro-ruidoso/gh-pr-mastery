@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading the Seed Backlog — Week 2 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 2</a> · Objective M10 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Reading the Seed Backlog</h1>
+  <p class="lede">Fifteen tickets, nineteen edges, five waves. The Seed Repo's backlog is a worked decomposition of the whole flashcards application, and everything on this page was read back from what GitHub stores — not from the spec that designed it.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M10 · Decomposition</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A2 (rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Decompose a spec into 6–10 tracer-bullet tickets with declared blocking edges using <span class="skill">/to-tickets</span>.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M10 pages</span>
+    <a href="index.html"><span class="num">1</span>Tracer Bullets and Blocking Edges</a>
+    <span class="here"><span class="num">2</span>Reading the Seed Backlog</span>
+  </nav>
+
+  <h2>The fifteen tickets</h2>
+  <p>One command lists every open issue with the issues that block it. The <code>blockedBy</code> field arrived in <code>gh</code> 2.94.0; on the Seed Repo it returns this (issue numbers, not the spec's T-numbers — the tickets were filed in dependency order, so the two do not line up, and that is deliberate):</p>
+
+  <span class="code-label">$ gh issue list -R perro-ruidoso/flashcards-seed --limit 30 --json number,title,blockedBy --jq 'sort_by(.number)[] | "#\(.number)\t\(.title)\tblocked by: \([.blockedBy.nodes[].number] | map("#\(.)") | join(", "))"'</span>
+  <pre><code>#1	Add review state to Card: repetitions, ease factor, interval, due date	blocked by:
+#2	Persist review state in the deck file	blocked by: #1
+#3	SM-2 scheduler: next interval and ease update	blocked by: #1
+#4	Tag field on Card	blocked by: #1
+#5	`review` command: one card, prompt, grade, schedule	blocked by: #3, #2
+#6	Due-date filtering: select only cards due today	blocked by: #3
+#7	Tag persistence in the deck file	blocked by: #2, #4
+#8	Session stats aggregation	blocked by: #2
+#9	`review --limit N`	blocked by: #6, #5
+#10	`add` command with `--tags`	blocked by: #7
+#11	`stats` command	blocked by: #8
+#12	CSV import, including a tags column	blocked by: #7
+#13	`review --tag &lt;tag&gt;`	blocked by: #9, #10
+#14	`stats --by-tag`	blocked by: #7, #11
+#15	`export --format json|csv`	blocked by: #12</code></pre>
+
+  <p>Read the layers off the titles: <code>Card</code> and <em>scheduler</em> and <em>filtering</em> and <em>aggregation</em> are <strong>domain</strong>; <em>persist</em>, <em>deck file</em>, <em>CSV</em> are <strong>storage</strong>; anything in backticks is a <strong>cli</strong> command. Now notice that the vertical slices are not single tickets but short <em>chains</em>: #1 → #2 → #5 is one tracer bullet (state, saved, used by a command) broken into three tickets so each lands green on its own and so #3 can proceed in parallel with #2.</p>
+
+  <h2>The graph</h2>
+  <p>Drawn from the same data, with the tickets grouped into the waves derived below. Every arrow is a <code>blockedBy</code> relation GitHub returned; none were added from the spec.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  subgraph W1["wave 1"]
+    I1["#1 review state on Card"]
+  end
+  subgraph W2["wave 2"]
+    I2["#2 persist review state"]
+    I3["#3 SM-2 scheduler"]
+    I4["#4 tag field on Card"]
+  end
+  subgraph W3["wave 3"]
+    I5["#5 review command"]
+    I6["#6 due-date filtering"]
+    I7["#7 tag persistence"]
+    I8["#8 stats aggregation"]
+  end
+  subgraph W4["wave 4"]
+    I9["#9 review --limit"]
+    I10["#10 add --tags"]
+    I11["#11 stats command"]
+    I12["#12 CSV import"]
+  end
+  subgraph W5["wave 5"]
+    I13["#13 review --tag"]
+    I14["#14 stats --by-tag"]
+    I15["#15 export"]
+  end
+  I1 --> I2
+  I1 --> I3
+  I1 --> I4
+  I3 --> I5
+  I2 --> I5
+  I3 --> I6
+  I2 --> I7
+  I4 --> I7
+  I2 --> I8
+  I6 --> I9
+  I5 --> I9
+  I7 --> I10
+  I8 --> I11
+  I7 --> I12
+  I9 --> I13
+  I10 --> I13
+  I7 --> I14
+  I11 --> I14
+  I12 --> I15
+    </pre>
+    <span class="caption">19 edges read back from GitHub on 2026-09-13. Arrows point from blocker to blocked. Five tickets have two incoming arrows: #5, #7, #9, #13, #14.</span>
+  </div>
+
+  <h2>Waves: what the graph is for</h2>
+  <p>A wave is the set of tickets whose blockers have all landed. Derive them with Kahn's algorithm — repeatedly take every ticket with no remaining blockers, remove them, repeat — and you get the schedule for concurrent agent sessions. The course repo ships a small script that does this from <code>gh issue list --json</code>:</p>
+
+  <span class="code-label">$ python seed/tools/waves_from_github.py --repo perro-ruidoso/flashcards-seed</span>
+  <pre><code>15 issues, 19 blocking edges, 5 joins (2+ blockers): #5, #7, #9, #13, #14
+wave 1  #1
+wave 2  #2  #3  #4
+wave 3  #5  #6  #7  #8
+wave 4  #9  #10  #11  #12
+wave 5  #13  #14  #15
+5 waves, max parallel width 4</code></pre>
+
+  <p>Three readings of that output:</p>
+  <ul>
+    <li><strong>Width 4 at waves 3 and 4.</strong> Four tickets could each go to a fresh Claude Code session at the same time. That number — not the ticket count — is what a decomposition buys you, and it is why over-declared edges are expensive: each one narrows a wave.</li>
+    <li><strong>Depth 5.</strong> The longest chain (#1 → #2 → #7 → #10 → #13, or #1 → #2 → #8 → #11 → #14) is five tickets, so fifteen tickets take a minimum of five sequential rounds no matter how many agents you have. Cutting a wide-but-shallow graph is the skill.</li>
+    <li><strong>Five joins.</strong> The tickets with two blockers are where a list view lies to you. <code>seed/SPEC.md</code> §6 picks the clearest, in its own T-numbering: T13 (<code>stats --by-tag</code>, issue #14) sits next to T12 (<code>stats</code>, #11), "but its other parent is six tickets away in a different layer" — T08, tag persistence, issue #7, in storage. Read top to bottom, you would start #14 as soon as #11 landed and discover the missing storage work halfway through.</li>
+  </ul>
+
+  <div class="callout note">
+    <span class="label">The answer key was machine-checked, twice</span>
+    <p><code>seed/SPEC.md</code> §6 gives the waves above as the answer key for a Week 5 exercise and says "the waves above were machine-checked, not eyeballed." The first check ran a topological sort on the spec's table before any issue was filed. The one on this page is the second, independent check: it reads the edges GitHub actually stores. The two agree — 5 waves, width 4, joins at T04, T06, T08, T10, T13 — which is the evidence that the filing script recorded what the spec meant. Doing the check twice from two sources is not paranoia; it is what M06 called observation before inference.</p>
+  </div>
+
+  <h2>What to copy, and what not to</h2>
+  <p>Your A2 decomposition covers the review loop only — the Seed backlog's first six tickets (#1, #2, #3, #5, #6, #9) — and it is produced by <span class="skill">/to-tickets</span> from your own spec, so it will not match number for number. What it should share: a single root, short vertical chains rather than layer-wide tickets, at least one join, and a width greater than one somewhere. What it should <em>not</em> share: the tag, stats, and CSV tickets, which your spec's Out of Scope hands to the neighbouring backlog. If your decomposition reproduces the Seed's six exactly, that is fine; if it finds a better cut, that is better — the rubric grades the four slice rules, not conformity.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <label class="check"><input type="checkbox"><span>Ran the <code>gh issue list --json number,title,blockedBy</code> command above against the Seed Repo and against my own Instance.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>python seed/tools/waves_from_github.py --repo perro-ruidoso/flashcards-<em>&lt;my-handle&gt;</em></code> and can state my graph's depth, width, and joins.</span></label>
+    <label class="check"><input type="checkbox"><span>Named one edge in the Seed backlog I would have missed reading the list top to bottom.</span></label>
+    <label class="check"><input type="checkbox"><span>Compared my review-loop decomposition with the Seed's first six tickets and wrote two sentences in the A2 write-up on where they differ and which is better.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. The Seed backlog has 15 tickets and its widest wave is 4. What does the 4 tell you that the 15 does not?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">That four of the tickets are larger than the others and should be split</button></li>
+        <li><button data-opt="b">That four tickets have no blockers and can all be started on day one</button></li>
+        <li><button data-opt="c">The maximum number of tickets that could be handed to concurrent agent sessions at one moment</button></li>
+        <li><button data-opt="d">The number of layers in the application plus one for the tests</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Width is parallelism. Only one ticket (#1) has no blockers (B is false); the wave of four is reached after waves 1 and 2 land. Size (A) and layer count (D) are unrelated to it.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. Why does <code>seed/SPEC.md</code> single out #14 (<code>stats --by-tag</code>) as the clearest example of why a linear reading misleads?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Its numbering neighbour (the <code>stats</code> command) is one parent, but its other parent is tag persistence, far away in a different layer</button></li>
+        <li><button data-opt="b">It is the only ticket in the backlog that has two blocking parents</button></li>
+        <li><button data-opt="c">It is blocked by a ticket with a higher number than itself, which GitHub disallows</button></li>
+        <li><button data-opt="d">It is in wave 5, so it is the last ticket that can ever be started</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Reading the list in number order, #14 looks ready as soon as #11 lands. The graph shows the storage parent. Five tickets have two parents (B is false), GitHub accepts any edge direction (C), and wave 5 has three tickets (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. The page says the waves were "machine-checked, twice." What did the second check add?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Confirmation that the spec's table has no typos in the T-numbers</button></li>
+        <li><button data-opt="b">A faster algorithm than the first check, which had been done by hand</button></li>
+        <li><button data-opt="c">A check that the issue numbers match the T-numbers in the spec</button></li>
+        <li><button data-opt="d">Independence: it read the edges GitHub stores, proving the filing matched the spec's intent</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The first check validated the spec; the second validated what was actually recorded. Agreement between two sources is evidence; one source checked twice is not. The numbers do not match the T-numbers (C), by design.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w2-m10-backlog">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The Seed backlog in four numbers?</div><div class="fc-back">15 tickets, 19 edges, 5 waves, max width 4.</div></div>
+      <div class="fc"><div class="fc-front">What is a wave?</div><div class="fc-back">The set of tickets whose blockers have all landed — derived by Kahn's algorithm; each wave can go to concurrent agent sessions.</div></div>
+      <div class="fc"><div class="fc-front">Width vs depth — what does each bound?</div><div class="fc-back">Width bounds parallelism (how many agents at once). Depth bounds the minimum number of sequential rounds.</div></div>
+      <div class="fc"><div class="fc-front">The five joins (two blockers) by issue number?</div><div class="fc-back">#5, #7, #9, #13, #14 — T04, T08, T06, T10, T13 in the spec's numbering.</div></div>
+      <div class="fc"><div class="fc-front">Why do the Seed's issue numbers not match its T-numbers?</div><div class="fc-back">Tickets were filed in dependency order, blockers first, so edges could reference real numbers. Numbers are an artifact of filing order.</div></div>
+      <div class="fc"><div class="fc-front">Which command reads the whole graph back in one call?</div><div class="fc-back"><code>gh issue list --json number,title,blockedBy</code> (gh ≥ 2.94.0), then <code>.blockedBy.nodes[].number</code> in <code>--jq</code>.</div></div>
+      <div class="fc"><div class="fc-front">Why check the waves from GitHub as well as from the spec?</div><div class="fc-back">Two independent sources agreeing is evidence the filing recorded what the spec meant; one source checked twice is not.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code: "Read the Seed backlog's edges with <code>gh issue list --json number,blockedBy</code> and propose one edge to <em>remove</em> that would widen a wave without letting an agent start a ticket it cannot finish." If it cannot find one, ask it to justify #8's dependency on #2 — is stats aggregation really blocked by persistence, or only by #1? That question has a defensible answer either way, and arguing it is the objective. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/issues">The Seed Repo backlog</a><span class="why">Open the sidebar on #14 in the web UI and compare what it shows (a "Blocked by" list) with what <code>gh</code> printed. Same data, two surfaces.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_list">GitHub CLI manual: <code>gh issue list</code></a><span class="why"><code>--json blockedBy</code> and the <code>--jq</code> shape used above — <code>.blockedBy.nodes[]</code>, with <code>totalCount</code> beside it.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/seed/tools/waves_from_github.py">course repo: <code>seed/tools/waves_from_github.py</code></a><span class="why">A short script — Kahn's algorithm over <code>gh issue list --json</code> output, with <code>--mermaid</code> to print the graph. Read it; then run it on your own Instance.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/seed/SPEC.md">course repo: <code>seed/SPEC.md</code> §6</a><span class="why">The table this backlog was filed from, with the answer key and the sentence about #14's distant parent.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/issues">perro-ruidoso/flashcards-seed</a> — every number on this page was captured from the two commands shown, run with <code>gh</code> 2.100.0 on 2026-09-13; the Mermaid edges are the script's <code>--mermaid</code> output, hand-grouped into wave subgraphs</li>
+      <li><code>seed/SPEC.md</code> §6 in the course repo — the answer key and the "six tickets away" observation</li>
+      <li><code>CONTEXT.md</code> in the course repo — Work Dependency, Tracer-Bullet Ticket</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M10, page 1</span>Tracer Bullets and Blocking Edges</a>
+    <a class="next" href="../m11-recording-dependencies/index.html"><span class="dir">Next · M11</span>Two Features, Two Shapes</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

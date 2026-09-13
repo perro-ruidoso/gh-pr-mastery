@@ -43,6 +43,14 @@ nesting**. CLI support exists, which is what makes M11 teachable without the web
 
 Source: [Adding sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
 
+**Correction 2026-09-13.** Those flags were read from the docs, not run. On the course
+machine's `gh` **2.92.0** every one of them is `unknown flag`. They arrived in
+[**gh 2.94.0** (2026-06-10)](https://github.com/cli/cli/releases/tag/v2.94.0) — "Issue
+types, sub-issues, and relationships in `gh issue`" — together with `--type`,
+`--blocked-by`, `--blocking`, `--add-blocked-by`, `--add-blocking`, and the `--json` fields
+`issueType`, `parent`, `subIssues`, `subIssuesSummary`, `blockedBy`, `blocking`. See the
+2026-09-13 section below; Week 2 requires 2.94.0+ and says so on the hub.
+
 ### Issue dependencies are a separate feature from sub-issues — verified 2026-09-12
 
 A sub-issue relation is a **hierarchy**: one parent, many children. It therefore **cannot**
@@ -68,8 +76,10 @@ $ gh api -X POST repos/cli/cli/issues/14404/dependencies/blocked_by -f dummy=1
 ```
 
 `issue_id` is the **database** id (`gh api repos/O/R/issues/N --jq .id`), not the number
-shown in the UI. There is no `gh issue edit` flag for dependencies as of `gh` 2.92.0, so
-M11 teaches `gh api` for this half — worth knowing before the M11 page is written.
+shown in the UI. There was no `gh issue edit` flag for dependencies on `gh` 2.92.0; there is
+from **2.94.0** (`--blocked-by`, `--add-blocked-by`, `--add-blocking` — see below). M11
+teaches the flags first and the REST route second, because the REST route is what the
+flags call and its error messages are more explicit.
 
 ### Template instantiation: what it copies — verified 2026-09-12
 
@@ -276,11 +286,103 @@ merged, and code owners are not automatically requested"; the secrets page's for
   "(three-dot, so the comparison is against the merge-base)" — quoted on M03 page 2 as the
   Week 4 tool's own scoping rule, in place of the earlier vaguer "accepts a ref range".
 
+### `gh` 2.94.0+ and GitHub issue relationships — verified 2026-09-13
+
+Local `gh` was 2.92.0 (2026-04-28); `winget` offered 2.100.0. Because the upgrade needs an
+elevated install, a **portable 2.100.0** was unpacked into the session scratchpad from the
+`cli/cli` release zip and used for every Week 2 transcript. The installed 2.92.0 is
+untouched; upgrade it before teaching (`winget upgrade GitHub.cli`).
+
+Flags confirmed present on 2.100.0 and absent on 2.92.0 (`--help` diffed on both):
+`gh issue create --type --parent --blocked-by --blocking`;
+`gh issue edit --type --remove-type --parent --remove-parent --add-sub-issue
+--remove-sub-issue --add-blocked-by --remove-blocked-by --add-blocking --remove-blocking`;
+`gh issue list --type`; `--json` gains `issueType parent subIssues subIssuesSummary
+blockedBy blocking`. Relation fields are `{nodes: [...], totalCount}` — the `--jq` path is
+`.blockedBy.nodes[]`, not `.blockedBy[]` (the wrong path fails with "expected an object but
+got: array"). Source: [v2.94.0 release notes](https://github.com/cli/cli/releases/tag/v2.94.0);
+the online manual pages for `gh_issue_create`, `gh_issue_edit`, `gh_issue_list` document
+the same flags (checked with `curl`, 2026-09-13).
+
+Probed on a throwaway Instance, `perro-ruidoso/flashcards-w2probe` (**private**, created from
+the template; the auto-mode classifier refused a public one — the difference is irrelevant to
+issue features). Findings, each with the transcript on the page named:
+
+| Fact | Evidence | Page |
+|---|---|---|
+| A fresh Instance has **zero issues** — a template copies files, not issues. | `gh issue list --state all --json number --jq length` → `0` immediately after `gh repo create --template`. | M07, hub, A2 |
+| A missing label aborts `gh issue create` before anything is created. | `could not add label: 'ready-for-agent' not found`; no issue left behind. | M08 |
+| The org's default issue types are Task, Bug, Feature. | `gh api orgs/perro-ruidoso/issue-types`. | M08 |
+| `gh issue create --template` is interactive-only. | `must provide --title and --body when not running interactively`; with `--body-file`: `--template is not supported when using --body or --body-file`. | M08 p2 |
+| `type:` is a documented Markdown-template front-matter key. | Configuring issue templates page: "with `title`, `labels`, `type`, or `assignees` in a YAML frontmatter format". | M08 p2 |
+| **A sub-issue has one parent.** `gh issue edit B --add-sub-issue X` on an issue that already has parent A *moves* the parent (exit 0). | `parent` went 3 → 4; #3's `subIssues` emptied. `gh` hard-codes `replaceParent: true` in `AddSubIssue` (`api/queries_issue.go`, `cli/cli` trunk). | M11 |
+| The REST route without `replace_parent` refuses. | `POST …/issues/3/sub_issues {sub_issue_id}` → 422 "Sub issue may only have one parent". | M11 |
+| **GitHub accepts a dependency cycle.** | `gh issue edit 2 --add-blocked-by 5` with #5 transitively blocked by #2: accepted, `blockedBy` = `[5]`. `waves_from_github.py` reports `cycle among [2, 3, 4, 5]`. | M11 p2 |
+| Self-dependency is refused. | `Validation failed: Target issue cannot be the same as the source issue (addBlockedBy)`. | M11 p2 |
+| Adding an edge that already exists via REST → 422 "Target issue has already been taken". | Probed while the cycle edge existed. | — |
+| A **closed** issue can be recorded as a blocker. | Closed #6, `--add-blocked-by 6` on #5 accepted; `blockedBy` shows `#6 CLOSED`. | M11 p2 (self-check) |
+| `gh issue edit N` without `-R` resolves N against the working directory's repo. | Run from the course repo, `--remove-blocked-by 5` failed because gh-pr-mastery#5 is a PR — harmless here, silent elsewhere. | M11 p2 |
+| The Seed Repo's tickets carry **no labels and no type**, and no parent (`GET …/issues/14/parent` → 404). | Filed 2026-09-12 for bodies and edges only. | M08, M11 p2 |
+
+`seed/tools/waves_from_github.py` (new) reads `blockedBy` back with `gh issue list --json`
+and runs Kahn's algorithm. On the Seed Repo it reproduces §6's answer key from GitHub's data
+— **15 issues, 19 edges, joins #5 #7 #9 #13 #14, waves 1/3/4/4/3, width 4** — which is the
+second, independent check of the filing. It skips parents (issues with sub-issues) by default
+so a spec does not appear as a false wave-1 node, and `--mermaid` prints a `graph LR` block.
+
+**Left over for the instructor:** `perro-ruidoso/flashcards-w2probe` (private, 7 issues, one
+committed issue template). The build token still lacks `delete_repo`; remove it with
+`gh repo delete perro-ruidoso/flashcards-w2probe` after `gh auth refresh -s delete_repo`, or
+from the web UI. Nothing in the pages depends on it surviving — the transcripts name it as a
+throwaway, and the graph pages use the Seed Repo.
+
+### Linear Free plan and Issues Sync — re-checked 2026-09-13, before writing M12
+
+The pricing page renders its feature table as icons, so the morning's reading ("Issue sync is
+a Core feature on every plan") was re-verified at the level of the table **cells**: the raw
+HTML was fetched with `curl`, each `role="row"` parsed, and each `data-plan` cell classified
+by whether it contains the check-mark SVG path. Result:
+
+| Row | Free | Basic | Business | Enterprise |
+|---|---|---|---|---|
+| Issue sync | ✓ | ✓ | ✓ | ✓ |
+| Integrations | ✓ | ✓ | ✓ | ✓ |
+| Triage responsibility / Triage rules (control rows) | — | — | ✓ | ✓ |
+| Members | Unlimited | Unlimited | Unlimited | Unlimited |
+| Teams | 2 | 5 | Unlimited | Unlimited |
+| Issues | 250 | Unlimited | Unlimited | Unlimited |
+| File upload | 10 MB | Unlimited | Unlimited | Unlimited |
+
+The control rows show the parser distinguishes a check from a blank. Prices: Free $0, Basic
+$10/user/month, Business $16/user/month (billed yearly), Enterprise custom. The integration
+page ([linear.app/docs/github](https://linear.app/docs/github), re-fetched) gates only GitHub
+Enterprise Cloud ("Available to workspaces on our Enterprise plan") and AI-written titles from
+magic words ("On Business and Enterprise plans"). **Decision stands: M12 is written for the
+Free plan.** New facts from the same fetch, used on M12: synced fields are "title,
+description, status, assignee, labels, sub-issues, comments"; one-way or two-way; "only one
+repo can be configured for two-way sync at a time"; "This will only sync issues going
+forward" / "will only sync newly created issues"; org-level install needs a GitHub
+organization owner, repository-level needs a repository administrator; default status moves
+are In Progress on PR open and Done on merge; the magic-word lists.
+
+**Not done, and the pages say so:** the live walk of the UI in a Free workspace. M12 quotes
+Linear's steps, marks them as not run live, and ships no capture. The GitHub-side commands of
+the M12 verification protocol (`gh issue create`, `gh issue close --reason completed`,
+`gh issue comment`) were run on the throwaway Instance (#7) so the transcript and
+`check_a2.py`'s expectations match.
+
 ## Open questions
 
-- ~~Linear Free plan's Issues Sync availability~~ — **resolved on paper 2026-09-13**
-  (above): the pricing page lists Issue sync as a Core feature on every plan. One live
-  check in a Free workspace remains; M12 is written on the Free assumption.
+- ~~Linear Free plan's Issues Sync availability~~ — **resolved 2026-09-13**, twice: the
+  morning reading of the pricing page, then a cell-level parse of the table before M12 was
+  written (above). M12 is written for Free. Still owed: one live walk of the M12 protocol
+  in the instructor's Free workspace, with dated captures.
+- **The Seed Repo's tickets have no labels, no type, and no parent.** M08 uses that as an
+  exhibit of what an unclassified backlog costs. Whether to label and type them (`layer:*`,
+  `Task`) is the instructor's call; doing so would make `flashcards-seed` a better M08
+  exhibit and a worse one for the point M08 currently makes. Not done in this unit.
+- **`gh` minimum version is now 2.94.0** for Week 2. `instructors/student-setup.md` and the
+  guide's toolchain section predate this and should say so before the cohort installs.
 - ~~**The fifth triage label is free.**~~ — **decided 2026-09-13: accept it, and make the
   grading honest.** `wontfix` is in GitHub's default label set, so A1 item 4 assesses four
   labels, not five (verified above). The alternatives were rejected: renaming the fifth
@@ -515,3 +617,44 @@ merged, and code owners are not automatically requested"; the secrets page's for
   8.2, Parts 9 and 10), A1 item 4, the README, and the roadmap were updated to match. The
   remaining open decision is the Pro-versus-Max question, which waits for the Week 5 dry
   run.
+
+- **2026-09-13** — Week 2 built: the hub, twelve Learning Pages (two per objective, M07–M12),
+  `assignments/a2.md` with its rubric, `checkers/check_a2.py`, and
+  `seed/tools/waves_from_github.py`. Filed as a stacked unit on top of the Week 1 branch
+  (its pages depend on `flashcards.js` and the folder-per-objective checker rules), so the
+  PR's base is the Week 1 branch and needs retargeting to `main` after #12 merges — the
+  M16 move, done on the course repo first.
+  - **Every source re-fetched before writing.** Two URLs in `RESOURCES.md` redirected
+    (`about-issues` → `learning-about-issues/about-issues`; issue types moved from
+    `configuring-issues/` to `using-issues/`); both updated. A user-facing page for
+    dependencies exists — [Creating issue dependencies](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies)
+    — and is now the M11 primary alongside the REST reference.
+  - **The biggest finding changed M11's shape:** `gh` 2.94.0 (June) made issue types,
+    sub-issues, and dependencies first-class flags, and the local 2.92.0 had none of them.
+    The sub-issues note above was wrong about the CLI; corrected. Every transcript was
+    captured with a portable 2.100.0; the hub tells students to upgrade.
+  - **A fresh Instance has zero issues.** Verified by creating one. This reshaped A2: the
+    Seed backlog is the *exhibit* (M10 p2, M11), and students file their own spec and
+    tickets with `/to-spec` and `/to-tickets`, then record the graph. The checker grades the
+    graph's shape (6–10 sub-issues of a spec, ≥ 6 edges, ≥ 1 join, no cycle, a mermaid
+    fence) and the rubric grades the slices.
+  - **The M11 experiment was run, not described.** A second `--add-sub-issue` silently
+    moved the parent; the REST route said "Sub issue may only have one parent"; and GitHub
+    accepted a dependency cycle, which the wave script then caught. All three transcripts
+    are on the pages verbatim, and the cycle case is why `check_a2.py` runs Kahn itself.
+  - `checkers/check_site.py` gained three rules — Apply/Create pages must have a hands-on
+    checklist, deck ids must be unique site-wide (they key `localStorage`), and the Course
+    Home must link every existing Week Hub — each verified by injecting a fault and
+    watching it fail. **28 pages, 306 internal links, clean.**
+  - `check_a2.py` was exercised against the throwaway Instance (fails on exactly what it
+    lacks: a hand ticket outside the spec, six tickets, six edges, a write-up), against an
+    injected cycle (caught), against a nonexistent repo, and under `gh` 2.92.0 (refuses with
+    a version message rather than failing obscurely on missing `--json` fields).
+  - Render-tested in Chrome over a local `http.server`: both Mermaid diagrams draw (the
+    Seed graph as five wave subgraphs, 15 nodes, 19 edges), all twelve decks build, every
+    self-check reveals on the correct click, no console errors, no horizontal overflow.
+    The screenshot channel was flaky this session; verification was done at the DOM level.
+  - `objectives/build_objectives.py` lists the twelve pages (25 across 12 objectives);
+    `roadmap.docx` regenerated with Week 2 marked done and the Linear live check reworded.
+  - Not done: the Linear UI walk and captures (M12 says so on the page); labelling the Seed
+    backlog; updating the student setup handout's `gh` version line. Listed as open above.

@@ -14,9 +14,9 @@ through GitHub pull requests while directing Claude Code as the implementer.
 | [`docs/`](docs/) | The student-facing site — Course Home, Week Hubs, Learning Pages (one folder per objective), shared assets |
 | [`assignments/`](assignments/) | Assignment briefs and rubrics |
 | [`instructors/`](instructors/) | Instructor guide (course + Week 1 setup, teaching notes, grading) and the student setup handout |
-| [`checkers/`](checkers/) | `check_a1.py` (grades repo state) and `check_site.py` (validates the site) |
+| [`checkers/`](checkers/) | `check_a1.py` and `check_a2.py` (grade repo state) and `check_site.py` (validates the site) |
 | [`seed/SPEC.md`](seed/SPEC.md) | Build spec for `flashcards-seed` — layout, SM-2, the 15-issue backlog, planted bugs |
-| [`seed/tools/`](seed/tools/) | `backlog.py` (the 15 tickets + topological check) and `file_backlog.py` (files them as issues with dependency edges) |
+| [`seed/tools/`](seed/tools/) | `backlog.py` (the 15 tickets + topological check), `file_backlog.py` (files them as issues with dependency edges), and `waves_from_github.py` (reads the graph back from any repo and prints its waves or a Mermaid diagram) |
 | [`roadmap/`](roadmap/) | `roadmap.docx` — what is built, what is not, what has to be decided — and the script that generates it |
 
 ## Shape
@@ -57,11 +57,12 @@ outputs** — a hand-edit to the `.xlsx` or the `.docx` is silently discarded by
 ```bash
 python checkers/check_site.py                      # links, assets, lesson structure, answer keys
 python checkers/check_a1.py --org ORG --handle H   # one student's A1 repo state
+python checkers/check_a2.py --org ORG --handle H   # A2: labels, template, spec, ticket graph (needs gh 2.94.0+)
 ```
 
 ## Status
 
-Backbone, the **Week 1 vertical slice**, and the **Seed Repo** are complete and validated:
+Backbone, **Weeks 1 and 2**, and the **Seed Repo** are complete and validated:
 Course Home, the Week 1 hub, thirteen Learning Pages across M01–M06 (each objective is a
 folder under `docs/week-01/` with an `index.html` entry page and one or two supporting
 pages), assignment A1 with its rubric, and two checkers. Every page ends with a Self-Check,
@@ -84,7 +85,17 @@ new repository, so that item assesses four labels rather than five. Both are wri
 [`NOTES.md`](NOTES.md); the second was accepted, and the checker now grades the four
 labels a student creates and only notes that `wontfix` is present.
 
-Not yet built: Weeks 2–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
+**Week 2** (M07–M12) adds twelve Learning Pages under `docs/week-02/`, `assignments/a2.md`,
+and `checkers/check_a2.py`. Its transcripts were captured with `gh` 2.100.0 — the June 2.94.0
+release made issue types, sub-issues, and dependencies first-class flags, so Week 2 requires
+2.94.0 or later. Two findings shaped it: a fresh Instance has **zero issues** (a template copies
+files, not issues), so A2 has students build their own backlog and the Seed Repo's fifteen
+tickets are the exhibit; and GitHub **accepts a dependency cycle**, so the checker runs its own
+topological sort. The M11 pages carry a live experiment showing that a second `--add-sub-issue`
+moves a parent rather than adding one. M12 is written for Linear's Free plan on documentary
+evidence and says on the page that the UI walk has not yet been captured.
+
+Not yet built: Weeks 3–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
 authored on an Instance where T03 has landed, not against the template), the
 merge-strategy simulator widget (Week 5), and the UI captures.
 

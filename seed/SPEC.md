@@ -232,7 +232,8 @@ something real to read.
 > relations", conflating two different features. A sub-issue relation is a *hierarchy* —
 > one parent, many children — and therefore cannot express this graph at all, because five
 > of these fifteen tickets have two blocking parents. Issue **dependencies** are the right
-> mechanism, and they are a separate REST API with no `gh issue edit` flag:
+> mechanism, and they are a separate REST API (with no `gh issue edit` flag until
+> `gh` 2.94.0 added `--blocked-by`; see `NOTES.md`, 2026-09-13):
 >
 > ```
 > POST /repos/{owner}/{repo}/issues/{n}/dependencies/blocked_by  {"issue_id": <db id>}
