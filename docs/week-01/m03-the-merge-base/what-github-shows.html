@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What GitHub Shows You — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M03 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>What GitHub Shows You</h1>
+  <p class="lede">The Files changed tab is a three-dot diff. That single design decision is why your PR stays stable while <code>main</code> moves — and why the scope you hand an agent decides whether its review is worth reading.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M03 · Diffs</span>
+      <span class="chip bloom">Bloom: Understand</span>
+      <span class="chip assessed">Assessed by: Quiz 1</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Distinguish two-dot from three-dot diffs and explain why a PR's Files-changed view is computed from the merge base.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M03 pages</span>
+    <a href="index.html"><span class="num">1</span>The Merge Base</a>
+    <span class="here"><span class="num">2</span>What GitHub Shows You</span>
+  </nav>
+
+  <h2>The Files changed tab</h2>
+  <p>GitHub's reference page says the <strong>Files changed</strong> tab "shows what would change if the pull request merged." On the branches page it explains how: "Because the three-dot comparison uses the merge base, it focuses on 'what a pull request introduces.'" Then it contrasts the alternative directly:</p>
+  <blockquote>
+    <p>"When you use a two-dot comparison, the diff changes when the base branch is updated, even if you haven't made any changes to the topic branch. A two-dot comparison also focuses on the base branch, which can make the changes introduced by the topic branch harder to understand. In contrast, a three-dot comparison keeps showing the changes introduced by the topic branch since the branches diverged."</p>
+  </blockquote>
+  <p>This is a genuinely good design choice. If pull requests used two-dot diffs, every merge into <code>main</code> would visibly churn every open PR, and reviewers would spend their attention on other people's changes.</p>
+
+  <div class="callout warn">
+    <span class="label">Compare pages are not PR pages</span>
+    <p>GitHub's reference page carries a caution worth memorising: "Compare pages and pull request pages can calculate changed files from different merge bases. As a result, the same branches can sometimes show different diffs in each place." This "usually matters when the base branch has changed since the pull request was created" — the PR page "focus[es] on what the pull request introduced, while compare pages reflect the current comparison between two refs." If a classmate's <code>/compare/</code> link disagrees with the PR, neither is lying; they are answering different questions.</p>
+  </div>
+
+  <h2>Then why do I <em>sometimes</em> see unrelated files in a PR?</h2>
+  <p>Three-dot diffing removes the most common cause, so when it still happens the reason is almost always one of:</p>
+  <ul>
+    <li>You <strong>merged <code>main</code> into your branch and resolved a conflict</strong>. Those resolutions <em>are</em> your changes, and they belong to your branch.</li>
+    <li>You <strong>rebased onto a moved base</strong> and the rebase carried something unexpected.</li>
+    <li>The head branch was <strong>created from something other than the base</strong> — a stale local <code>main</code>, or a different branch entirely.</li>
+  </ul>
+  <p>Diagnosis starts the same way every time — find the merge base and look at what sits between it and your tip: <code>git merge-base main HEAD</code>, then <code>git log --oneline &lt;that-sha&gt;..HEAD</code>.</p>
+
+  <h2>Why an agentic coder needs this specifically</h2>
+  <p>You will routinely ask Claude to "review the changes on this branch." What it compares determines what it reports:</p>
+  <ul>
+    <li>Point it at a two-dot range and it will dutifully review your colleague's changes <em>in reverse</em>, and may report them as regressions. You then waste a cycle arguing with a correct answer to the wrong question.</li>
+    <li>Point it at <code>main...HEAD</code> and it reviews what you introduced — the same scope a human reviewer sees on the PR.</li>
+  </ul>
+  <p>This is why the <span class="skill">/code-review</span> skill you will run in Week 4 pins a "fixed point" and then captures the diff as <code>git diff &lt;fixed-point&gt;...HEAD</code> — its own instructions say <em>"three-dot, so the comparison is against the merge-base."</em> The skill's authors made the choice for you; knowing why is what lets you notice when a different tool, or a hand-typed prompt, gets it wrong. Wrong scope produces confident, well-written, irrelevant findings.</p>
+
+  <div class="callout tip">
+    <span class="label">The check before you ask for a review</span>
+    <p>Before handing a branch to an agent — or a human — run <code>git diff main...HEAD --stat</code> and read the file list. If a file is there that you did not mean to touch, you have found the problem before the reviewer did. Week 3's M14 turns this into a formal judgement about whether a diff is reviewable at all.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Continue from the experiment on the <a href="index.html">previous page</a>.</p>
+    <label class="check"><input type="checkbox"><span>Pushed the branch and opened a PR for it; confirmed Files changed matches the <em>three</em>-dot result, not the two-dot one.</span></label>
+    <label class="check"><input type="checkbox"><span>Opened the <code>/compare/main...&lt;branch&gt;</code> URL for the same branches and noted whether it agrees with the PR page.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>git diff main...HEAD --stat</code> on the branch and read the file list as a pre-review check.</span></label>
+    <label class="check"><input type="checkbox"><span>Can explain, in one sentence, why the PR did not change when <code>main</code> moved.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">1. Ten commits land on <code>main</code> while your PR sits open, none touching your files. What happens to the PR's Files changed tab?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Nothing — a three-dot comparison keeps showing what the topic branch introduced since the branches diverged</button></li>
+        <li><button data-opt="b">It grows by those ten commits' changes</button></li>
+        <li><button data-opt="c">It shows those changes reversed</button></li>
+        <li><button data-opt="d">The PR is marked out of date and must be rebased before it can be read</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> GitHub's docs: "a three-dot comparison keeps showing the changes introduced by the topic branch since the branches diverged," whereas with two-dot "the diff changes when the base branch is updated, even if you haven't made any changes to the topic branch." (B and C are what you would get from a two-dot view. D confuses the diff with a merge requirement — a ruleset can demand the branch be up to date, but that is a separate gate, covered in Week 5.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. You ask Claude to review "the changes on this branch" and it reports bugs in code a teammate wrote last week. What is the most likely cause?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The model hallucinated the findings</button></li>
+        <li><button data-opt="b">Your teammate's code really is buggy and you should file it</button></li>
+        <li><button data-opt="c">Claude cannot see branch structure and always reviews the whole repository</button></li>
+        <li><button data-opt="d">The review scope was a two-dot range, so it included main's newer commits reversed into your diff</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Wrong scope, not wrong model. A two-dot range folds the base branch's newer commits into the diff, so the reviewer sees changes that are not yours and reasons about them correctly but uselessly. Pass <code>main...HEAD</code> — the same scope the PR shows a human. (B is worth keeping in mind as a secondary possibility, but if it were true you would want it filed as its own issue, not smuggled into your PR's review.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">3. A <code>/compare/main...feature</code> page and the PR for <code>feature</code> show different file lists. Why can that happen?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The compare page always uses two dots, whatever the URL says</button></li>
+        <li><button data-opt="b">One of the two pages is showing a cached, stale diff</button></li>
+        <li><button data-opt="c">They can calculate changed files from different merge bases; the PR page focuses on what the PR introduced, the compare page on the current comparison</button></li>
+        <li><button data-opt="d">The PR page hides files that were changed on <code>main</code> after the PR opened</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> GitHub's own caution, almost verbatim. It "usually matters when the base branch has changed since the pull request was created." Neither page is stale or lying — they are answering different questions, which is exactly why you should know which one you are looking at.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">4. Your PR shows a conflict-resolution change in a file you never edited by hand. Is that file legitimately part of your PR?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">No — GitHub is showing a two-dot artefact and it will disappear on refresh</button></li>
+        <li><button data-opt="b">Yes — you merged <code>main</code> into your branch and resolved a conflict, and those resolutions are your branch's changes</button></li>
+        <li><button data-opt="c">No — conflict resolutions are stored on <code>main</code>, not on your branch</button></li>
+        <li><button data-opt="d">Yes, but only until the PR is merged, after which they move to <code>main</code></button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> A merge commit on your branch, and whatever you did to resolve the conflict inside it, sits between the merge base and your tip — so the three-dot diff includes it, correctly. This is one of the three legitimate reasons an "unrelated" file appears; the diagnosis is always the same: find the merge base and read what lies between it and <code>HEAD</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m03-shows">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">What does the <strong>Files changed</strong> tab show, in GitHub's words?</div><div class="fc-back">"What would change if the pull request merged" — a three-dot diff that "focuses on what a pull request introduces."</div></div>
+      <div class="fc"><div class="fc-front">Ten commits land on <code>main</code>; none touch your files. What happens to your PR's diff?</div><div class="fc-back">Nothing. A three-dot comparison "keeps showing the changes introduced by the topic branch since the branches diverged."</div></div>
+      <div class="fc"><div class="fc-front">What would happen to that same PR under a <em>two-dot</em> comparison?</div><div class="fc-back">"The diff changes when the base branch is updated, even if you haven't made any changes to the topic branch" — the ten commits appear, reversed.</div></div>
+      <div class="fc"><div class="fc-front">Name three legitimate reasons an "unrelated" file can appear in a PR even with three-dot diffing.</div><div class="fc-back">You merged <code>main</code> in and resolved a conflict; you rebased onto a moved base; the branch was created from something other than the base.</div></div>
+      <div class="fc"><div class="fc-front">The first diagnostic step when a PR contains a surprise file?</div><div class="fc-back">Find the merge base (<code>git merge-base main HEAD</code>) and read what sits between it and your tip (<code>git log --oneline &lt;sha&gt;..HEAD</code>).</div></div>
+      <div class="fc"><div class="fc-front">What ref range do you give an agent so it reviews the same scope a human sees on the PR?</div><div class="fc-back"><code>main...HEAD</code> (three dots). A two-dot range makes it review your colleagues' newer commits in reverse.</div></div>
+      <div class="fc"><div class="fc-front">Why can a <code>/compare/</code> page and a PR page disagree for the same branches?</div><div class="fc-back">They "can calculate changed files from different merge bases" — the PR page focuses on what the PR introduced; the compare page on the current comparison between two refs.</div></div>
+      <div class="fc"><div class="fc-front">The one command to run before asking anyone — human or agent — to review your branch?</div><div class="fc-back"><code>git diff main...HEAD --stat</code>, then read the file list for anything you did not mean to touch.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Want to see the agent version of the mistake for yourself? In your experiment repo, ask Claude Code to "review the changes in <code>main..feature</code>" and then "review the changes in <code>main...feature</code>", and compare what it reports about <code>untouched.txt</code>. Then ask it which scope it would have chosen if you had said only "review this branch." Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/branches">GitHub Docs: Branches (reference)</a><span class="why">"About three-dot comparison on GitHub" and "Merging often" — the two paragraphs this page is built on.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/pull-requests">GitHub Docs: Pull requests (reference)</a><span class="why">The section "Differences between commits on compare and pull request pages" — the compare-page caution quoted above.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/commit-changes/comparing-commits">GitHub Docs: Comparing commits</a><span class="why">How to build a <code>/compare/</code> URL by hand, across branches, tags, commits, and forks — useful when a PR does not yet exist.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>code-review</code></a><span class="why">Open the skill's <code>SKILL.md</code> and read step 1, "Pin the fixed point" — the Week 4 tool choosing three dots, and saying why, in one line.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a><span class="why">The terminal view of the same three-dot diff — next objective.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/branches">GitHub Docs: Branches — About three-dot comparison on GitHub</a> — the three-dot/two-dot contrast quoted above; fetched 2026-09-12 (canonical URL; wording updated from the version quoted when this lesson was first written)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/pull-requests">GitHub Docs: Pull requests — Differences between commits on compare and pull request pages</a> — fetched 2026-09-12</li>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills: <code>code-review</code></a> — "<code>git diff &lt;fixed-point&gt;...HEAD</code> (three-dot, so the comparison is against the merge-base)"; quoted from the installed <code>SKILL.md</code> on 2026-09-12</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M03, page 1</span>The Merge Base</a>
+    <a class="next" href="../m04-reading-work-from-the-terminal/index.html"><span class="dir">Next · M04</span>Listing and Viewing</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

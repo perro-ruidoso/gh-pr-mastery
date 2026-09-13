@@ -195,6 +195,71 @@ Token scopes were `gist, read:org, repo, workflow`; after the refresh the scopes
 cleared. `perro-ruidoso` exists (created 2026-09-12) and held **no repositories** at the
 time the Seed Repo build started.
 
+### GitHub Docs reorganised; some quoted wording changed — verified 2026-09-13
+
+While re-fetching every URL for the Week 1 Learning Pages, several `docs.github.com` addresses
+first recorded in `RESOURCES.md` were found to **redirect** (301 → 200) to new canonical pages
+under `/reference/` and `/how-tos/`. Old links still work, but the course rule is to cite what
+was fetched, so Week 1 pages and `RESOURCES.md` now carry the canonical URLs:
+
+| Recorded URL (path under `docs.github.com/en/`) | Now resolves to |
+|---|---|
+| `pull-requests/…/about-pull-requests` | `pull-requests/reference/pull-requests` |
+| `pull-requests/…/about-collaborative-development-models` | `pull-requests/reference/pull-requests` (merged into the same page) |
+| `pull-requests/…/about-comparing-branches-in-pull-requests` | `pull-requests/reference/branches` |
+| `pull-requests/…/working-with-forks/about-forks` | `pull-requests/reference/forks` |
+| `pull-requests/…/changing-the-stage-of-a-pull-request` | `pull-requests/how-tos/create-pull-requests/changing-the-stage-of-a-pull-request` |
+| `pull-requests/…/comparing-commits` | `pull-requests/how-tos/commit-changes/comparing-commits` |
+| `actions/security-for-github-actions/security-guides/using-secrets-in-github-actions` | `actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets` |
+| `account-and-profile/…/publicizing-or-hiding-organization-membership` | `account-and-profile/how-tos/organization-membership/publicizing-or-hiding-organization-membership` |
+
+`jqlang.github.io/jq/` likewise redirects to `jqlang.org/`.
+
+**Wording moved with the pages.** The M03 lesson had quoted the branches page as saying a
+three-dot view "remains consistent even when the base branch updates" and that two-dot could be
+"potentially obscuring the topic branch's actual contributions." Neither phrase is on the
+canonical page any more. The current text, now quoted on M03 page 2:
+
+> "When you use a two-dot comparison, the diff changes when the base branch is updated, even if
+> you haven't made any changes to the topic branch. A two-dot comparison also focuses on the base
+> branch, which can make the changes introduced by the topic branch harder to understand. In
+> contrast, a three-dot comparison keeps showing the changes introduced by the topic branch
+> since the branches diverged."
+
+Two additions on the same page were worth teaching and are now on M03: **"Pull requests on
+GitHub show a three-dot diff"** stated flatly above the definitions table, and a "Merging often"
+section — "When you merge the base branch, the diffs shown by two-dot and three-dot comparisons
+are the same." The pull-requests reference page also gained content the M02 pages now use: the
+five tabs (Conversation, Commits, Checks, Files changed, **Findings**), the merge-status box,
+"temporary Git references that point to the pull request's head branch and, when possible, to a
+simulated merge result," and a caution that compare pages and PR pages "can calculate changed
+files from different merge bases."
+
+Still present and re-confirmed: the template page's "starts with a single commit" / "entire
+commit history" / contributions-graph sentences; the PR page's "Draft pull requests cannot be
+merged, and code owners are not automatically requested"; the secrets page's fork sentence.
+
+**Consequence:** re-fetch and re-quote before writing each later week; the Tier 1 source moves.
+
+### `gh` manual details used on Week 1 pages — verified 2026-09-12/13
+
+- `gh auth refresh`: `--scopes` adds; "the minimum set of scopes (`repo`, `read:org`, and
+  `gist`) cannot be removed"; `--remove-scopes` and `--reset-scopes` exist.
+- `gh pr list`: `--limit` default **30**, `--state` default **`open`** (`open|closed|merged|all`).
+  `--head` "`<owner>:<branch>` syntax not supported" — so fork PRs are found with
+  `--json isCrossRepository` + `--jq`, not `--head`. That query was run and is on M04 page 2.
+- `gh pr view --json` fields re-captured: 46 fields including `closingIssuesReferences` (an
+  array of `{id, number, repository, url}` objects, not bare numbers — the M06 transcript was
+  corrected to match), `headRepositoryOwner`, `isCrossRepository`, `reviewDecision`,
+  `statusCheckRollup`, `mergedBy`.
+- `gh repo view --json`: `isTemplate`, `isFork`, `parent`, `templateRepository` all valid;
+  `flashcards-seed` returns `{"isFork":false,"isTemplate":true,"parent":null,"templateRepository":null}`.
+- `gh label create`: `--color`, `--description`, `--force`; "if a color isn't provided, a random one will be chosen."
+- `reviewDecision` values seen on `cli/cli`'s last 30 merged PRs: `APPROVED`, `REVIEW_REQUIRED`.
+- The installed `code-review` skill captures its diff as `git diff <fixed-point>...HEAD`
+  "(three-dot, so the comparison is against the merge-base)" — quoted on M03 page 2 as the
+  Week 4 tool's own scoping rule, in place of the earlier vaguer "accepts a ref range".
+
 ## Open questions
 
 - Linear Free plan's Issues Sync availability (above) — blocks final wording of M12.
@@ -356,3 +421,57 @@ time the Seed Repo build started.
   facts, sources, or open-question reasoning kept here; it links back instead, so the two
   cannot drift into contradicting each other. If a roadmap item and this file disagree,
   this file is right.
+
+- **2026-09-13** — Week 1 Learning Pages rebuilt as **one folder per objective** with an
+  `index.html` entry page and supporting pages: 13 pages replace the 6 flat ones (M01, M02,
+  M03, M04, M05: two pages each; M06: three). The split follows the objective's own seams —
+  concept versus procedure, or one decision per page — so each page fits in working memory
+  and can be done in one sitting. All previously captured transcripts were kept verbatim;
+  four new commands were added and **each was run as written** before shipping (fork-PR jq
+  query, `group_by(.isCrossRepository)`, the course-repo snapshot listings, `gh repo view
+  --json isTemplate,…`).
+  - Every page now carries, in order: objective banner, a **page map** of the objective's
+    pages, content, hands-on checklist (Apply/Analyze pages), **Self-Check** (2–4 reveal
+    questions, now with a first-try tally in `app.js`), a **flashcard deck**, an
+    **ask-your-teacher** callout, **where to learn more** (tiered, every URL fetched, one
+    line on why to read it), and sources. `CONTEXT.md`'s rule is kept: these are Self-Checks,
+    not quizzes — "quiz" stays reserved for the two graded concept quizzes.
+  - New shared component `docs/assets/flashcards.js` (+ styles): a one-card-at-a-time
+    Leitner loop — flip, *Again* returns the card to the queue, *Got it* retires it; keyboard
+    Space/1/2; progressive enhancement (plain Q&A list without JS and in print); persists only
+    last-studied date and lapse count per deck in `localStorage`, to nudge a spaced second
+    pass. 13 decks, 101 cards, every card grounded in a fact already on its page.
+  - Self-Check questions were redistributed to the page that teaches them and **29 new
+    questions** written (23 kept, 52 total across 13 pages), each grounded in a fetched source (e.g. the minimum-scope rule,
+    `--limit`/`--state` defaults, the compare-page caution, `wontfix` as a default label,
+    where a blocking relation is stored). Rationales name the source.
+  - `checkers/check_site.py` learned the layout: a Learning Page is any HTML under
+    `week-NN/mNN-slug/`; stylesheet depth is computed; required sections now include page
+    map, flashcards, ask callout, learn-more; every card needs a front and a back; a deck
+    must load `flashcards.js`; the hub must link every page of every objective folder and
+    each page must link its siblings. Verified by injecting three faults (empty card back,
+    component not loaded, broken sibling link) — all caught, then reverted. Currently
+    **15 pages, 163 internal links, clean.**
+  - `objectives/build_objectives.py` gained a `PAGES` table and a **Learning Pages** column:
+    the `.md` links each objective to its pages (repo-relative, so they resolve on GitHub),
+    the `.xlsx` cell lists them and hyperlinks to the entry page on the published site. The
+    build asserts every listed page exists and each objective's first page is `index.html`.
+    Both outputs regenerated; `roadmap.docx` regenerated for the changed Week 1 blurb.
+  - Re-fetching every cited URL surfaced the **GitHub Docs reorganisation** recorded above:
+    eight addresses redirect and the M03 quotations had drifted. `RESOURCES.md` now carries
+    canonical URLs, a URL-rot note, and the Week 1 pages' additional Tier 1 sources.
+  - The M06 worked-example transcript showed `"closes": [14404]`, which is not a real
+    `gh pr view` field shape; corrected to the actual `closingIssuesReferences` array (abridged
+    and marked as such). M06 page 3 adds a dated snapshot of the course repo's own history —
+    five merged PRs, each closing its issue within one second, one recorded blocking edge
+    (#2 blocked by #1) — captured from the commands printed on the page.
+  - **Render-tested in Chrome** over a local `http.server`, not just parsed: Mermaid draws,
+    the first-try tally counts a wrong first click as a miss, a deck runs to its finish state
+    and writes its `localStorage` record, every page shows a live deck and no horizontal
+    overflow. The test caught one real bug the checker cannot see: `.fc-deck { display: grid }`
+    beat the UA's `[hidden]` rule, so the Q&A list stayed visible under the stage. Fixed with
+    `.flashcards [hidden] { display: none !important; }` — a reminder that any block given
+    `display: grid/flex` needs an explicit hidden rule if JS toggles `.hidden` on it.
+  - The Bash tool in this session mangled single quotes inside heredocs; HTML and the larger
+    Python edits were written with the file tool and helper scripts in the scratchpad
+    instead. No effect on the repo, noted so the next builder is not surprised.

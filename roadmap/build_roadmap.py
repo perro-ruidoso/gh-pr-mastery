@@ -47,9 +47,11 @@ SECTIONS = [
              "MISSION.md, CONTEXT.md, NOTES.md, RESOURCES.md, ADRs 0001-0004, and the "
              "M01-M36 mastery-objectives workbook with its generator."),
             ("DONE", "Week 1 vertical slice",
-             "Course Home, the Week 1 hub, six Learning Pages (M01-M06), assignment A1 "
-             "with its rubric, and two checkers. Every terminal transcript was captured "
-             "from a real command run against a real repository."),
+             "Course Home, the Week 1 hub, thirteen Learning Pages across M01-M06 (one "
+             "folder per objective: an index.html entry page plus supporting pages, each "
+             "with a Self-Check, a flashcard deck, and a where-to-learn-more list), "
+             "assignment A1 with its rubric, and two checkers. Every terminal transcript "
+             "was captured from a real command run against a real repository."),
             ("DONE", "Seed Repo: perro-ruidoso/flashcards-seed",
              "Public, template flag set, CI green in 24s on Python 3.12. Tracer bullet "
              "only -- Card/Deck, json_store, `flashcards list` -- so the backlog is "

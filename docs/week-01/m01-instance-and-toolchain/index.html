@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Instance and Your Toolchain — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M01 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Your Instance and Your Toolchain</h1>
+  <p class="lede">Know which of the course's repositories is yours, join the organization properly, and get a terminal that can talk to GitHub without opening a browser.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M01 · Setup</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A1 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Join the course GitHub org, authenticate the <code>gh</code> CLI with the scopes the course needs, and instantiate a personal Instance from the <code>flashcards-seed</code> template.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M01 pages</span>
+    <span class="here"><span class="num">1</span>Your Instance and Your Toolchain</span>
+    <a href="create-your-instance.html"><span class="num">2</span>Create Your Instance</a>
+  </nav>
+
+  <h2>The three repositories, and which one is yours</h2>
+  <p>This course uses three repositories, and confusing them is the single most common Week 1 mistake.</p>
+
+  <div class="refmap">
+    <div class="ref">
+      <span class="role">Course repo</span>
+      <span class="name">gh-pr-mastery</span>
+      <p>These pages. You read it; you never push to it. You <em>will</em> analyse its pull requests in <a href="../m06-reading-the-exhibit/index.html">M06</a>.</p>
+    </div>
+    <div class="ref">
+      <span class="role">Template</span>
+      <span class="name">flashcards-seed</span>
+      <p>A Python flashcard CLI with tests, CI, and a prepared backlog. You never push here either — you make a copy of it.</p>
+    </div>
+    <div class="ref">
+      <span class="role">Yours</span>
+      <span class="name">flashcards-&lt;handle&gt;</span>
+      <p>Your <strong>Instance</strong>: your own copy of the template, created on the <a href="create-your-instance.html">next page</a>, worked in for six weeks.</p>
+    </div>
+  </div>
+
+  <p>A fourth, <code>flashcards-upstream</code>, appears in Week 5. Ignore it for now.</p>
+
+  <h2>Step 1 — Accept the organization invitation</h2>
+  <p>You will have an email invitation to the course organization, <code>perro-ruidoso</code>. Accept it, then make your membership <strong>public</strong>:</p>
+  <ol>
+    <li>Go to the organization's <strong>People</strong> tab.</li>
+    <li>Find yourself, and change your membership visibility from <em>Private</em> to <em>Public</em>.</li>
+  </ol>
+
+  <div class="callout warn">
+    <span class="label">Why this one matters later</span>
+    <p>GitHub hides organization membership by default. When your membership is private, other tools — including the Claude GitHub App we use in Week 5 — cannot see that the organization grants you write access, and will refuse to act on your comments. Anthropic's documentation calls this out explicitly. Two minutes now saves a confusing hour in Week 5.</p>
+  </div>
+
+  <h2>Step 2 — Authenticate <code>gh</code> with the right scopes</h2>
+  <p>Install the <a href="https://cli.github.com">GitHub CLI</a> if you have not, then:</p>
+  <pre><code><span class="prompt">$</span> gh auth login
+<span class="prompt">$</span> gh auth status</code></pre>
+  <p>The status output tells you the account and — the part people skip — the <strong>token scopes</strong>:</p>
+  <pre><code>github.com
+  ✓ Logged in to github.com account your-handle (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  <span class="dim">- Token scopes: 'gist', 'read:org', 'repo', 'workflow'</span></code></pre>
+  <p>Those four scopes are enough for everything through Week 4. A <strong>scope</strong> is a permission attached to your token; if a command needs one you do not have, <code>gh</code> fails with a message naming it. You can add scopes at any time without logging in again:</p>
+  <pre><code><span class="prompt">$</span> gh auth refresh -s read:project</code></pre>
+
+  <p>Two details from the <code>gh auth refresh</code> manual are worth knowing before you need them. The <code>--scopes</code> flag takes a comma-separated list and <em>adds</em> to what you have — "if no scopes are provided, the command maintains previously added scopes." And there is a floor: <strong>"the minimum set of scopes (<code>repo</code>, <code>read:org</code>, and <code>gist</code>) cannot be removed."</strong> If you ever over-grant, <code>--remove-scopes</code> takes scopes away and <code>--reset-scopes</code> returns you to the default set.</p>
+
+  <div class="callout note">
+    <span class="label">Check your own</span>
+    <p>Run <code>gh auth status</code> now and read the scopes line. If <code>repo</code> and <code>read:org</code> are missing, nothing else in this course will work. A1's checker reads this, so fix it today rather than on the due date.</p>
+  </div>
+
+  <div class="callout tip">
+    <span class="label">Scope versus permission</span>
+    <p>A <em>token scope</em> is what your token is allowed to <em>ask for</em>. A <em>repository permission</em> is what your account is allowed to <em>do</em>. A missing scope is yours to fix with <code>gh auth refresh</code>; a missing permission is an org owner's to grant. When <code>gh</code> refuses you, read the error to see which of the two it is naming.</p>
+  </div>
+
+  <p>With membership public and scopes confirmed, you are ready to <a href="create-your-instance.html">create your Instance</a>.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>The first two items of A1's backbone. The checker verifies item 1 directly.</p>
+    <label class="check"><input type="checkbox"><span>Accepted the organization invitation, and set my membership visibility to <strong>Public</strong>.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh auth status</code> and confirmed <code>repo</code> and <code>read:org</code> are in my token scopes.</span></label>
+    <label class="check"><input type="checkbox"><span>Can say, without looking, which of the three repositories I push to this course and which two I never push to.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Which repository do you push your own work to during this course?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>perro-ruidoso/gh-pr-mastery</code>, the course repository</button></li>
+        <li><button data-opt="b"><code>perro-ruidoso/flashcards-seed</code>, the template repository</button></li>
+        <li><button data-opt="c"><code>perro-ruidoso/flashcards-&lt;handle&gt;</code>, your Instance</button></li>
+        <li><button data-opt="d"><code>perro-ruidoso/flashcards-upstream</code>, the shared repository</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The Instance is the only one of the three that is yours. You read the course repo and analyse its history; you copy the template but never push to it. The upstream repo does become a push target — but not until Week 5, and even then as a shared repository with its own rules.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Your organization membership is set to Private. What breaks later?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">You cannot clone the course repositories</button></li>
+        <li><button data-opt="b">Your commits stop appearing in your contributions graph</button></li>
+        <li><button data-opt="c">Nothing — visibility is purely cosmetic</button></li>
+        <li><button data-opt="d">Tools that check whether the org grants you write access cannot see it, and may refuse to act on your comments</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Anthropic's documentation notes that when organization membership is private, GitHub does not identify you as a member, so Claude will not act on your request even though a team gives you write access. The fix is to make membership public, or be added to the repository as a direct collaborator.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. <code>gh</code> refuses a command and mentions a missing scope. What is the cheapest correct fix?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>gh auth refresh -s &lt;scope&gt;</code></button></li>
+        <li><button data-opt="b">Log out and run <code>gh auth login</code> from scratch</button></li>
+        <li><button data-opt="c">Create a personal access token by hand and export it</button></li>
+        <li><button data-opt="d">Ask an org owner to grant you admin</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> <code>gh auth refresh -s</code> adds scopes to the token you already have, without a full re-login. B works but is needless; C bypasses the credential store you already have; D confuses a <em>token scope</em> (what your token is permitted to ask for) with a <em>repository permission</em> (what your account is allowed to do) — they are different things, and only the first is yours to change.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">4. You run <code>gh auth refresh --remove-scopes repo</code>. What happens?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The <code>repo</code> scope is removed and private repositories become unreadable</button></li>
+        <li><button data-opt="b">Nothing is removed — <code>repo</code> is part of the minimum set that cannot be taken away</button></li>
+        <li><button data-opt="c">The token is deleted and you are logged out of GitHub entirely</button></li>
+        <li><button data-opt="d">All scopes are reset to the defaults for your login flow</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The manual is explicit: "the minimum set of scopes (<code>repo</code>, <code>read:org</code>, and <code>gist</code>) cannot be removed." D describes <code>--reset-scopes</code>, a different flag. This matters because the two scopes A1 depends on are exactly the ones you cannot lose by accident.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m01-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Name the three course repositories and say which one you push to.</div><div class="fc-back"><code>gh-pr-mastery</code> (course repo — read only), <code>flashcards-seed</code> (template — copy only), <code>flashcards-&lt;handle&gt;</code> (your Instance — the one you push to).</div></div>
+      <div class="fc"><div class="fc-front">What is an <strong>Instance</strong>, in this course's vocabulary?</div><div class="fc-back">One student's own copy of the Seed Repo, created from the template, named <code>flashcards-&lt;handle&gt;</code>, public, in the course org.</div></div>
+      <div class="fc"><div class="fc-front">Why must your org membership be <strong>public</strong>?</div><div class="fc-back">Private membership hides the org's write-access grant from tools such as the Claude GitHub App, which then refuses to act on your comments (Week 5).</div></div>
+      <div class="fc"><div class="fc-front">What is a <strong>token scope</strong>, and how is it different from a repository permission?</div><div class="fc-back">A scope is what your token may <em>ask for</em>; a permission is what your account may <em>do</em>. Scopes are yours to fix; permissions are an org owner's to grant.</div></div>
+      <div class="fc"><div class="fc-front">Command to add a scope to an existing <code>gh</code> login, without logging in again?</div><div class="fc-back"><code>gh auth refresh -s &lt;scope&gt;</code> — comma-separated for several; existing scopes are kept.</div></div>
+      <div class="fc"><div class="fc-front">Which three scopes can <code>gh auth refresh</code> never remove?</div><div class="fc-back"><code>repo</code>, <code>read:org</code>, and <code>gist</code> — the minimum set, per the <code>gh auth refresh</code> manual.</div></div>
+      <div class="fc"><div class="fc-front">Which line of <code>gh auth status</code> output do people skip, and why does A1 care?</div><div class="fc-back">The <em>Token scopes</em> line. A1's checker needs <code>repo</code> and <code>read:org</code> present; without them nothing else in the course works.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Anything on this page still fuzzy? Open Claude Code in a terminal, paste the sentence you do not follow, and ask it to explain using your own <code>gh auth status</code> output — then run the command it suggests and check the result yourself. Bring whatever is still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_auth_status">GitHub CLI manual: <code>gh auth status</code></a><span class="why">Every field in the status block, plus <code>--json</code> output you can script against.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_auth_refresh">GitHub CLI manual: <code>gh auth refresh</code></a><span class="why">The source for the minimum-scope rule and the <code>--remove-scopes</code> / <code>--reset-scopes</code> flags.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps">GitHub Docs: Scopes for OAuth apps</a><span class="why">What <code>repo</code>, <code>read:org</code>, <code>workflow</code>, and the rest actually permit. Read before you ask for a scope you do not understand.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/account-and-profile/how-tos/organization-membership/publicizing-or-hiding-organization-membership">GitHub Docs: Publicizing or hiding organization membership</a><span class="why">The two-click fix for Step 1, with the current UI.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/organizations/collaborating-with-groups-in-organizations/about-organizations">GitHub Docs: About organizations</a><span class="why">Roles, teams, and what an org owner can do that you cannot — context for Week 5's CODEOWNERS routing.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/github-actions">Anthropic: Claude Code GitHub Actions</a><span class="why">The write-access check that private membership breaks, straight from the vendor.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://cli.github.com/manual/gh_auth_refresh">GitHub CLI manual: <code>gh auth refresh</code></a> — scope addition, removal, reset, and the minimum set; fetched 2026-09-12</li>
+      <li><a href="https://cli.github.com/manual/gh_auth_status">GitHub CLI manual: <code>gh auth status</code></a> — fetched 2026-09-12</li>
+      <li><a href="https://code.claude.com/docs/en/code-review">Anthropic: Code Review</a> — private organization membership and write-access detection</li>
+      <li><a href="https://docs.github.com/en/account-and-profile/how-tos/organization-membership/publicizing-or-hiding-organization-membership">GitHub Docs: Publicizing or hiding organization membership</a></li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../index.html"><span class="dir">Up</span>Week 1 hub</a>
+    <a class="next" href="create-your-instance.html"><span class="dir">Next · M01, page 2</span>Create Your Instance</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create Your Instance — Week 1 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 1</a> · Objective M01 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Create Your Instance</h1>
+  <p class="lede">Template, not fork. One command creates the repository every later week will use — and the difference between the two mechanisms is the first real idea of the course.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M01 · Setup</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A1 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Join the course GitHub org, authenticate the <code>gh</code> CLI with the scopes the course needs, and instantiate a personal Instance from the <code>flashcards-seed</code> template.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M01 pages</span>
+    <a href="index.html"><span class="num">1</span>Your Instance and Your Toolchain</a>
+    <span class="here"><span class="num">2</span>Create Your Instance</span>
+  </nav>
+
+  <h2>Step 3 — Create your Instance from the template</h2>
+  <p><code>flashcards-seed</code> is a <strong>template repository</strong>, not an ordinary one. Creating from a template is not the same as forking, and the difference is worth understanding now because you will do both in this course — template today, fork in Week 6.</p>
+
+  <div class="compare">
+    <div class="side yes">
+      <h3>From a template</h3>
+      <p>Per GitHub's docs, a repository created from a template <strong>"starts with a single commit"</strong> — none of the template's history comes with it.</p>
+      <p>Your commits <strong>do</strong> appear in your contributions graph.</p>
+      <p>No ongoing relationship to the original. It is your repository.</p>
+    </div>
+    <div class="side no">
+      <h3>From a fork</h3>
+      <p>A fork <strong>"includes the entire commit history of the parent repository."</strong></p>
+      <p>Commits to a fork <strong>do not</strong> appear in your contributions graph.</p>
+      <p>Stays linked to the parent — which is what makes cross-repo pull requests possible (Week 6).</p>
+    </div>
+  </div>
+
+  <p>Template is right here: you want a clean history that is yours, because from Week 3 onward <em>your</em> history is the thing being read and graded. Create it from the terminal:</p>
+
+  <pre><code><span class="prompt">$</span> gh repo create perro-ruidoso/flashcards-<span class="dim">&lt;your-handle&gt;</span> \
+    --template perro-ruidoso/flashcards-seed \
+    --public \
+    --clone</code></pre>
+
+  <p>Three flags, three jobs. <code>--template</code> makes "the new repository based on a template repository"; <code>--public</code> sets visibility (the alternatives are <code>--private</code> and <code>--internal</code>); and <code>--clone</code> drops a local copy in the current directory, so you can go straight in:</p>
+
+  <pre><code><span class="prompt">$</span> cd flashcards-<span class="dim">&lt;your-handle&gt;</span>
+<span class="prompt">$</span> git log --oneline
+<span class="dim">a1b2c3d (HEAD -> main, origin/main) Initial commit</span></code></pre>
+
+  <p>One commit. That is the template behaviour, confirmed from your own terminal rather than taken on faith.</p>
+
+  <div class="callout warn">
+    <span class="label">Yes, <code>--public</code> is required</span>
+    <p>Not a typo and not laziness. <strong>Merge queue</strong> — which Week 5 depends on — is available in any public repository owned by an organization, but for a private repository it requires GitHub Enterprise Cloud. A private Instance would put that objective out of reach. Public repositories also get unlimited free Actions minutes, so the CI you configure in Week 5 costs nothing to run over and over. Keep nothing personal in this repo. The full reasoning is in <a href="../../../adr/0003-public-repos.md"><code>adr/0003</code></a>.</p>
+  </div>
+
+  <div class="callout note">
+    <span class="label">What a template does <em>not</em> copy</span>
+    <p>GitHub's page says a template copies "the same directory structure and files." It says nothing about labels, and the course verified by experiment that labels are <strong>not</strong> copied: every new repository — template-derived or not — arrives with GitHub's current default label set (<code>bug</code>, <code>documentation</code>, <code>wontfix</code>, and seven more). Remember this when <a href="../m05-configuring-the-skills/labels-and-domain-docs.html">M05</a> asks you to create labels: one of the five you need is already there.</p>
+  </div>
+
+  <h2>Step 4 — Confirm the app runs</h2>
+  <p>The Instance is a small Python CLI. Set it up and run its tests once, so that when CI fails in Week 5 you know it is CI's fault and not your machine's:</p>
+
+  <pre><code><span class="prompt">$</span> python -m venv .venv
+<span class="prompt">$</span> source .venv/bin/activate      <span class="dim"># Windows: .venv\Scripts\activate</span>
+<span class="prompt">$</span> pip install -e ".[dev]"
+<span class="prompt">$</span> pytest -q</code></pre>
+
+  <p>Then open Claude Code in the repository — <code>claude</code> — and ask it to describe the project. It will read the <code>CLAUDE.md</code> and <code>CONTEXT.md</code> that ship with the template. Those files are why an agent can be useful here on its first turn instead of its tenth.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>The rest of A1's backbone. The checker verifies items 1 and 2 (repository shape); items 3 and 4 are for you.</p>
+    <label class="check"><input type="checkbox"><span>Created my Instance with <code>gh repo create --template</code>, named <code>flashcards-&lt;my-handle&gt;</code>, <strong>public</strong>, in the course org.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed with <code>git log --oneline</code> that it starts from a single commit.</span></label>
+    <label class="check"><input type="checkbox"><span>Installed dependencies and got a green <code>pytest -q</code> locally.</span></label>
+    <label class="check"><input type="checkbox"><span>Opened Claude Code in the repo and had it summarise the project from <code>CLAUDE.md</code>.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. You create a repository from a template and run <code>git log</code>. How much history do you expect?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The template's full history, plus your commits on top</button></li>
+        <li><button data-opt="b">The template's history, but squashed into one commit per branch</button></li>
+        <li><button data-opt="c">A single initial commit — none of the template's history</button></li>
+        <li><button data-opt="d">No commits at all until you make the first one</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> GitHub's documentation is explicit: a repository created from a template "starts with a single commit," whereas a fork "includes the entire commit history of the parent repository." That is the central difference between the two, along with the contributions graph.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Why does this course insist your Instance be <strong>public</strong>?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">So other students can copy your solutions</button></li>
+        <li><button data-opt="b">Because merge queue is unavailable on a private repository outside GitHub Enterprise Cloud, and Week 5 requires one</button></li>
+        <li><button data-opt="c">Because the <code>gh</code> CLI cannot read private repositories</button></li>
+        <li><button data-opt="d">Because GitHub Actions does not run on private repositories</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Merge queue is available in any public repository owned by an organization, but for a private repository it requires GitHub Enterprise Cloud — so M29 would be unreachable on a private Instance. Public repositories also run Actions for free. (C is false — <code>gh</code> reads private repos fine; D is false — Actions runs on private repos, it just consumes metered minutes.)</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">3. When would a <strong>fork</strong> be the right choice instead of a template copy?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">When you want a clean history that starts with your own first commit</button></li>
+        <li><button data-opt="b">When you intend to send changes back to the original as a cross-repository pull request</button></li>
+        <li><button data-opt="c">When you want your commits to appear in your contributions graph</button></li>
+        <li><button data-opt="d">When you want GitHub Actions to run without consuming metered minutes</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> A fork stays linked to its parent, and that link is what a cross-repository pull request rides on — which is exactly what Week 6's fork drill needs. A and C are properties of the <em>template</em> path, and D depends on visibility, not on how the repository was created.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">4. Immediately after creating your Instance, <code>gh label list</code> shows ten labels you never made. Where did they come from?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">They were copied from the template repository along with its files</button></li>
+        <li><button data-opt="b">The course organization pushes a label set to every repository it owns</button></li>
+        <li><button data-opt="c">The <code>--clone</code> flag imports labels alongside the working copy</button></li>
+        <li><button data-opt="d">GitHub gives every new repository its default label set, regardless of how it was created</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Verified by experiment when the template was built: a label deleted from the template still appeared on a fresh Instance, so the set comes from GitHub's defaults, not from the template. (There is no org-wide label push on this org, and <code>--clone</code> only affects your local copy.) They also take a few seconds to appear — an immediate <code>gh label list</code> can come back empty.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w1-m01-create">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">How much history does a repository created <strong>from a template</strong> start with?</div><div class="fc-back">A single commit. None of the template's history comes across — GitHub Docs: "starts with a single commit."</div></div>
+      <div class="fc"><div class="fc-front">How much history does a <strong>fork</strong> start with?</div><div class="fc-back">All of it — a fork "includes the entire commit history of the parent repository."</div></div>
+      <div class="fc"><div class="fc-front">Template copy vs fork: which one puts your commits in your <strong>contributions graph</strong>?</div><div class="fc-back">The template copy. Commits to a fork do not appear in your contributions graph.</div></div>
+      <div class="fc"><div class="fc-front">Write the command that creates your Instance.</div><div class="fc-back"><code>gh repo create perro-ruidoso/flashcards-&lt;handle&gt; --template perro-ruidoso/flashcards-seed --public --clone</code></div></div>
+      <div class="fc"><div class="fc-front">Why must the Instance be <strong>public</strong>? Name the one gate that forces it.</div><div class="fc-back">Merge queue (Week 5, M29): available in any public repo owned by an org, but private repos need GitHub Enterprise Cloud. Free Actions minutes are the bonus.</div></div>
+      <div class="fc"><div class="fc-front">Does a template copy the template's <strong>labels</strong>?</div><div class="fc-back">No. Every new repository gets GitHub's default label set (including <code>wontfix</code>) whether or not it came from a template — verified by experiment on 2026-09-12.</div></div>
+      <div class="fc"><div class="fc-front">Which mechanism — template or fork — do you use in Week 1, and which in Week 6?</div><div class="fc-back">Template in Week 1 (your Instance). Fork in Week 6 (contributing to the Upstream Repo from outside).</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>If the template-versus-fork distinction is not yet solid, open Claude Code in your new Instance and ask: "Run <code>gh repo view --json isTemplate,isFork,templateRepository,parent</code> here and explain each field." Reading the answer against your own repository will fix it faster than re-reading this page. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template">GitHub Docs: Creating a repository from a template</a><span class="why">The primary source for this page — read the "About repository templates" section, which is where the fork comparison lives.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository">GitHub Docs: Creating a template repository</a><span class="why">The other side: how the instructor marked <code>flashcards-seed</code> as a template, and what the flag changes.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_repo_create">GitHub CLI manual: <code>gh repo create</code></a><span class="why">All the flags, including <code>--template</code>, the three visibility flags, and <code>--clone</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/forks">GitHub Docs: Forks</a><span class="why">What a fork is for. You will read this again in Week 6; skimming it now makes the compare box above concrete.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue">GitHub Docs: Managing a merge queue</a><span class="why">The availability statement behind <code>--public</code>, in GitHub's own words.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed">perro-ruidoso/flashcards-seed</a><span class="why">The template itself. Its <code>README</code>, <code>CLAUDE.md</code>, and 15-issue backlog are what you are about to inherit.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template">GitHub Docs: Creating a repository from a template</a> — template versus fork, commit history, contributions graph; re-fetched 2026-09-12 and the quotations confirmed present</li>
+      <li><a href="https://cli.github.com/manual/gh_repo_create">GitHub CLI manual: <code>gh repo create</code></a> — <code>--template</code>, <code>--public</code>, <code>--clone</code>; fetched 2026-09-12</li>
+      <li><a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue">GitHub Docs: Managing a merge queue</a> — public-repository availability</li>
+      <li>The label experiment is recorded in the course's <code>NOTES.md</code> under "Template instantiation: what it copies — verified 2026-09-12."</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M01, page 1</span>Your Instance and Your Toolchain</a>
+    <a class="next" href="../m02-what-a-pull-request-is/index.html"><span class="dir">Next · M02</span>Two Refs and a Conversation</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>
