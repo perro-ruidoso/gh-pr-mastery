@@ -85,10 +85,10 @@
     <div class="q" data-answer="b">
       <p class="q-text">1. The published spec says cards will be persisted in SQLite. You never discussed storage. What is the right response?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Accept it — the skill explored the repo and presumably has a reason</button></li>
+        <li><button data-opt="a">Accept it — the skill explored the repository and presumably has a reason, and the storage layer is its call rather than yours</button></li>
         <li><button data-opt="b">Treat it as an invented decision: correct it to the JSON deck file, or mark it open under Further Notes</button></li>
-        <li><button data-opt="c">Re-run <span class="skill">/to-spec</span> so it publishes a corrected specification</button></li>
-        <li><button data-opt="d">Leave the spec alone and fix the storage choice in each ticket instead</button></li>
+        <li><button data-opt="c">Re-run <span class="skill">/to-spec</span> so it publishes a corrected specification, since the skill is deterministic and will fix itself</button></li>
+        <li><button data-opt="d">Leave the spec alone and fix the storage choice in each ticket instead, where it actually matters</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> An Implementation Decision with no source in the conversation is a hallucination, and the Seed Repo's existing <code>json_store</code> makes this one contradict the codebase too. Re-running publishes a second spec (C), and fixing it per ticket (D) means fixing it up to ten times.</p>
@@ -98,9 +98,9 @@
     <div class="q" data-answer="d">
       <p class="q-text">2. Why read the spec back with <code>gh issue view</code> rather than in the chat that produced it?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because the chat truncates long outputs and the spec is usually long</button></li>
+        <li><button data-opt="a">Because the chat truncates long outputs and the spec is usually long, so the chat only ever shows the first few sections</button></li>
         <li><button data-opt="b">Because the label and type are only visible through the API</button></li>
-        <li><button data-opt="c">Because the checker requires you to paste <code>gh</code> output into the write-up</button></li>
+        <li><button data-opt="c">Because the checker requires you to paste <code>gh</code> output into the write-up as evidence that you audited the spec</button></li>
         <li><button data-opt="d">Because the chat shows what the agent intended to publish; the issue shows what it did</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -112,9 +112,9 @@
       <p class="q-text">3. The proposed seam is "unit-test the scheduler function." Why might you push back?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">A higher existing seam is available — the CLI command with scripted stdin — and the skill's own rule prefers the highest seam possible</button></li>
-        <li><button data-opt="b">Scheduler functions are pure and therefore cannot be tested without a clock</button></li>
-        <li><button data-opt="c">The Seed Repo's ADR forbids testing the domain layer directly</button></li>
-        <li><button data-opt="d">Unit tests are out of scope for this course, which grades only integration tests</button></li>
+        <li><button data-opt="b">Scheduler functions are pure and therefore cannot be tested without a clock, so the seam is unreachable until <code>docs/adr/0001</code> is revised to allow a real clock</button></li>
+        <li><button data-opt="c">The Seed Repo's ADR forbids testing the domain layer directly, so every test must go through the CLI whether or not it is the highest seam</button></li>
+        <li><button data-opt="d">Unit tests are out of scope for this course, which grades only integration tests, so a unit-test seam cannot earn credit</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> "Use the highest seam possible … existing seams should be preferred to new ones." A pure function is easy to test (B is backwards), the ADR says nothing of the sort (C), and the course has no such rule (D). The push-back is about leverage, not correctness: a seam at the command exercises every layer the tracer bullet touches.</p>

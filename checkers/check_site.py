@@ -28,8 +28,9 @@ SRC = re.compile(r'src="([^"]+)"')
 QUESTION = re.compile(r'<div class="q" data-answer="([a-z])">(.*?)</div>\s*</div>', re.S)
 OPTION = re.compile(r'data-opt="([a-z])"')
 CARD = re.compile(r'<div class="fc">(.*?)</div>\s*</div>', re.S)
-CARD_FRONT = re.compile(r'<div class="fc-front">\s*\S')
-CARD_BACK = re.compile(r'<div class="fc-back">\s*\S')
+# A face is present if something other than its own closing tag follows the opening tag.
+CARD_FRONT = re.compile(r'<div class="fc-front">(?!\s*</div>)\s*\S')
+CARD_BACK = re.compile(r'<div class="fc-back">(?!\s*</div>)\s*\S')
 DECK_ID = re.compile(r'data-deck="([^"]+)"')
 BLOOM = re.compile(r'Bloom:\s*(Understand|Apply|Analyze|Evaluate|Create)')
 

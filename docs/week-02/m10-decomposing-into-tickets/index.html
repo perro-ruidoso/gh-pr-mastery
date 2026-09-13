@@ -93,10 +93,10 @@
     <div class="q" data-answer="b">
       <p class="q-text">1. Which decomposition of "add a review loop" is vertical in the skill's sense?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">(1) domain scheduler, (2) storage of review state, (3) the <code>review</code> command — one ticket per layer</button></li>
+        <li><button data-opt="a">(1) domain scheduler, (2) storage of review state, (3) the <code>review</code> command — one ticket per layer, each merged before the next begins</button></li>
         <li><button data-opt="b">(1) review state on <code>Card</code> with a test, (2) persist it, (3) schedule it, (4) the command that uses all three — each demoable when done</button></li>
-        <li><button data-opt="c">(1) write all tests, (2) write all code, (3) write the documentation — one ticket per activity</button></li>
-        <li><button data-opt="d">(1) the review loop, complete — one ticket, since it is a single feature</button></li>
+        <li><button data-opt="c">(1) write all tests, (2) write all code, (3) write the documentation — one ticket per activity, so that every ticket has a single kind of work and a single reviewer can own it</button></li>
+        <li><button data-opt="d">(1) the review loop, complete — one ticket, since it is a single feature and splitting a feature only creates dependencies</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> That is the Seed backlog's T01–T04: each lands green with its own test and extends the running program. A is the horizontal cut the three-layer layout was designed to make "feel wrong"; C slices by activity, which is also horizontal; D fails "sized to fit in a single fresh context window."</p>
@@ -120,9 +120,9 @@
       <p class="q-text">3. Why does the skill publish tickets "in dependency order (blockers first)"?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">So each ticket's Blocked-by can reference the real issue numbers of tickets that already exist</button></li>
-        <li><button data-opt="b">So the issue numbers reflect the order in which the work should be done</button></li>
-        <li><button data-opt="c">Because GitHub rejects a dependency on an issue with a higher number</button></li>
-        <li><button data-opt="d">So that the parent issue is closed automatically when the last ticket lands</button></li>
+        <li><button data-opt="b">So the issue numbers reflect the order in which the work should be done, letting an agent pick the lowest open number without reading the graph</button></li>
+        <li><button data-opt="c">Because GitHub rejects a dependency on an issue with a higher number than the one being edited</button></li>
+        <li><button data-opt="d">So that the parent issue is closed automatically when the last ticket lands, which only works if the tickets were filed in order</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> The skill's own reason: "so each ticket's blocking edges can reference real identifiers." Numbers are not an ordering (B) — page 2 shows why reading them as one misleads — GitHub accepts any edge (C), and the skill explicitly does not touch the parent (D).</p>
@@ -132,10 +132,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">4. Your decomposition of the review loop has fourteen tickets. What is the most likely diagnosis?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The spec was too detailed, and should be rewritten with fewer user stories</button></li>
+        <li><button data-opt="a">The spec was too detailed, and should be rewritten with fewer user stories before the decomposition is attempted again</button></li>
         <li><button data-opt="b">The skill malfunctioned and should be re-run in a fresh session</button></li>
         <li><button data-opt="c">Horizontal slicing or one-criterion tickets crept in; merge at the quiz step</button></li>
-        <li><button data-opt="d">Nothing — more tickets always means more parallelism for agents</button></li>
+        <li><button data-opt="d">Nothing — more tickets always means more parallelism for agents, and fourteen small tickets finish sooner than six</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The whole Seed application is fifteen tickets; its review loop is six. Fourteen for the loop alone means slices that are not vertical or not complete. The quiz step exists for exactly this ("Should any tickets be merged or split further?"). More tickets do not mean more parallelism (D) if they form chains.</p>

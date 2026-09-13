@@ -140,10 +140,10 @@ Feature	A request, idea, or new functionality</code></pre>
     <div class="q" data-answer="c">
       <p class="q-text">1. What is the structural difference between a label and an issue type?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Labels are searchable and issue types are not, so types are for display only</button></li>
-        <li><button data-opt="b">Labels are defined at the organization and types per repository, so labels are shared</button></li>
+        <li><button data-opt="a">Labels are searchable and issue types are not, so types are for display only and never appear in a <code>--search</code> query</button></li>
+        <li><button data-opt="b">Labels are defined at the organization and types per repository</button></li>
         <li><button data-opt="c">An issue can carry any number of labels but at most one type, and types are defined at the org</button></li>
-        <li><button data-opt="d">Types can be applied by anyone with read access while labels need write access</button></li>
+        <li><button data-opt="d">Types can be applied by anyone with read access while labels need write access, so types are the safer default</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> Types are single-valued, org-level classifications ("across your organization", up to 25); labels are per-repository, multi-valued, and unlimited. Both are searchable (A is false), the org/repo split is the other way round (B), and applying either needs triage access, not read (D).</p>
@@ -154,9 +154,9 @@ Feature	A request, idea, or new functionality</code></pre>
       <p class="q-text">2. <code>gh issue create --label ready-for-agent …</code> fails with "could not add label: 'ready-for-agent' not found". What happened?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The label does not exist in this repository yet; nothing was created, and <code>gh label create</code> fixes it</button></li>
-        <li><button data-opt="b">The issue was created without the label, and a follow-up <code>gh issue edit</code> is needed</button></li>
-        <li><button data-opt="c">The token lacks the scope required to apply labels, so <code>gh auth refresh</code> is needed</button></li>
-        <li><button data-opt="d">Labels cannot be applied at creation time; they must be added after the issue exists</button></li>
+        <li><button data-opt="b">The issue was created without the label, and a follow-up <code>gh issue edit --add-label</code> is needed to attach it</button></li>
+        <li><button data-opt="c">The token lacks the scope required to apply labels, so <code>gh auth refresh -s repo</code> is needed before retrying</button></li>
+        <li><button data-opt="d">Labels cannot be applied at creation time; they must be added afterwards</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> Labels are per-repository, and a fresh Instance has only GitHub's ten defaults. <code>gh</code> resolves labels first and aborts, so no issue is left behind (B is false). Scope (C) and timing (D) are not involved — <code>--label</code> at creation works fine once the label exists.</p>
@@ -179,10 +179,10 @@ Feature	A request, idea, or new functionality</code></pre>
     <div class="q" data-answer="b">
       <p class="q-text">4. Why does the <code>layer:</code> prefix earn its place in the label names?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">GitHub requires a prefix on any label that is not one of its ten defaults</button></li>
+        <li><button data-opt="a">GitHub requires a prefix on any label that is not one of its defaults</button></li>
         <li><button data-opt="b">It makes the axis visible in a plain label list and groups the family when sorted</button></li>
-        <li><button data-opt="c">The engineering skills only recognise labels with a colon in the name</button></li>
-        <li><button data-opt="d">It prevents the label from being applied to pull requests, only to issues</button></li>
+        <li><button data-opt="c">The engineering skills only recognise labels with a colon in the name, so <code>layer:</code> is what makes them visible to <code>/triage</code></button></li>
+        <li><button data-opt="d">It prevents the label from being applied to pull requests, only to issues, which is what the checker relies on</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> Labels are free-form text; the prefix is a convention, not a mechanism. It tells a reader (human or agent) that <code>layer:cli</code> and <code>layer:domain</code> are alternatives on one axis, the way <code>priority-3</code> did in the <code>cli/cli</code> exhibit. GitHub imposes nothing (A), the skills read the label strings you map in <code>triage-labels.md</code> (C), and labels apply to PRs regardless of name (D).</p>

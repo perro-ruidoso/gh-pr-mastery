@@ -37,7 +37,7 @@
   <p><code>gh</code> has <a href="https://jqlang.org/">jq</a> built in via <code>-q</code>/<code>--jq</code>, so you can reshape output without installing anything. It only applies when <code>--json</code> is present, because it filters the JSON <code>gh</code> is about to print:</p>
 
   <span class="code-label">$ gh issue list -R cli/cli --limit 3 --json number,title,labels --jq '.[] | {number, title, labels: [.labels[].name]}'</span>
-  <pre><code>{"labels":["needs-triage"],"number":14432,"title":"docs: improve README wording for quick start"}
+  <pre><code>{"labels":["more-info-needed","needs-triage"],"number":14432,"title":"docs: improve README wording for quick start"}
 {"labels":["more-info-needed","needs-triage"],"number":14420,"title":"gh 2.100.0 fails HTTPS requests with an instant connection reset"}
 {"labels":["enhancement"],"number":14413,"title":"Feature request: allow selecting fields for human-readable list output"}</code></pre>
 
@@ -46,14 +46,14 @@
   <p>Extracting a single value is the building block of every script you will write here:</p>
 
   <span class="code-label">$ gh pr list -R cli/cli --limit 1 --json number --jq '.[0].number'</span>
-  <pre><code>14398</code></pre>
+  <pre><code>14373</code></pre>
 
   <p>A bare scalar, no quotes, no braces — exactly what a shell variable or a checker wants.</p>
 
   <h2>Diffing: what actually changed</h2>
 
-  <span class="code-label">$ gh pr diff 14398 -R cli/cli --name-only</span>
-  <pre><code>pkg/cmd/issue/view/view.go</code></pre>
+  <span class="code-label">$ gh pr diff 14373 -R cli/cli --name-only</span>
+  <pre><code>docs/install_linux.md</code></pre>
 
   <p>Drop <code>--name-only</code> for the patch itself, or pass <code>--patch</code> to get it in patch format you can apply. <code>gh pr diff</code> shows the pull request's diff — which, per <a href="../m03-the-merge-base/index.html">M03</a>, is the three-dot comparison against the merge base, not a tip-to-tip diff. The CLI and the website agree because they are asking the same question of the same pull request.</p>
 
@@ -98,8 +98,8 @@
     <div class="q" data-answer="d">
       <p class="q-text">1. <code>gh pr diff</code> shows a pull request's changes. Which comparison is it showing?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">A two-dot diff from the tip of the base branch</button></li>
-        <li><button data-opt="b">The diff of the most recent commit only</button></li>
+        <li><button data-opt="a">A two-dot diff from the tip of the base branch, which is why it can include changes made on the base after the PR opened</button></li>
+        <li><button data-opt="b">The diff of the most recent commit only, since <code>gh</code> has no way to know where the branch started</button></li>
         <li><button data-opt="c">A diff against the repository's default branch, whatever the PR's base is</button></li>
         <li><button data-opt="d">The same three-dot comparison the PR shows on the web, measured from the merge base</button></li>
       </ol>
@@ -111,10 +111,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">2. Why does this course build its assignment checkers out of <code>--json</code> output rather than screenshots or self-reports?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Screenshots are too large to submit</button></li>
-        <li><button data-opt="b">The web UI does not show branch names</button></li>
+        <li><button data-opt="a">Screenshots are too large to submit through <code>gh</code></button></li>
+        <li><button data-opt="b">The web UI does not show branch names, so a screenshot could never prove the branch was named correctly</button></li>
         <li><button data-opt="c">Repository state is verifiable evidence, and <code>--json</code> makes it machine-checkable</button></li>
-        <li><button data-opt="d">Because agents cannot read images</button></li>
+        <li><button data-opt="d">Because agents cannot read images, and the checkers are run by an agent</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The artifacts you produce — branch names, linked issues, passing checks, a closed issue after merge — are the evidence that the workflow happened. <code>--json</code> turns that evidence into something a script can assert on, which is why most of A1 is graded automatically and only the written analysis needs a human.</p>
@@ -122,12 +122,12 @@
     </div>
 
     <div class="q" data-answer="b">
-      <p class="q-text">3. <code>gh pr list -R cli/cli --limit 1 --json number --jq '.[0].number'</code> prints <code>14398</code>. What did each part do?</p>
+      <p class="q-text">3. <code>gh pr list -R cli/cli --limit 1 --json number --jq '.[0].number'</code> prints <code>14373</code>. What did each part do?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a"><code>--json</code> picked the first PR; <code>--jq</code> converted the object to a number</button></li>
         <li><button data-opt="b"><code>--json</code> produced an array of one object; <code>--jq</code> took element zero and read its <code>number</code> field</button></li>
-        <li><button data-opt="c"><code>--limit 1</code> returned the newest PR's number directly; <code>--jq</code> was ignored</button></li>
-        <li><button data-opt="d"><code>--jq</code> queried GitHub for PR number 0 and returned its identifier</button></li>
+        <li><button data-opt="c"><code>--limit 1</code> returned the newest PR's number directly as a bare scalar; <code>--jq</code> was ignored because there was nothing to filter</button></li>
+        <li><button data-opt="d"><code>--jq</code> queried GitHub for PR number 0 and returned its identifier, which <code>--limit 1</code> then trimmed to one line</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> <code>list</code> with <code>--json</code> always returns an array, even for one item; <code>.[0]</code> indexes it and <code>.number</code> reads the field, leaving a bare scalar. <code>--jq</code> never talks to GitHub — it reshapes the JSON <code>gh</code> already fetched.</p>
@@ -138,8 +138,8 @@
       <p class="q-text">4. You want an agent to reason about PR #42 accurately. Which input gives it the most to work with?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The output of a <code>gh pr view 42 --json …</code> command with the fields that matter, or the command itself</button></li>
-        <li><button data-opt="b">A screenshot of the pull request page, so it can see the layout</button></li>
-        <li><button data-opt="c">The pull request URL, so it can browse to it and decide what to read</button></li>
+        <li><button data-opt="b">A screenshot of the pull request page, so it can see the layout, the coloured check marks, and the review threads in context</button></li>
+        <li><button data-opt="c">The pull request URL, so it can browse to it, decide what to read, and follow <code>href</code> links to the issue and the checks</button></li>
         <li><button data-opt="d">A one-line description of the PR in your own words</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -196,7 +196,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

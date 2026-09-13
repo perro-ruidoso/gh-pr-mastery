@@ -37,7 +37,7 @@
   <div class="compare">
     <div class="side yes">
       <h3>Sub-issues — a hierarchy</h3>
-      <p>"You can add sub-issues to an issue to break down larger pieces of work into tasks." "Sub-issues add support for <strong>hierarchies</strong> of issues on GitHub by creating relationships between your issues."</p>
+      <p>"You can add sub-issues to an issue to break down larger pieces of work into tasks." "Your sub-issues can themselves contain sub-issues, allowing you to create full <strong>hierarchies</strong> of issues that visualize entire projects or pieces of work and show the relationships between your issues."</p>
       <p>Limits: "up to 100 sub-issues per parent issue and … up to eight levels of nested sub-issues." An issue has <strong>at most one parent</strong>.</p>
       <p>Good for: <em>decomposition</em>. The spec is the parent; its tickets are the children.</p>
     </div>
@@ -130,10 +130,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">1. Ticket #5 is blocked by #3 and #4. Why can sub-issues not record this?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because sub-issues are limited to eight levels and this graph is deeper</button></li>
+        <li><button data-opt="a">Because sub-issues are limited to eight levels and this graph is deeper than that once every join is counted as a level</button></li>
         <li><button data-opt="b">Because sub-issues can only relate issues of the same issue type</button></li>
         <li><button data-opt="c">Because an issue has at most one parent, so a second parent replaces the first rather than joining it</button></li>
-        <li><button data-opt="d">Because sub-issues require the parent to be closed before the child can be opened</button></li>
+        <li><button data-opt="d">Because sub-issues require the parent to be closed before the child can be opened, and neither blocker is closed</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The experiment showed it: <code>--add-sub-issue</code> from a second parent moved the relation, and the REST API said "Sub issue may only have one parent." Depth (A), types (B), and state (D) are not the constraint; cardinality is.</p>
@@ -144,8 +144,8 @@
       <p class="q-text">2. Which pair of flags does the course convention use on every ticket, and for what?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a"><code>--parent</code> for the spec it decomposes, and <code>--blocked-by</code> for the tickets that must land first</button></li>
-        <li><button data-opt="b"><code>--blocked-by</code> for the spec it decomposes, and <code>--parent</code> for the ticket that must land first</button></li>
-        <li><button data-opt="c"><code>--add-sub-issue</code> for each blocker, and <code>--type</code> to mark it as a dependency</button></li>
+        <li><button data-opt="b"><code>--blocked-by</code> for the spec it decomposes, and <code>--parent</code> for the one ticket that must land first</button></li>
+        <li><button data-opt="c"><code>--add-sub-issue</code> for each blocker, and <code>--type</code> to mark the ticket as a dependency rather than a task</button></li>
         <li><button data-opt="d"><code>--parent</code> only; the Blocked-by section of the body records the sequencing</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -157,8 +157,8 @@
       <p class="q-text">3. <code>gh issue edit 4 --add-sub-issue 5</code> printed a URL and exited 0, yet #5 did not gain a second parent. What is the lesson?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The <code>gh</code> CLI has a bug that should be reported upstream</button></li>
-        <li><button data-opt="b">Sub-issue edits take a few seconds to propagate and should be re-checked later</button></li>
-        <li><button data-opt="c">The parent field is read-only once set, so the second command was a no-op</button></li>
+        <li><button data-opt="b">Sub-issue edits take a few seconds to propagate and should be re-checked later, after GitHub's search index catches up</button></li>
+        <li><button data-opt="c">The parent field is read-only once set, so the second command was a no-op and the URL it printed was the unchanged issue</button></li>
         <li><button data-opt="d">A successful command is not proof the model changed the way you meant; read the state back and check</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -169,9 +169,9 @@
     <div class="q" data-answer="b">
       <p class="q-text">4. "#3 is blocking #5" and "#5 is blocked by #3" — how many facts is that?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Two, stored separately, which must be kept in sync with two commands</button></li>
+        <li><button data-opt="a">Two, stored separately, which must be kept in sync with two commands — <code>--add-blocking</code> on #3 and <code>--add-blocked-by</code> on #5</button></li>
         <li><button data-opt="b">One edge seen from either end; recording it once with either flag records both</button></li>
-        <li><button data-opt="c">Two, because the blocking side is only visible through the REST API</button></li>
+        <li><button data-opt="c">Two, because the blocking side is only visible through the REST API and the blocked side only through <code>--json</code></button></li>
         <li><button data-opt="d">One, but only <code>--add-blocking</code> can create it; <code>--blocked-by</code> is a query</button></li>
       </ol>
       <div class="q-why" hidden>

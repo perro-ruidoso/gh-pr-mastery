@@ -91,10 +91,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">1. Why do the engineering skills need an <code>issue-tracker.md</code> at all?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">To store your GitHub credentials</button></li>
-        <li><button data-opt="b">To cache issue contents so skills run offline</button></li>
+        <li><button data-opt="a">To store your GitHub credentials in a place the skills can read, so <code>gh issue create</code> can authenticate without prompting</button></li>
+        <li><button data-opt="b">To cache issue contents so skills run offline, which is why the file must be regenerated whenever the tracker changes</button></li>
         <li><button data-opt="c">Because "file this ticket" has no single meaning — the file tells skills whether that means <code>gh issue create</code>, a markdown file, or something else</button></li>
-        <li><button data-opt="d">Because GitHub's API requires a manifest file in the repo</button></li>
+        <li><button data-opt="d">Because GitHub's API requires a manifest file in the repository before an automated client may create issues, and <code>issue-tracker.md</code> is that manifest</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The skills are tracker-agnostic by design; the config file is what binds an abstract instruction ("publish to the issue tracker") to concrete commands in your repository. Credentials live in your <code>gh</code> token, not in the repo.</p>
@@ -104,10 +104,10 @@
     <div class="q" data-answer="b">
       <p class="q-text">2. You answer "no" to PRs as a request surface in your Instance. When would "yes" be right?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">When you want <span class="skill">/code-review</span> to run automatically</button></li>
+        <li><button data-opt="a">When you want <span class="skill">/code-review</span> to run automatically on every pull request that is opened, including your own</button></li>
         <li><button data-opt="b">On a repo where outsiders send feature requests as pull requests, so <span class="skill">/triage</span> should process them with the same labels and states as issues</button></li>
-        <li><button data-opt="c">Whenever the repository is public</button></li>
-        <li><button data-opt="d">When you have more than one collaborator</button></li>
+        <li><button data-opt="c">Whenever the repository is public, because a public repository can receive pull requests from anyone and every one of them is a request that <span class="skill">/triage</span> must see</button></li>
+        <li><button data-opt="d">When you have more than one collaborator, so that their pull requests are triaged the same way yours are</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> The flag exists for repos where a PR is effectively an issue with code attached — the open-source case. It filters on <code>authorAssociation</code> so that collaborators' own in-flight PRs are left alone. You will turn it on for the shared upstream repo in Week 6, and it has nothing to do with visibility or collaborator count.</p>
@@ -118,8 +118,8 @@
       <p class="q-text">3. Your Instance has a <code>CLAUDE.md</code> and no <code>AGENTS.md</code>. Where does the skill put its <code>## Agent skills</code> block?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">In the existing <code>CLAUDE.md</code>, updating any existing block in place rather than appending a duplicate</button></li>
-        <li><button data-opt="b">In a new <code>AGENTS.md</code>, because that is the cross-tool standard it prefers</button></li>
-        <li><button data-opt="c">In both files, so that any agent will find it regardless of which one it reads</button></li>
+        <li><button data-opt="b">In a new <code>AGENTS.md</code>, because that is the cross-tool standard it prefers, leaving a pointer to it in <code>CLAUDE.md</code></button></li>
+        <li><button data-opt="c">In both files, so that any agent will find it regardless of which one it reads, keeping the two copies identical</button></li>
         <li><button data-opt="d">In <code>docs/agents/README.md</code>, leaving <code>CLAUDE.md</code> untouched</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -130,9 +130,9 @@
     <div class="q" data-answer="d">
       <p class="q-text">4. Which <code>authorAssociation</code> values does the PRs-as-request-surface filter <em>keep</em>?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a"><code>OWNER</code>, <code>MEMBER</code>, and <code>COLLABORATOR</code> — the people with write access</button></li>
-        <li><button data-opt="b">Every association; the filter only removes bots</button></li>
-        <li><button data-opt="c">Only <code>FIRST_TIME_CONTRIBUTOR</code>, so first PRs get extra attention</button></li>
+        <li><button data-opt="a"><code>OWNER</code>, <code>MEMBER</code>, and <code>COLLABORATOR</code> — the people with write access, whose PRs are the ones worth triaging</button></li>
+        <li><button data-opt="b">Every association; the filter only removes bots such as <code>dependabot</code></button></li>
+        <li><button data-opt="c">Only <code>FIRST_TIME_CONTRIBUTOR</code>, so that first PRs get extra attention</button></li>
         <li><button data-opt="d"><code>CONTRIBUTOR</code>, <code>FIRST_TIME_CONTRIBUTOR</code>, and <code>NONE</code> — outsiders, not maintainers</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -187,7 +187,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

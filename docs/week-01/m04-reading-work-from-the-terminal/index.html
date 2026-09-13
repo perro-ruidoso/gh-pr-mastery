@@ -49,11 +49,11 @@
   <h2>Listing: what is in flight?</h2>
 
   <span class="code-label">$ gh pr list -R cli/cli --limit 3</span>
-  <pre><code>14398  Check for merged state when viewing a PR via the issues command  timmattison:issue-12195   OPEN   2026-09-08T18:25:17Z
-14373  docs: Add step to install working version on Ubuntu Pro          acoulton:patch-1          OPEN   2026-09-07T10:43:26Z
-14355  Remove obsolete Git test seams                                   williammartin-clean-git-test-seams  DRAFT  2026-09-04T15:50:28Z</code></pre>
+  <pre><code>14373  docs: Add step to install working version on Ubuntu Pro  acoulton:patch-1                    OPEN   2026-09-07T10:43:26Z
+14355  Remove obsolete Git test seams                           williammartin-clean-git-test-seams  DRAFT  2026-09-04T15:50:28Z
+14351  Improve git client tests                                 williammartin-improve-git-tests     DRAFT  2026-09-04T15:36:50Z</code></pre>
 
-  <p>Number, title, head ref, state, age. Note the third column again — <code>owner:branch</code> means a fork, as <a href="../m02-what-a-pull-request-is/heads-forks-and-drafts.html">M02</a> covered.</p>
+  <p>Number, title, head ref, state, age (captured 2026-09-13 — yours will differ). Note the third column again — <code>owner:branch</code> means a fork, as <a href="../m02-what-a-pull-request-is/heads-forks-and-drafts.html">M02</a> covered.</p>
 
   <p>Two defaults from the manual are worth knowing, because they silently shape what you see: <code>--limit</code> defaults to <strong>30</strong> items, and <code>--state</code> defaults to <strong><code>open</code></strong> (the choices are <code>open</code>, <code>closed</code>, <code>merged</code>, <code>all</code>). A "how many PRs does this repo have?" question answered with the defaults is actually "how many of the first thirty open ones" — raise the limit and widen the state before you count anything.</p>
 
@@ -69,9 +69,11 @@
   "headRefName": "issue-12195",
   "isDraft": false,
   "number": 14398,
-  "state": "OPEN",
+  "state": "CLOSED",
   "title": "Check for merged state when viewing a PR via the issues command"
 }</code></pre>
+
+  <p>That <code>"state": "CLOSED"</code> is real: this PR was open on 2026-09-12 and closed unmerged on 2026-09-13, which is why it no longer appears in the listing above. <code>gh pr view</code> reads any PR by number regardless of state — the defaults that hide closed PRs belong to <code>list</code>, not <code>view</code>.</p>
 
   <p>Two lines added, one file touched. That is a reviewable diff — a judgement you will make formally in Week 3.</p>
 
@@ -112,10 +114,10 @@ Available fields:
     <div class="q" data-answer="b">
       <p class="q-text">1. You cannot remember what fields <code>gh pr view --json</code> accepts. Fastest way to find out, without leaving the terminal?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Run it with no fields and read the summary output</button></li>
+        <li><button data-opt="a">Run it with no fields and read the summary output, which lists every field name it could have shown you</button></li>
         <li><button data-opt="b">Ask for a field name that does not exist and read the "Available fields" list</button></li>
-        <li><button data-opt="c">Run <code>gh api graphql</code> and introspect the schema</button></li>
-        <li><button data-opt="d">There is no way; check the web manual</button></li>
+        <li><button data-opt="c">Run <code>gh api graphql</code> and introspect the <code>PullRequest</code> type in the schema, since the fields map onto it one to one</button></li>
+        <li><button data-opt="d">There is no way from the terminal; check the web manual</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> <code>gh pr view N --json nope</code> prints <code>Unknown JSON field: "nope"</code> followed by every valid field. (A prints a human summary but not the field names; C works but is enormous overkill; D is simply false.)</p>
@@ -125,8 +127,8 @@ Available fields:
     <div class="q" data-answer="c">
       <p class="q-text">2. What does <code>-R cli/cli</code> do in <code>gh pr list -R cli/cli</code>?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Restricts the list to PRs whose head branch is in a fork owned by <code>cli</code></button></li>
-        <li><button data-opt="b">Reverses the sort order so the oldest pull requests come first</button></li>
+        <li><button data-opt="a">Restricts the list to PRs whose head branch is in a fork owned by <code>cli</code>, in the repository named <code>cli</code></button></li>
+        <li><button data-opt="b">Reverses the sort order so the oldest pull requests come first, then re-runs the listing for <code>cli/cli</code></button></li>
         <li><button data-opt="c">Targets the <code>cli/cli</code> repository instead of the one in your current directory</button></li>
         <li><button data-opt="d">Reads the list from a locally cached copy of the <code>cli/cli</code> repository</button></li>
       </ol>
@@ -139,9 +141,9 @@ Available fields:
       <p class="q-text">3. <code>gh pr list -R OWNER/REPO</code> with no other flags prints 30 rows. What have you actually counted?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The first 30 <em>open</em> pull requests — both the limit and the state are defaults</button></li>
-        <li><button data-opt="b">Every pull request the repository has ever had</button></li>
-        <li><button data-opt="c">All open pull requests; 30 is simply how many there are</button></li>
-        <li><button data-opt="d">The 30 most recently merged pull requests</button></li>
+        <li><button data-opt="b">Every pull request the repository has ever had, open or closed, because a listing with no filters is a complete listing</button></li>
+        <li><button data-opt="c">All open pull requests; 30 is simply how many there are right now</button></li>
+        <li><button data-opt="d">The 30 most recently merged pull requests, since <code>merged</code> is the default state</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> The manual gives <code>--limit</code> a default of 30 and <code>--state</code> a default of <code>open</code>. Exactly 30 rows is the signature of a truncated list, not a coincidence. Pass <code>--state all --limit 200</code> (or larger) before you count, and check whether you hit the limit again.</p>
@@ -151,9 +153,9 @@ Available fields:
     <div class="q" data-answer="d">
       <p class="q-text">4. Why does this course care that you and your agent read GitHub through the same <code>gh</code> commands?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because the web UI is unavailable to agents for licensing reasons</button></li>
+        <li><button data-opt="a">Because the web UI is unavailable to agents for licensing reasons, so <code>gh</code> is the only surface they are permitted to use</button></li>
         <li><button data-opt="b">Because <code>gh</code> output is shorter and therefore cheaper in tokens</button></li>
-        <li><button data-opt="c">Because agents can only read JSON, never rendered pages</button></li>
+        <li><button data-opt="c">Because agents can only read JSON, never rendered pages, so a shared JSON surface is the only one that works for both</button></li>
         <li><button data-opt="d">Because you can then read exactly what the agent did, and tell it precisely what to run</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -208,7 +210,7 @@ Available fields:
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

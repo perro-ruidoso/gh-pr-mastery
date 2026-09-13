@@ -97,8 +97,8 @@
     <div class="q" data-answer="c">
       <p class="q-text">1. You open a fresh Claude Code session and immediately run <span class="skill">/to-spec</span> for a feature you have not discussed. What happens?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">It interviews you until it has enough to write a complete specification</button></li>
-        <li><button data-opt="b">It refuses to run until a design conversation exists in the transcript</button></li>
+        <li><button data-opt="a">It interviews you until it has enough to write a complete specification, one question at a time, and only then publishes</button></li>
+        <li><button data-opt="b">It refuses to run until a design conversation exists in the transcript, and prints the command that would start one</button></li>
         <li><button data-opt="c">It synthesises a thin spec from the codebase alone, because it is told not to interview</button></li>
         <li><button data-opt="d">It runs <span class="skill">/grill-me</span> first automatically and then writes the spec</button></li>
       </ol>
@@ -123,8 +123,8 @@
     <div class="q" data-answer="d">
       <p class="q-text">3. Why does the spec template exclude file paths while the course's tickets include a test path?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because specs are published to GitHub, where paths render as broken links</button></li>
-        <li><button data-opt="b">Because the spec skill cannot read the repository and so does not know any paths</button></li>
+        <li><button data-opt="a">Because specs are published to GitHub, where paths render as broken links, while tickets are read in the terminal</button></li>
+        <li><button data-opt="b">Because the spec skill cannot read the repository and so does not know any paths, while the ticket skill reads it before writing</button></li>
         <li><button data-opt="c">Because tickets are graded by a checker that looks for a <code>tests/</code> string</button></li>
         <li><button data-opt="d">Because a spec is read for weeks and a path is true for one commit; a ticket is read once, this week</button></li>
       </ol>

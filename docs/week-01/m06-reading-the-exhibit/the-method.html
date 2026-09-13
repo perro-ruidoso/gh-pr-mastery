@@ -92,10 +92,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">1. You find a merged PR with no review comments. What is the defensible statement?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">"This change was not reviewed."</button></li>
-        <li><button data-opt="b">"This team does not review its code."</button></li>
+        <li><button data-opt="a">"This change was not reviewed, because a review always leaves at least one comment on the pull request."</button></li>
+        <li><button data-opt="b">"This team does not review its code, and this PR is representative of how the rest of the repository was merged, so the whole history can be read the same way."</button></li>
         <li><button data-opt="c">"There is no recorded review discussion on this PR; whether it was reviewed elsewhere cannot be determined from the repository."</button></li>
-        <li><button data-opt="d">"The reviewer approved without reading it."</button></li>
+        <li><button data-opt="d">"The reviewer approved without reading it, since reading always produces comments and there are none."</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> Report the absence, not a motive. The repository records what happened <em>in</em> the repository; conversations in chat, pairing sessions, and hallway reviews leave no trace. Note also that a PR can carry a formal approval with no comments at all — check <code>reviewDecision</code> before concluding anything.</p>
@@ -106,9 +106,9 @@
       <p class="q-text">2. Why does a repository's PR-size distribution tell you something about its review culture?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Reviewers cannot hold very large diffs in their heads, so past a certain size approval stops being review</button></li>
-        <li><button data-opt="b">GitHub refuses to display diffs beyond a size limit</button></li>
-        <li><button data-opt="c">Large PRs always indicate poor engineers</button></li>
-        <li><button data-opt="d">Because CI runs slower on large PRs</button></li>
+        <li><button data-opt="b">GitHub refuses to display diffs beyond a size limit, so any PR over the limit was necessarily approved without being read</button></li>
+        <li><button data-opt="c">Large PRs always indicate poor engineers, and poor engineers do not review</button></li>
+        <li><button data-opt="d">Because CI runs slower on large PRs, and slow CI discourages reviewers from waiting for a green result before approving</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> Size is a proxy for reviewability, and reviewability is a precondition for review meaning anything. (B is a real UI behaviour but not the point; C is unsupportable — a mechanical rename can be enormous and trivial, which is why you read size <em>alongside</em> what changed; D is true and irrelevant.)</p>
@@ -131,8 +131,8 @@
     <div class="q" data-answer="d">
       <p class="q-text">4. Your "merged PRs that close an issue" query returns 30 out of 30. What is the honest way to report it?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">"Every PR in this repository closes an issue."</button></li>
-        <li><button data-opt="b">"The repository has exactly 30 merged PRs, all linked to issues."</button></li>
+        <li><button data-opt="a">"Every PR in this repository closes an issue, as the <code>closingIssuesReferences</code> field on each of the 30 confirms."</button></li>
+        <li><button data-opt="b">"The repository has exactly 30 merged PRs, all of them linked to issues through <code>closingIssuesReferences</code>."</button></li>
         <li><button data-opt="c">"The team always writes an issue before starting work."</button></li>
         <li><button data-opt="d">"All 30 of the most recent merged PRs sampled have a non-empty <code>closingIssuesReferences</code>."</button></li>
       </ol>
@@ -188,7 +188,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

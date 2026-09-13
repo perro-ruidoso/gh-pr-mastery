@@ -37,11 +37,11 @@
   <p>Listing open PRs on <code>cli/cli</code> shows something the single-PR view on the <a href="index.html">previous page</a> hid:</p>
 
   <span class="code-label">$ gh pr list -R cli/cli --limit 3</span>
-  <pre><code>14398  Check for merged state when viewing a PR via the issues command  <span class="dim">timmattison:issue-12195</span>  OPEN   2026-09-08T18:25:17Z
-14373  docs: Add step to install working version on Ubuntu Pro          <span class="dim">acoulton:patch-1</span>        OPEN   2026-09-07T10:43:26Z
-14355  Remove obsolete Git test seams                                   <span class="dim">williammartin-clean-git-test-seams</span>  DRAFT  2026-09-04T15:50:28Z</code></pre>
+  <pre><code>14373  docs: Add step to install working version on Ubuntu Pro  <span class="dim">acoulton:patch-1</span>                    OPEN   2026-09-07T10:43:26Z
+14355  Remove obsolete Git test seams                           <span class="dim">williammartin-clean-git-test-seams</span>  DRAFT  2026-09-04T15:50:28Z
+14351  Improve git client tests                                 <span class="dim">williammartin-improve-git-tests</span>     DRAFT  2026-09-04T15:36:50Z</code></pre>
 
-  <p>Look at the third column. Two of these heads are written <code>owner:branch</code> — <code>timmattison:issue-12195</code> — and one is a bare branch name. That is the difference between a <strong>cross-repository</strong> pull request, whose head branch lives in a contributor's fork, and a <strong>same-repository</strong> one, whose head branch lives in <code>cli/cli</code> itself. In <code>--json</code> output the same fact is the boolean <code>isCrossRepository</code>.</p>
+  <p>Look at the third column (captured 2026-09-13; the open list moves daily, the shape does not). One of these heads is written <code>owner:branch</code> — <code>acoulton:patch-1</code> — and two are bare branch names. That is the difference between a <strong>cross-repository</strong> pull request, whose head branch lives in a contributor's fork, and a <strong>same-repository</strong> one, whose head branch lives in <code>cli/cli</code> itself. In <code>--json</code> output the same fact is the boolean <code>isCrossRepository</code>.</p>
 
   <p>The base repository still owns the pull request. GitHub's documentation explains how: "When you open a pull request, GitHub creates temporary Git references that point to the pull request's head branch and, when possible, to a simulated merge result." Those refs are how CI, reviews, and the merge button can operate on code that lives in somebody else's copy — and, the docs add, they are "most relevant when you are building automation, debugging CI behavior, or fetching pull request state locally." You will meet them again in Week 5.</p>
 
@@ -93,10 +93,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">1. In <code>gh pr list</code>, one PR's head shows as <code>acoulton:patch-1</code> and another as <code>clean-git-test-seams</code>. What does the difference tell you?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The first is a draft and the second is ready for review</button></li>
-        <li><button data-opt="b">The first has been approved and the second has not</button></li>
+        <li><button data-opt="a">The first is a draft and the second is ready for review; the colon is how <code>gh</code> marks draft state in a listing</button></li>
+        <li><button data-opt="b">The first has been approved and the second has not yet been reviewed by anyone</button></li>
         <li><button data-opt="c">The first's head branch lives in a fork; the second's lives in the base repository</button></li>
-        <li><button data-opt="d">The first targets a non-default base branch</button></li>
+        <li><button data-opt="d">The first targets a non-default base branch, and the second targets the default branch</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> The <code>owner:branch</code> form marks a cross-repository pull request whose head lives in a contributor's fork. A bare branch name means the head branch is in the base repository itself. Draft state, approvals, and the base branch are all shown elsewhere.</p>
@@ -106,9 +106,9 @@
     <div class="q" data-answer="d">
       <p class="q-text">2. Which statement about draft pull requests is correct?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Drafts do not run CI</button></li>
-        <li><button data-opt="b">Drafts are private until marked ready</button></li>
-        <li><button data-opt="c">A draft can be merged if it has an approval and green checks</button></li>
+        <li><button data-opt="a">Drafts do not run CI until they are marked ready</button></li>
+        <li><button data-opt="b">Drafts are private until marked ready for review</button></li>
+        <li><button data-opt="c">A draft can be merged as soon as it has an approval and green checks, like any other pull request</button></li>
         <li><button data-opt="d">A draft cannot be merged, and code owners are not automatically requested</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -121,8 +121,8 @@
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The shared repository model</button></li>
         <li><button data-opt="b">The fork and pull model</button></li>
-        <li><button data-opt="c">The stacked pull request model</button></li>
-        <li><button data-opt="d">The draft pull request model</button></li>
+        <li><button data-opt="c">The stacked PR model</button></li>
+        <li><button data-opt="d">The draft PR model</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> Fork and pull: fork the upstream, work in the fork, open a cross-repository PR back. Weeks 1–5 use the shared repository model, where contributors push branches to the repository itself. C and D are not development models — stacking is a base-branch choice (Week 3) and draft is a PR state.</p>
@@ -133,7 +133,7 @@
       <p class="q-text">4. A PR's head branch lives in a contributor's fork, yet CI on the base repository builds it. What makes that possible?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">GitHub creates temporary refs in the base repository that point at the head branch</button></li>
-        <li><button data-opt="b">The fork is automatically merged into the base repository when the PR opens</button></li>
+        <li><button data-opt="b">The fork is automatically merged into the base repository when the PR opens, so CI is really building the base branch</button></li>
         <li><button data-opt="c">The contributor must push the branch to the base repository as well</button></li>
         <li><button data-opt="d">CI clones the fork directly using the contributor's credentials</button></li>
       </ol>
@@ -190,7 +190,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

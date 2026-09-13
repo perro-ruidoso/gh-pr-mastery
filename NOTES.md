@@ -290,8 +290,9 @@ merged, and code owners are not automatically requested"; the secrets page's for
 
 Local `gh` was 2.92.0 (2026-04-28); `winget` offered 2.100.0. Because the upgrade needs an
 elevated install, a **portable 2.100.0** was unpacked into the session scratchpad from the
-`cli/cli` release zip and used for every Week 2 transcript. The installed 2.92.0 is
-untouched; upgrade it before teaching (`winget upgrade GitHub.cli`).
+`cli/cli` release zip and used for every Week 2 transcript. *(Superseded later the same day:
+the `winget upgrade GitHub.cli` completed after its UAC prompt, and the installed `gh` is
+now **2.100.0 (2026-09-03)** — the Week 1–2 audit below ran on it.)*
 
 Flags confirmed present on 2.100.0 and absent on 2.92.0 (`--help` diffed on both):
 `gh issue create --type --parent --blocked-by --blocking`;
@@ -330,8 +331,9 @@ and runs Kahn's algorithm. On the Seed Repo it reproduces §6's answer key from 
 second, independent check of the filing. It skips parents (issues with sub-issues) by default
 so a spec does not appear as a false wave-1 node, and `--mermaid` prints a `graph LR` block.
 
-**Left over for the instructor:** `perro-ruidoso/flashcards-w2probe` (private, 7 issues, one
-committed issue template). The build token still lacks `delete_repo`; remove it with
+**Left over for the instructor:** `perro-ruidoso/flashcards-w2probe` (private, 8 issues after
+the audit's fault-injection — #8 closed as not planned — one committed issue template). The
+build token still lacks `delete_repo` (re-checked 2026-09-13); remove it with
 `gh repo delete perro-ruidoso/flashcards-w2probe` after `gh auth refresh -s delete_repo`, or
 from the web UI. Nothing in the pages depends on it surviving — the transcripts name it as a
 throwaway, and the graph pages use the Seed Repo.
@@ -385,6 +387,196 @@ the M12 verification protocol (`gh issue create`, `gh issue close --reason compl
 `gh issue comment`) were run on the throwaway Instance (#7) so the transcript and
 `check_a2.py`'s expectations match.
 
+### Week 1–2 audit — 2026-09-13
+
+Hostile re-check of everything shipped for Weeks 1 and 2, run with the tools live rather
+than from memory. Precondition: the installed `gh` is now **2.100.0 (2026-09-03)** — the
+`winget upgrade GitHub.cli` started earlier in the day completed in the background, so
+the "portable build" workaround above is history and every command in this audit ran on
+the installed binary. Filed as issue #15; the work is on branch `15-audit-weeks-1-2`.
+Each row: **fact · evidence · page · fixed or open.**
+
+#### 1. Sources — every URL re-fetched
+
+90 distinct external URLs across `RESOURCES.md`, the two Week Hubs, and all 25 Week 1–2
+Learning Pages were fetched with `curl -sL` and their final status, redirect count, and
+effective URL recorded. Every quotation on every page (any `"…"` span of four words or more
+outside `<pre>`) was then searched for, on an alphanumeric-only comparison, in the fetched
+text of the sources that page cites, and the survivors were read by hand.
+
+| Fact | Evidence | Page | Status |
+|---|---|---|---|
+| Three `RESOURCES.md` rows for Weeks 3–5 had moved: *Changing the base branch* → `pull-requests/how-tos/create-pull-requests/…`; *Reviewing proposed changes* → `pull-requests/how-tos/review-pull-requests/…`; *About continuous integration* → `actions/get-started/continuous-integration`. | `curl -sL -w '%{http_code} %{url_effective} %{num_redirects}'`: 200 via one 301 each. | `RESOURCES.md` (M16, M19/M20, M25 rows) | **Fixed** — canonical URLs, dated. |
+| No other URL redirected or failed. Every `docs.github.com`, `cli.github.com`, `code.claude.com`, `git-scm.com`, `jqlang.org`, `mermaid.js.org`, `linear.app`, and `github.com` link answered 200 with zero redirects. | Same fetch; 87 rows `200 0`. | all | Verified. |
+| Three `github.com/perro-ruidoso/flashcards-w2probe/issues/N` URLs return **404** to anyone but the instructor. | The Instance is private. | M11 p1, M11 p2 | Not a defect — they are the `gh` output printed in transcripts, not hyperlinks, and the pages call the repo a throwaway. Unchanged. |
+| A quoted sentence on M11 p1 no longer exists: *"Sub-issues add support for hierarchies of issues on GitHub by creating relationships between your issues."* | Not on the fetched *Adding sub-issues* page; the current sentence is *"Your sub-issues can themselves contain sub-issues, allowing you to create full hierarchies of issues that visualize entire projects or pieces of work and show the relationships between your issues."* | M11 p1 | **Fixed** — re-quoted. |
+| M06 p3's source line quoted *"up to eight levels of nesting"*; the page says *"create up to eight levels of nested sub-issues."* | Fetched text. | M06 p3 (sources) | **Fixed** — quoted as written. |
+| M12 quotes Linear's synced-property list as one comma-separated string. | On the fetched page it is a bulleted list (`title` / `description` / `status` / `assignee` / `labels` / `sub-issues` / `comments`); each word is verbatim. | M12 p1, p2 | Left as is; noted here so nobody "corrects" it into a sentence Linear did not write. |
+| Every other quotation checked — the M02 PR definitions, the M03 two-dot/three-dot and compare-page cautions (now on the *Pull requests* reference page, not *Branches*), the M01 template and scope sentences, the M05/M07/M09/M10 skill quotes (checked against the installed `SKILL.md` files under `~/.agents/skills/`), the M08 template-frontmatter sentence, the M11 REST `issue_id` description and the `+ icon` sentence on M12 — is present verbatim on its source. | `qcheck.py` in the session scratchpad + hand reading of the ~120 spans it could not match (all of them prompts, transcript strings, or the course's own prose in quotation marks). | all | Verified. |
+
+#### 2. Transcripts — every printed `gh` command re-run
+
+Every command printed on a Week 1–2 page against `cli/cli`, `perro-ruidoso/gh-pr-mastery`,
+or `perro-ruidoso/flashcards-seed` was run again on `gh` 2.100.0 and diffed against the page.
+
+| Fact | Evidence | Page | Status |
+|---|---|---|---|
+| **`cli/cli#14398`, the M02/M04 worked example, was closed unmerged on 2026-09-13.** Every page called it "an actual open pull request" and printed `"state": "OPEN"`. | `gh pr view 14398 -R cli/cli --json state,closedAt,mergedAt` → `CLOSED`, `2026-09-13T06:06:03Z`, `null`. | M02 p1, M04 p1 | **Fixed** — transcripts re-captured with `"state": "CLOSED"` and the framing changed: the PR was open on 09-12, closed the next morning, and closing changed `state` and nothing else (the base/head sentence still reads the same). M04 p1 adds that `view` reads any state; `list`'s defaults are what hide closed PRs. |
+| `gh pr list -R cli/cli --limit 3` no longer lists #14398; the live top three are #14373 (fork), #14355, #14351 (both drafts, same-repo). M02 p2's text said "two of these heads are written `owner:branch`" — now one is. | Live listing 2026-09-13. | M02 p2, M04 p1 | **Fixed** — listings re-captured, dated in the prose, and the fork/bare-branch count corrected. |
+| `gh pr list --limit 1 --json number --jq '.[0].number'` prints `14373`, not `14398`; the self-check question quoted the old number. | Live. | M04 p2 | **Fixed** — transcript and question updated; the `gh pr diff --name-only` example now follows the same PR (`docs/install_linux.md`). |
+| `gh issue list -R cli/cli --limit 3` — #14432 gained the `more-info-needed` label. | Live. | M04 p2 | **Fixed** (one label in a transcript; the prose about triage labels still holds). |
+| `gh pr view 14398 --json nope` — the "Available fields" list is unchanged (46 fields). | Live. | M04 p1 | Verified. |
+| `cli/cli#14404` / `#14429` — every field identical: `closedAt 15:55:42`, `mergedAt 15:55:40`, 63/4/3, `closingIssuesReferences` → 14404. | Live. | M06 p1 | Verified, dated on the page. |
+| `gh api orgs/perro-ruidoso/issue-types` — Task / Bug / Feature, same descriptions. | Live. | M08 p1 | Verified. |
+| `gh issue view 1 -R perro-ruidoso/flashcards-seed --json title,body` — identical except that the page's transcript is hard-wrapped at ~85 columns for display and the live body is not. | `difflib` on the two texts. | M07 p1 | Verified; wrapping only. |
+| The Seed backlog listing (`--json number,title,blockedBy`) and `waves_from_github.py` output are byte-identical to the pages: **15 issues, 19 edges, joins #5 #7 #9 #13 #14, waves 1/3/4/4/3, width 4** — which is `seed/SPEC.md` §6's answer key under the T→# mapping (T04→#5, T06→#9, T08→#7, T10→#13, T13→#14). | Live run 2026-09-13. | M10 p2, M11 p2 | Verified — `waves_from_github.py` still reproduces §6. |
+| `gh api …/flashcards-seed/issues/14/dependencies/blocked_by` → #11 (id 5434030684), #7 (id 5434030220). | Live. | M11 p2 | Verified. |
+| The `perro-ruidoso/gh-pr-mastery` snapshots on M06 p3 were two PRs and one dependency edge behind. | See §3–4. | M06 p3 | **Fixed** (below). |
+| Commands printed against `flashcards-w2probe` (M08 p2, M11) were not re-run: they are mutations on a throwaway, the pages call it a throwaway, and the repository is private. The two `gh` error strings they quote (`--template is not supported when using --body or --body-file`, `Sub issue may only have one parent`) were re-confirmed on 2.100.0 during the checker fault-injection in §5. | — | M08 p2, M11 p1 | Out of scope by design; noted. |
+
+#### 3. The stacked PR — #14 retargeted, linked, and closing #13
+
+All from `gh` on 2026-09-13:
+
+```
+$ gh pr view 14 -R perro-ruidoso/gh-pr-mastery --json baseRefName,createdAt,mergedAt,closingIssuesReferences
+{"baseRefName":"main","closingIssuesReferences":[{"number":13,…}],
+ "createdAt":"2026-09-13T15:06:47Z","mergedAt":"2026-09-13T15:43:30Z"}
+$ gh api repos/perro-ruidoso/gh-pr-mastery/issues/14/timeline --jq '.[] | select(.event=="base_ref_changed" or .event=="merged") | "\(.created_at)  \(.event)"'
+2026-09-13T15:40:05Z  base_ref_changed
+2026-09-13T15:43:30Z  merged
+$ gh issue view 13 -R perro-ruidoso/gh-pr-mastery --json state,closedAt,stateReason
+{"closedAt":"2026-09-13T15:43:31Z","state":"CLOSED","stateReason":"COMPLETED"}
+$ gh pr view 12 -R perro-ruidoso/gh-pr-mastery --json mergedAt ; gh issue view 11 … --json closedAt
+2026-09-13T15:40:01Z ; 2026-09-13T15:40:03Z
+```
+
+So: PR #12 (parent) merged **15:40:01** and closed #11 at **15:40:03**; #14's base was changed
+to `main` at **15:40:05**; #14 merged at **15:43:30** and closed #13 at **15:43:31**;
+`closingIssuesReferences` on #14, empty while it targeted the Week 1 branch (recorded above
+on the day), now lists **#13**. One more artifact the earlier note missed: **#13 is recorded
+as blocked by #11** (`dependencies/blocked_by` → `#11 [closed]`, `blocked_by_added` event at
+15:05:53). This is now the **second worked example on M06 p1**, with the three transcripts
+above, an observation/inference table, and a diagram — because it demonstrates the M06
+two-second gap, the M15 keyword rule, and the M16 retarget on a repository every student can
+read.
+
+#### 4. M06 over-claiming — re-read against the live history
+
+| Claim on M06 p3 | True on 2026-09-13? | Status |
+|---|---|---|
+| "Five merged PRs; every one has a non-empty `closingIssuesReferences`" | No — seven (#3 #5 #6 #8 #10 #12 #14), all with references; plus one open issue (#15, this audit) with no PR yet. | **Fixed** — snapshot re-captured, count and population statement updated. |
+| "Run the same command for the other issues and you will find they have no recorded blockers" | **False** since #13 was filed: `#13 blocked_by → #11`. | **Fixed** — the page now says exactly one more edge exists and names it. |
+| Issue numbers "1, 2, 4, 7, 9 — and PR numbers 3, 5, 6, 8, 10" | Stale. | **Fixed** — 1 2 4 7 9 11 13 15 / 3 5 6 8 10 12 14 (page text and flashcard). |
+| "reached through an API endpoint rather than a `gh issue` flag" and the self-check rationale "there is no `gh issue` flag for them yet" | **False** on the `gh` the course now requires: `gh issue view --json blockedBy` and `--add-blocked-by` exist from 2.94.0 (the page's own flashcard already said so). | **Fixed** — both sentences now say "the REST endpoint on any version; from 2.94.0 also `--json blockedBy`". |
+| One-second gaps "every time" | Still true, and now includes a two-second one (#11). | Table extended with #12/#11 and #14/#13; wording "one- and two-second". |
+| "whether a PR's base was `main` or another feature branch" (listed as something a student *might* notice) | Now a real case (#14). | Sentence extended to point at it. |
+| The squashed-import paragraph, the branch-naming inference, the "exhibit not model answer" framing | Still true. | Unchanged. |
+
+#### 5. Checkers — run, and fault-injected rule by rule
+
+- `check_site.py`: **28 pages, 306 internal links, clean** before and after every change in
+  this audit. Then 25 faults were injected into a scratch copy of `docs/` (one per rule:
+  broken link, no title, wrong stylesheet depth, Mermaid used/not loaded and loaded/not used,
+  each of the eight required lesson sections, Apply page without a checklist, deck
+  component loaded/not loaded, empty card front, empty card back, deck without id,
+  `data-answer` naming a missing option, duplicate deck id, Course Home missing a hub, hub
+  missing a page, page map missing a sibling, objective folder without `index.html`).
+  **23 of 25 were caught on the first run.** One miss was the harness's (it broke one of the two
+  sibling links and the pager still carried the other; breaking both is caught). **The other was
+  a real checker bug:**
+  `CARD_FRONT = <div class="fc-front">\s*\S` is satisfied by the `<` of the closing tag, so
+  an empty `<div class="fc-front"></div>` passed; the back-face check only caught its fault
+  through a regex-boundary accident. Both patterns now read `(?!\s*</div>)\s*\S`. **25/25
+  after the fix**, and the real tree still passes.
+- `check_a1.py` against `flashcards-seed`: fails on exactly the student-produced items
+  (three `docs/agents/*` files, the `## Agent skills` section, the four created labels,
+  `a1-writeup.md`) plus the two that cannot hold for the template itself (created-from-
+  template, and org membership of a user called `seed`). Against `flashcards-w2probe`:
+  same student items fail; template and labels pass; `Public` fails because it is private.
+- `check_a2.py` against `flashcards-seed`: every rule fails, as it should (no labels, no
+  template, fifteen unlabelled untyped issues, no spec, no probe, no write-up). Against
+  `flashcards-w2probe`: fails on exactly the four things it lacks (hand ticket, 6–10
+  tickets, 6+ edges, write-up), as recorded on the day it was built.
+- Fault injection on `flashcards-w2probe` (it exists, is private, and is a throwaway), one
+  mutation per reachable rule, then reverted and re-run to the pre-injection output:
+  ticket loses its type → *Every ticket typed Task* and *Every open issue has a type*;
+  spec loses `ready-for-agent` and becomes a Task → both spec rules and *Every open issue
+  has a label*; mermaid fence removed → caught; layer label removed → caught; cycle
+  `#2 ← #5` → *Graph is a DAG: cycle among #2, #3, #4, #5*; join edge removed → *At least
+  one two-parent join* and *Blocked-by lines are recorded edges* (`#5 cites [4] in prose
+  only`); probe reopened → *closed with reason completed* (`state=OPEN reason=REOPENED`);
+  probe comment deleted → *has a comment* (`0 comment(s)`); template rewritten without
+  `type:`, with a heading missing and a `tests/` line → all three template rules; a hand
+  ticket without a test path → *names a test file*; a five-word `a2-writeup.md` with no
+  image → *length* and *references a capture*; `wontfix` deleted → `check_a1.py` *Label
+  wontfix — deleted?*; a nonexistent handle → *Instance exists* on both checkers.
+  **Every injected fault was reported by name.** Two rules were not reachable without
+  building a second spec (*Probe created after the spec*) or a Linear-titled closed PR
+  (*PR preview*, a note, not a check); both were exercised on the day they were written.
+
+#### 6. Render — every page, in Chrome, at 1200 px and 400 px
+
+Served `docs/` over `http.server` and drove each of the 28 pages from a harness in the page
+(same-origin iframe at the target width; decks flipped and graded to their finish state;
+every self-check clicked wrong-then-right). Results:
+
+| Check | 1200 px | 400 px |
+|---|---|---|
+| Mermaid diagrams drawn (6 across 5 pages, including the new M06 one) | 6/6, no error text | 6/6 |
+| Decks built and run to "Deck complete" with the list hidden and a `localStorage` record written (25 decks, 187 cards) | 25/25 | 25/25 |
+| Self-checks: wrong first click marks `.incorrect` and leaves the rationale hidden; the correct click reveals it; tally reads `0 / N` after a wrong-first pass and `N / N` after a correct-first pass (93 questions) | 93/93 | 93/93 |
+| Console errors / in-frame `error` events | none | none |
+| Horizontal overflow (`scrollWidth > clientWidth`) | none | **7 pages overflowed** (M01 p2, M02 p1, M02 p2, M04 p1, M06 p1, M06 p3, M11 p1; worst 906 px on a 385 px viewport) |
+
+**Cause and fix:** `.code-label` — the `$ gh …` line above each transcript — is a block with
+normal wrapping, but a `--jq '{…}'` argument is one unbreakable token wider than a phone. It
+had no `overflow-x` rule, so it widened the document. Added `overflow-wrap: anywhere` to
+`.code-label` and to inline `code` outside `pre` (M01 p2 had a 391 px inline field list).
+Re-run: **0 overflows at 400 px**, nothing else changed. Note for the next builder: the
+harness result at 400 px was identical before and after the CSS edit on the first re-run
+because the stylesheet was cached; fetch it with `cache: 'reload'` before trusting a re-test.
+
+#### 7. Self-check quality — option form
+
+Analysed every question for the three tells named in the brief: correct option uniquely the
+longest, uniquely the shortest, or the only one carrying a `<code>` element. **81 of 93
+questions were flagged**: 77 for "longest" — the classic tell — 4 for "shortest", and 10
+for "only code" (some for two reasons). Every flagged question was rewritten: the correct option keeps its substance
+and each distractor keeps its meaning (rationales refer to them by letter), but distractors
+were lengthened or trimmed and given code elements where needed so that no option stands
+out by form. Two questions with fixed vocabulary (the four PR tabs; the two development
+models) were re-shaped with a short gloss per option. Second pass caught 29 over-corrections
+(correct now uniquely shortest). **Final: 93 questions, 0 flagged;** correct letters
+distribute 24/23/21/25 across A–D; `check_site.py` still clean.
+
+#### 8. Cleanup
+
+- `flashcards-w2probe`: **not deleted** — `gh auth status` shows `admin:org, gist, project,
+  repo, workflow` and no `delete_repo`. Command for the instructor:
+  `gh auth refresh -s delete_repo && gh repo delete perro-ruidoso/flashcards-w2probe --yes`.
+  It was restored to its pre-injection state (§5) so the M08/M11/M12 transcripts still match
+  it, though nothing on the pages depends on it surviving.
+- `README.md` Status: added the audit paragraph; Week 2 was already described as built.
+- `roadmap/build_roadmap.py`: course-repo item updated (seven PRs, two edges, one stacked
+  PR); new DONE item for the audit; Week 2 item notes 2.100.0 is now installed; new TODO for
+  deleting the probe. `roadmap.docx` regenerated (26 items).
+- `instructors/instructor-guide.md`: Part 1's dependency paragraph and the reference-state
+  line no longer say the teaching machine is on 2.92.0; 7.3 records #14398's closure; 7.4
+  now walks seven PRs and #14's retarget; Part 10 items 3 and 5 record the audit and give
+  the delete command. Appendix A's `gh pr view 14398` line notes the state.
+- Week 1 page footers: "Source links verified 2026-09-13" (they were re-fetched today).
+- The open question above about the `gh` minimum version and the setup handout is closed:
+  `student-setup.md` already asks for 2.94.0+ and the teaching machine is at 2.100.0.
+
+**Claims that turned out to be false** (the PR body repeats this list): `cli/cli#14398` is
+open; two of three listed heads are fork heads; `--limit 1` prints 14398; the course repo
+has five merged PRs; no course-repo issue other than #2 has a recorded blocker; there is no
+`gh issue` flag for dependencies; the M11 sub-issues quotation; the "eight levels of
+nesting" quotation; this file's and the guide's statement that the teaching machine is on
+2.92.0 and needs a portable build (true when written, false now); `check_site.py` catches
+an empty flashcard face.
+
 ## Open questions
 
 - ~~Linear Free plan's Issues Sync availability~~ — **resolved 2026-09-13**, twice: the
@@ -395,8 +587,10 @@ the M12 verification protocol (`gh issue create`, `gh issue close --reason compl
   exhibit of what an unclassified backlog costs. Whether to label and type them (`layer:*`,
   `Task`) is the instructor's call; doing so would make `flashcards-seed` a better M08
   exhibit and a worse one for the point M08 currently makes. Not done in this unit.
-- **`gh` minimum version is now 2.94.0** for Week 2. `instructors/student-setup.md` and the
-  guide's toolchain section predate this and should say so before the cohort installs.
+- ~~**`gh` minimum version is now 2.94.0** for Week 2. `instructors/student-setup.md` and the
+  guide's toolchain section predate this and should say so before the cohort installs.~~ —
+  **closed 2026-09-13:** the handout asks for 2.94.0+, the guide's reference state is 2.100.0,
+  and the teaching machine is on 2.100.0.
 - ~~**The fifth triage label is free.**~~ — **decided 2026-09-13: accept it, and make the
   grading honest.** `wontfix` is in GitHub's default label set, so A1 item 4 assesses four
   labels, not five (verified above). The alternatives were rejected: renaming the fifth
@@ -674,3 +868,17 @@ the M12 verification protocol (`gh issue create`, `gh issue close --reason compl
     `roadmap.docx` regenerated with Week 2 marked done and the Linear live check reworded.
   - Not done: the Linear UI walk and captures (M12 says so on the page); labelling the Seed
     backlog; updating the student setup handout's `gh` version line. Listed as open above.
+
+- **2026-09-13** — **Week 1–2 audit** (issue #15, branch `15-audit-weeks-1-2`), run with
+  the tools live on the newly installed `gh` 2.100.0. Findings, evidence, and fixes are in
+  the "Week 1–2 audit" section above, step by step. Headlines: `cli/cli#14398` closed
+  unmerged the same morning and four pages were re-captured around it; M06's course-repo
+  snapshot was two PRs and one dependency edge stale and its "no other issue has a blocker"
+  sentence had become false; #14's retarget-then-close record (15:40:05 / 15:43:30 /
+  15:43:31) is now M06's second worked example; one GitHub Docs sentence quoted on M11 had
+  been rewritten upstream; three Week 3–5 `RESOURCES.md` URLs had moved; `check_site.py`
+  accepted an empty flashcard face (fixed, 25/25 faults now caught); seven pages overflowed
+  at 400 px because of unbreakable `--jq` tokens in `.code-label` (fixed in CSS); and 81 of
+  93 self-check questions gave the answer away by option length (all rewritten, 0 flagged).
+  Not done: deleting `flashcards-w2probe` (no `delete_repo` scope; command in Part 10) and
+  the Linear live walk, unchanged.

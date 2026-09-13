@@ -223,7 +223,12 @@ pre .dim { color: #8b949e; }
   color: var(--ink-soft);
   margin-bottom: -0.5rem;
   margin-top: 1rem;
+  overflow-wrap: anywhere; /* a long --jq token must not widen the page at phone width */
 }
+
+/* Inline code can carry unbreakable tokens (field lists, paths); let them break rather
+   than push the page sideways. Block transcripts (pre) scroll instead. */
+:not(pre) > code { overflow-wrap: anywhere; }
 
 kbd {
   font-family: var(--font-mono);

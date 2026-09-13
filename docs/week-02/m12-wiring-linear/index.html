@@ -103,9 +103,9 @@
       <p class="q-text">1. You connect Linear on Friday. The spec and eight tickets you filed on Tuesday do not appear. What happened?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The Free plan caps synced issues, and the backlog exceeded the cap</button></li>
-        <li><button data-opt="b">Two-way sync was chosen; one-way sync would have imported them</button></li>
+        <li><button data-opt="b">Two-way sync was chosen; one-way sync would have imported them, because one-way sync copies the existing backlog on connection</button></li>
         <li><button data-opt="c">Nothing is wrong — Issues Sync "will only sync issues going forward"; existing issues need the importer</button></li>
-        <li><button data-opt="d">The tickets are sub-issues of the spec, and Linear does not sync sub-issues</button></li>
+        <li><button data-opt="d">The tickets are sub-issues of the spec, and Linear does not sync sub-issues, so only top-level issues ever appear</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> Forward-only is documented twice on Linear's page. The Free cap is 250 (A), the direction setting does not backfill (B), and sub-issues are in the list of synced fields (D).</p>
@@ -116,9 +116,9 @@
       <p class="q-text">2. On what evidence is M12 written for Linear's Free plan?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The pricing page's table shows "Issue sync" available on all four plans, and the docs gate only GitHub Enterprise Cloud and AI titles</button></li>
-        <li><button data-opt="b">A live Free workspace was connected to an Instance and the sync observed on 2026-09-13</button></li>
-        <li><button data-opt="c">Linear support confirmed it by email when the course was designed</button></li>
-        <li><button data-opt="d">The integration page says "available on all plans" in its first paragraph</button></li>
+        <li><button data-opt="b">A live Free workspace was connected to an Instance and the sync observed end to end on 2026-09-13, with captures of each step stored under <code>docs/assets/shots/</code></button></li>
+        <li><button data-opt="c">Linear support confirmed it by email when the course was designed, and the email is quoted in <code>NOTES.md</code></button></li>
+        <li><button data-opt="d">The integration page says "available on all plans" in its first paragraph, directly under the heading</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> Documentary evidence, read at the level of the table cells. The live check (B) has not been done and the page says so; there was no support contact (C); and the integration page does not make a blanket statement (D) — it names the two gated items instead.</p>
@@ -128,9 +128,9 @@
     <div class="q" data-answer="d">
       <p class="q-text">3. Which of these is the course's reason for keeping GitHub as the source of truth after Linear is connected?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Linear's Free plan does not permit editing issues that originated on GitHub</button></li>
-        <li><button data-opt="b">Linear cannot represent blocking relationships between issues</button></li>
-        <li><button data-opt="c">GitHub is where the code lives, so its issues must legally be authoritative</button></li>
+        <li><button data-opt="a">Linear's Free plan does not permit editing issues that originated on GitHub, so GitHub is the only place they can change</button></li>
+        <li><button data-opt="b">Linear cannot represent blocking relationships between issues, so the dependency graph would be lost</button></li>
+        <li><button data-opt="c">GitHub is where the code lives, so its issues must legally be authoritative under the organisation's terms of service</button></li>
         <li><button data-opt="d">The engineering skills and a fresh agent session read GitHub natively; a second claimant to truth is the M35 problem</button></li>
       </ol>
       <div class="q-why" hidden>

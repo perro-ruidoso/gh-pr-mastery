@@ -63,22 +63,35 @@ SECTIONS = [
              "five two-parent joins -- matches the spec's answer key."),
             ("DONE", "Course repo under version control",
              "perro-ruidoso/gh-pr-mastery is public, with the site live at "
-             "perro-ruidoso.github.io/gh-pr-mastery from main /docs. Dogfooding has "
-             "begun: three merged PRs, each closing its issue by keyword, one recorded "
-             "blocking relation. A1 item 6 now has a real exhibit."),
+             "perro-ruidoso.github.io/gh-pr-mastery from main /docs. Dogfooded: seven "
+             "merged PRs as of 2026-09-13, each closing its issue by keyword within two "
+             "seconds, two recorded blocking relations (#2 by #1, #13 by #11), and one "
+             "stacked PR (#14) retargeted to main after its parent merged -- now M06's "
+             "second worked example. A1 item 6 has a real exhibit."),
+            ("DONE", "Weeks 1-2 audit (issue #15, 2026-09-13)",
+             "With the tools live, not from memory: 90 source URLs re-fetched and every "
+             "quotation re-checked (3 more docs.github.com redirects, 1 rewritten "
+             "sentence); every gh transcript re-run on the installed 2.100.0 (cli/cli#14398 "
+             "had closed unmerged; M06's course-repo snapshot was two PRs and one edge "
+             "stale); check_site.py fault-injected 25/25 and one regex fixed; check_a1/a2 "
+             "fault-injected on the throwaway Instance, every reachable rule caught; all "
+             "28 pages render-tested at 1200 and 400 px (one overflow fixed); 81 of 93 "
+             "self-check questions rewritten so option length no longer gives the answer "
+             "away."),
         ],
     ),
     (
         "Next",
-        "The recommended order. Week 2 repeats a vertical slice already proven end to end; "
+        "The recommended order. Weeks 1 and 2 are shipped and audited; "
         "the upstream repo is not needed until Week 5.",
         [
             ("DONE", "Week 2 -- M07 to M12",
              "Week 2 hub plus twelve Learning Pages (two per objective), assignment A2 "
              "with its rubric, and check_a2.py. Transcripts captured with gh 2.100.0 "
-             "against the Seed Repo and a throwaway Instance; the two-parent sub-issue "
-             "experiment and the accepted dependency cycle are on the M11 pages. M12's "
-             "Linear UI steps are quoted from the docs and marked as not run live."),
+             "(now the installed version) against the Seed Repo and a throwaway "
+             "Instance; the two-parent sub-issue experiment and the accepted dependency "
+             "cycle are on the M11 pages. M12's Linear UI steps are quoted from the docs "
+             "and marked as not run live. Audited 2026-09-13 (see Done)."),
             ("NEXT", "Weeks 3 to 6 -- M13 to M36",
              "Four more vertical slices, ~24 Learning Pages, assignments A3-A6, two "
              "graded concept quizzes, and the capstone."),
@@ -107,6 +120,11 @@ SECTIONS = [
              "Rulesets, merge queue configuration, and Linear settings -- the surfaces "
              "with no CLI equivalent. Stored under docs/assets/shots/ with visible "
              "capture dates, because they rot."),
+            ("TODO", "Delete the throwaway Instance flashcards-w2probe",
+             "Private, in the org, used for the M08/M11/M12 transcripts and the "
+             "2026-09-13 checker fault-injection. The build token lacks delete_repo: "
+             "`gh auth refresh -s delete_repo && gh repo delete "
+             "perro-ruidoso/flashcards-w2probe --yes`. Nothing on the pages needs it."),
             ("TODO", "Student roster tooling",
              "handles.txt and a batch run of check_a1.py across the cohort."),
             ("DONE", "check_a1.py grades four labels and notes wontfix",

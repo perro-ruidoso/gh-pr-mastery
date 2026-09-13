@@ -83,9 +83,9 @@
       <p class="q-text">1. Ten commits land on <code>main</code> while your PR sits open, none touching your files. What happens to the PR's Files changed tab?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">Nothing — a three-dot comparison keeps showing what the topic branch introduced since the branches diverged</button></li>
-        <li><button data-opt="b">It grows by those ten commits' changes</button></li>
-        <li><button data-opt="c">It shows those changes reversed</button></li>
-        <li><button data-opt="d">The PR is marked out of date and must be rebased before it can be read</button></li>
+        <li><button data-opt="b">It grows by those ten commits' changes, because the tab compares the two branch tips as they stand right now</button></li>
+        <li><button data-opt="c">It shows those changes reversed, as lines your branch appears to delete</button></li>
+        <li><button data-opt="d">The PR is marked out of date and must be rebased before it can be read, because GitHub will not diff against a moved base</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>A.</strong> GitHub's docs: "a three-dot comparison keeps showing the changes introduced by the topic branch since the branches diverged," whereas with two-dot "the diff changes when the base branch is updated, even if you haven't made any changes to the topic branch." (B and C are what you would get from a two-dot view. D confuses the diff with a merge requirement — a ruleset can demand the branch be up to date, but that is a separate gate, covered in Week 5.)</p>
@@ -97,7 +97,7 @@
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The model hallucinated the findings</button></li>
         <li><button data-opt="b">Your teammate's code really is buggy and you should file it</button></li>
-        <li><button data-opt="c">Claude cannot see branch structure and always reviews the whole repository</button></li>
+        <li><button data-opt="c">Claude cannot see branch structure and always reviews the whole repository, so every teammate's code is in scope</button></li>
         <li><button data-opt="d">The review scope was a two-dot range, so it included main's newer commits reversed into your diff</button></li>
       </ol>
       <div class="q-why" hidden>
@@ -108,10 +108,10 @@
     <div class="q" data-answer="c">
       <p class="q-text">3. A <code>/compare/main...feature</code> page and the PR for <code>feature</code> show different file lists. Why can that happen?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">The compare page always uses two dots, whatever the URL says</button></li>
-        <li><button data-opt="b">One of the two pages is showing a cached, stale diff</button></li>
+        <li><button data-opt="a">The compare page always uses two dots whatever the URL says, so it shows the tip-to-tip difference and the PR page the three-dot one</button></li>
+        <li><button data-opt="b">One of the two pages is showing a cached, stale diff, and reloading it a few minutes later will bring the two lists into agreement</button></li>
         <li><button data-opt="c">They can calculate changed files from different merge bases; the PR page focuses on what the PR introduced, the compare page on the current comparison</button></li>
-        <li><button data-opt="d">The PR page hides files that were changed on <code>main</code> after the PR opened</button></li>
+        <li><button data-opt="d">The PR page hides files that were changed on <code>main</code> after the PR opened, and the compare page shows them, so the compare page is the complete list and the PR page is the abridged one</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>C.</strong> GitHub's own caution, almost verbatim. It "usually matters when the base branch has changed since the pull request was created." Neither page is stale or lying — they are answering different questions, which is exactly why you should know which one you are looking at.</p>
@@ -121,10 +121,10 @@
     <div class="q" data-answer="b">
       <p class="q-text">4. Your PR shows a conflict-resolution change in a file you never edited by hand. Is that file legitimately part of your PR?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">No — GitHub is showing a two-dot artefact and it will disappear on refresh</button></li>
+        <li><button data-opt="a">No — GitHub is showing a two-dot artefact and it will disappear on refresh, once the diff is recomputed from the merge base</button></li>
         <li><button data-opt="b">Yes — you merged <code>main</code> into your branch and resolved a conflict, and those resolutions are your branch's changes</button></li>
-        <li><button data-opt="c">No — conflict resolutions are stored on <code>main</code>, not on your branch</button></li>
-        <li><button data-opt="d">Yes, but only until the PR is merged, after which they move to <code>main</code></button></li>
+        <li><button data-opt="c">No — conflict resolutions are stored on <code>main</code>, not on your branch, so they belong to whoever merges next</button></li>
+        <li><button data-opt="d">Yes, but only until the PR is merged, after which they move to <code>main</code> and vanish from the PR's diff</button></li>
       </ol>
       <div class="q-why" hidden>
         <p><strong>B.</strong> A merge commit on your branch, and whatever you did to resolve the conflict inside it, sits between the merge base and your tip — so the three-dot diff includes it, correctly. This is one of the three legitimate reasons an "unrelated" file appears; the diagnosis is always the same: find the merge base and read what lies between it and <code>HEAD</code>.</p>
@@ -179,7 +179,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-12.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>
