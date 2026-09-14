@@ -167,7 +167,7 @@ index a8ba90c..77dc1ac 100644
     <div class="fc-deck">
       <div class="fc"><div class="fc-front">The three reviewability tests, in order?</div><div class="fc-back">Single purpose (one sentence covers every hunk), bounded size (one sitting), no drive-bys (nothing the ticket did not ask for).</div></div>
       <div class="fc"><div class="fc-front">Two commands that show a diff's shape before its content?</div><div class="fc-back"><code>gh pr diff N --name-only</code> and <code>gh pr view N --json additions,deletions,changedFiles</code>.</div></div>
-      <div class="fc"><div class="fc-front">Does <code>gh pr diff</code> have <code>--stat</code>?</div><div class="fc-back">No — "unknown flag: --stat" on 2.100.0. It has <code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--web</code>.</div></div>
+      <div class="fc"><div class="fc-front">Does <code>gh pr diff</code> have <code>--stat</code>?</div><div class="fc-back">No — "unknown flag: --stat" on 2.100.0. It has <code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--web</code>, <code>--color</code>, and <code>--allow-escape-sequences</code>.</div></div>
       <div class="fc"><div class="fc-front">PR #4's shape?</div><div class="fc-back">2 files (model + its test file), +63 −0. Every hunk serves "adds four defaulted review-state fields to Card and validates them."</div></div>
       <div class="fc"><div class="fc-front">The ancillary source's size guidance?</div><div class="fc-back">Google eng-practices: "100 lines is usually a reasonable size for a CL, and 1000 lines is usually too large, but it's up to the judgment of your reviewer."</div></div>
       <div class="fc"><div class="fc-front">Why is "reviewable" not the same as "small"?</div><div class="fc-back">PR #5 grew to five files with another PR's merged hunks in it — same work, less reviewable. Size is a symptom; the test is the sentence.</div></div>
@@ -184,7 +184,7 @@ index a8ba90c..77dc1ac 100644
     <h2>Where to learn more</h2>
     <ul>
       <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a><span class="why">"What is Small?", the 100/1000-line guidance, "Separate Out Refactorings," and the stacking and vertical-splitting strategies — practitioner material, marked as such; the mechanics on this page come from your own diffs.</span></li>
-      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a><span class="why">The four flags that exist (<code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--web</code>) and the one that does not.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a><span class="why">The six flags that exist (<code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--web</code>, <code>--color</code>, <code>--allow-escape-sequences</code>; re-read 2026-09-14) and the one that does not.</span></li>
       <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a><span class="why"><code>--json additions,deletions,changedFiles,files</code> — the size numbers this page uses instead of <code>--stat</code>.</span></li>
       <li><span class="tier t1">Tier 1</span><a href="../../week-01/m03-the-merge-base/what-github-shows.html">M03 page 2: What GitHub Shows You</a><span class="why">Why a PR's diff is computed from the merge base — the reason the five-file version of #5 existed at all.</span></li>
     </ul>
@@ -206,7 +206,7 @@ index a8ba90c..77dc1ac 100644
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

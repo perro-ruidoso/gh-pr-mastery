@@ -40,7 +40,7 @@
   <p><strong>Be honest about how much history is there.</strong> The course is being written as you take it, so the repository's history is short and growing, and it is not uniformly dogfooded — the first commit is a squashed import of everything that existed before the repo had version control at all. That is itself worth reading: a single enormous initial commit tells you nothing about how the work was done, which is exactly why the commits after it are structured differently. Do not describe process the artifacts do not show.</p>
 
   <h2>A snapshot, so you know what "reading it" looks like</h2>
-  <p>Here is the merged-PR history as it stood on 2026-09-13, when this page was last checked against the live repository. Yours will be longer; run the command and compare.</p>
+  <p>Here is the merged-PR history as it stood on 2026-09-14, when this page was last checked against the live repository (the merged list had not changed since 2026-09-13; the issue list had). Yours will be longer; run the command and compare.</p>
 
   <span class="code-label">$ gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged --json number,title,mergedAt,headRefName,closingIssuesReferences --jq '.[] | "\(.number)\t\(.mergedAt)\t\(.headRefName)\tcloses \([.closingIssuesReferences[].number])"'</span>
   <pre><code>14  2026-09-13T15:43:30Z  13-week2-pages                                        closes [13]
@@ -52,7 +52,9 @@
 3   2026-09-12T15:27:45Z  1-org-qualify-references                              closes [1]</code></pre>
 
   <span class="code-label">$ gh issue list --repo perro-ruidoso/gh-pr-mastery --state all --json number,state,closedAt --jq '.[] | "#\(.number)\t\(.state)\t\(.closedAt)"'</span>
-  <pre><code>#15  OPEN    null
+  <pre><code>#19  OPEN    null
+#17  OPEN    null
+#15  OPEN    null
 #13  CLOSED  2026-09-13T15:43:31Z
 #11  CLOSED  2026-09-13T15:40:03Z
 #9   CLOSED  2026-09-12T17:01:50Z
@@ -66,10 +68,10 @@
     <table>
       <thead><tr><th>Observation</th><th>Inference</th></tr></thead>
       <tbody>
-        <tr><td>Seven merged PRs; every one has a non-empty <code>closingIssuesReferences</code>; one issue (#15) is open with no PR yet</td><td>The unit of work is one issue → one PR, at least so far. (Seven is the whole population here, not a sample — say so.)</td></tr>
+        <tr><td>Seven merged PRs; every one has a non-empty <code>closingIssuesReferences</code>; three issues are open (#15, #17, #19), and <code>gh pr list --state open</code> shows two open PRs — #16 for #15 and #18 for #17 — with #18's base being #16's branch and its <code>closingIssuesReferences</code> empty</td><td>The unit of work is one issue → one PR, at least so far. (Seven is the whole population here, not a sample — say so.) The open pair is a stack caught <em>before</em> its retarget: #18 carries <code>Closes #17</code> in its body and links nothing, exactly the state #14 was in on 2026-09-13 before 15:40:05 — read it while it lasts.</td></tr>
         <tr><td>PR #3 merged <strong>15:27:45</strong>; issue #1 closed <strong>15:27:46</strong>. PR #12 merged <strong>15:40:01</strong>; issue #11 closed <strong>15:40:03</strong>. PR #14 merged <strong>15:43:30</strong>; issue #13 closed <strong>15:43:31</strong></td><td>One- and two-second gaps, every time. The issues were closed by the merges via linking keywords — the same evidence as the <code>cli/cli</code> two-second gap on page 1, produced by the same mechanism.</td></tr>
         <tr><td>Head branches are named <code>1-org-qualify-references</code>, <code>2-a1-exhibit-target</code>, … — issue number first</td><td>Branches were named after their issues. Week 3 (M13) teaches the tool that produces this shape; the name alone does not prove which tool was used.</td></tr>
-        <tr><td>Issue numbers 1, 2, 4, 7, 9, 11, 13, 15 — and PR numbers 3, 5, 6, 8, 10, 12, 14</td><td>One shared number space (M05). The gaps in the issue list are not missing issues; they are pull requests.</td></tr>
+        <tr><td>Issue numbers 1, 2, 4, 7, 9, 11, 13, 15, 17, 19 — and PR numbers 3, 5, 6, 8, 10, 12, 14, 16, 18</td><td>One shared number space (M05). The gaps in the issue list are not missing issues; they are pull requests.</td></tr>
         <tr><td>PR #14's body says it was opened against the Week 1 branch, and its timeline carries a <code>base_ref_changed</code> event at 15:40:05 — four seconds after PR #12 merged</td><td>A stacked PR, retargeted to <code>main</code> once its parent landed. Page 1 walks the whole record; it is the M16 move of Week 3, done on this repository first.</td></tr>
       </tbody>
     </table>
@@ -81,7 +83,7 @@
   <span class="code-label">$ gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by --jq '.[] | "#\(.number) [\(.state)] \(.title)"'</span>
   <pre><code>#1 [closed] Org-qualify course-repo references now that the repo has an address</code></pre>
 
-  <p>Issue #2 was recorded as blocked by #1. Run the same command for every other issue and, as of 2026-09-13, exactly one more edge comes back — <strong>#13 is blocked by #11</strong> (the Week 2 pages depended on the Week 1 rebuild) — and the rest return an empty list. The empty list is a finding too, and worth stating precisely: <em>"no blocking relation is recorded for #4, #7, or #9"</em>, not <em>"they had no dependencies."</em></p>
+  <p>Issue #2 was recorded as blocked by #1. Run the same command for every other issue and, as of 2026-09-14, three more edges come back — <strong>#13 is blocked by #11</strong> (the Week 2 pages depended on the Week 1 rebuild), <strong>#17 by #13</strong> (Week 3 on Week 2), and <strong>#19 by #17</strong> (the audit that re-checked Week 3) — and the rest return an empty list. (On 2026-09-13 there was exactly one more edge; the count grows with the work, which is why the page gives the command and not only the answer.) The empty list is a finding too, and worth stating precisely: <em>"no blocking relation is recorded for #4, #7, or #9"</em>, not <em>"they had no dependencies."</em></p>
 
   <div class="callout warn">
     <span class="label">Dependencies are not sub-issues</span>
@@ -90,8 +92,8 @@
 
   <div class="exhibit">
     <span class="label">Your assignment target</span>
-    <p>Pick <strong>one merged pull request</strong> in <code>perro-ruidoso/gh-pr-mastery</code> and write roughly 300 words answering: what did it change, what was it blocked by, and <em>how can you tell</em>? Every claim must name the artifact that supports it — a field in <code>--json</code> output, a linked issue number, a timestamp, a review thread. Put it in <code>a1-writeup.md</code> at the root of your Instance; the full brief is <a href="../../../assignments/a1.md"><code>assignments/a1.md</code></a>.</p>
-    <p>Some things you might notice: which issues have blocking edges declared; whether a PR's base was <code>main</code> or another feature branch (one of them was not, and its timeline says when that changed); whether any issue was closed by hand rather than by a merge; how long the gap was between a PR opening and its first review; what <code>reviewDecision</code> says on a repository with, so far, one maintainer.</p>
+    <p>Pick <strong>one merged pull request</strong> in <code>perro-ruidoso/gh-pr-mastery</code> and write roughly 300 words answering: what did it change, what was it blocked by, and <em>how can you tell</em>? Every claim must name the artifact that supports it — a field in <code>--json</code> output, a linked issue number, a timestamp, a review thread. Put it in <code>a1-writeup.md</code> at the root of your Instance; the full brief is <a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/assignments/a1.md"><code>assignments/a1.md</code></a>.</p>
+    <p>Some things you might notice: which issues have blocking edges declared; whether a PR's base was <code>main</code> or another feature branch (#14's was not, and its timeline says when that changed; on 2026-09-14 #18 was still sitting on #16's branch, waiting for the same move); whether any issue was closed by hand rather than by a merge; how long the gap was between a PR opening and its first review; what <code>reviewDecision</code> says on a repository with, so far, one maintainer.</p>
     <p>Start here:</p>
     <pre><code>$ gh pr list --repo perro-ruidoso/gh-pr-mastery --state merged \
     --json number,title,mergedAt,headRefName
@@ -174,7 +176,7 @@ $ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked
       <div class="fc"><div class="fc-front">Endpoint that lists the issues blocking issue <em>N</em> in <em>O/R</em>?</div><div class="fc-back"><code>gh api repos/O/R/issues/N/dependencies/blocked_by</code>. Stored on the issue, not the PR. From <code>gh</code> 2.94.0, <code>gh issue view N --json blockedBy</code> reads the same relation.</div></div>
       <div class="fc"><div class="fc-front"><strong>Issue Dependency</strong> vs <strong>Sub-Issue</strong> — graph or hierarchy?</div><div class="fc-back">Dependency = graph (blocked by many, blocking many). Sub-issue = hierarchy (one parent, up to eight levels). Only the graph can express a two-blocker join.</div></div>
       <div class="fc"><div class="fc-front">In the course repo, PR #3 merged at 15:27:45. When did issue #1 close, and what does that show?</div><div class="fc-back">15:27:46 — one second later. Closed by the merge via a linking keyword, the same mechanism as <code>cli/cli</code>'s two-second gap.</div></div>
-      <div class="fc"><div class="fc-front">Issue numbers 1, 2, 4, 7, 9, 11, 13 and PR numbers 3, 5, 6, 8, 10, 12, 14. Why the gaps?</div><div class="fc-back">One shared number space — the "missing" issue numbers are pull requests.</div></div>
+      <div class="fc"><div class="fc-front">Issue numbers 1, 2, 4, 7, 9, 11, 13, 15, 17, 19 and PR numbers 3, 5, 6, 8, 10, 12, 14, 16, 18. Why the gaps?</div><div class="fc-back">One shared number space — the "missing" issue numbers are pull requests.</div></div>
       <div class="fc"><div class="fc-front">What does the course repo's squashed initial commit tell you about process?</div><div class="fc-back">Nothing. It records the result and erases the process — and the honest write-up says exactly that.</div></div>
       <div class="fc"><div class="fc-front"><code>blocked_by</code> returns <code>[]</code> for an issue. The defensible sentence?</div><div class="fc-back">"No blocking relation is <em>recorded</em> for #N." Not "it had no dependencies," and not a story about why.</div></div>
       <div class="fc"><div class="fc-front">A1 item 6: what do you write, how long, and where does it go?</div><div class="fc-back">~300 words on one merged PR in <code>perro-ruidoso/gh-pr-mastery</code> — what changed, what blocked it, how you can tell — every claim naming its artifact, in <code>a1-writeup.md</code> at your Instance's root.</div></div>
@@ -194,17 +196,17 @@ $ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked
       <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">GitHub Docs: Adding sub-issues</a><span class="why">The other mechanism, so you can see for yourself why it is a tree. Note the limits: 100 per parent, eight levels.</span></li>
       <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_api">GitHub CLI manual: <code>gh api</code></a><span class="why">How to reach any endpoint with your existing <code>gh</code> auth, including <code>--jq</code> on the response and <code>-X POST</code> for Week 2.</span></li>
       <li><span class="tier">Course</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery">perro-ruidoso/gh-pr-mastery</a><span class="why">The exhibit itself. Read the Pull requests tab and the Issues tab side by side with the CLI output, and notice what each surface hides.</span></li>
-      <li><span class="tier">Course</span><a href="../../../CONTEXT.md">The course <code>CONTEXT.md</code></a><span class="why">The entries for <em>Work Dependency</em>, <em>Issue Dependency</em>, and <em>Sub-Issue</em> — the vocabulary your write-up should use, and the story of how PR #6 sharpened it.</span></li>
+      <li><span class="tier">Course</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/CONTEXT.md">The course <code>CONTEXT.md</code></a><span class="why">The entries for <em>Work Dependency</em>, <em>Issue Dependency</em>, and <em>Sub-Issue</em> — the vocabulary your write-up should use, and the story of how PR #6 sharpened it.</span></li>
     </ul>
   </section>
 
   <section class="sources">
     <h2>Sources for this page</h2>
     <ul>
-      <li>The snapshot transcripts were captured by running the commands shown against <a href="https://github.com/perro-ruidoso/gh-pr-mastery">perro-ruidoso/gh-pr-mastery</a> on 2026-09-12 and re-captured on 2026-09-13; the repository will have grown since, and the point of the page is that you run them again.</li>
+      <li>The snapshot transcripts were captured by running the commands shown against <a href="https://github.com/perro-ruidoso/gh-pr-mastery">perro-ruidoso/gh-pr-mastery</a> on 2026-09-12 and re-captured on 2026-09-13 and 2026-09-14 (each time the issue list, the open-PR pair, and the edge count had moved; the merged list had not); the repository will have grown since, and the point of the page is that you run them again.</li>
       <li><a href="https://docs.github.com/en/rest/issues/issue-dependencies">GitHub Docs: REST API endpoints for issue dependencies</a> — the routes were also probed live against <code>cli/cli</code>; the probe is recorded in the course's <code>NOTES.md</code></li>
       <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues">GitHub Docs: Adding sub-issues</a> — "up to 100 sub-issues per parent issue and create up to eight levels of nested sub-issues"; re-verified 2026-09-13</li>
-      <li><a href="../../../assignments/a1.md">Assignment A1</a> — item 6 and its rubric</li>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/assignments/a1.md">Assignment A1</a> — item 6 and its rubric</li>
     </ul>
   </section>
 
@@ -215,7 +217,7 @@ $ gh api repos/perro-ruidoso/gh-pr-mastery/issues/&lt;n&gt;/dependencies/blocked
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

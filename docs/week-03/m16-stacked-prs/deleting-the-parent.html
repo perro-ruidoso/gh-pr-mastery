@@ -97,7 +97,7 @@ null  committed
 
   <div class="callout note">
     <span class="label">What the probes cost, and what they did not test</span>
-    <p>Four PRs and four branches on the throwaway, restored afterwards (<code>delete_branch_on_merge</code> back to <code>false</code>, #11 closed). Not tested: deleting the branch from the web UI's <em>Delete branch</em> button on a merged PR, or with <code>git push origin --delete</code>. The docs' sentence is worded for the first; the second is presumably the API path. If you try either, read the child's timeline afterwards and add the row.</p>
+    <p>Four PRs and four branches on the throwaway, restored afterwards (<code>delete_branch_on_merge</code> back to <code>false</code>, #11 closed at 17:16:31 — so a re-read of #11's timeline on 2026-09-14 shows three later events, <code>commented</code>, <code>closed</code>, <code>head_ref_deleted</code>, after the one printed above; <code>probe-child</code> is the one probe branch still on the repository). Not tested: deleting the branch from the web UI's <em>Delete branch</em> button on a merged PR, or with <code>git push origin --delete</code>. The docs' sentence is worded for the first; the second is presumably the API path. If you try either, read the child's timeline afterwards and add the row.</p>
   </div>
 
   <section class="handson">
@@ -198,7 +198,7 @@ null  committed
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

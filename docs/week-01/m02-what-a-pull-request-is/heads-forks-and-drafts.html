@@ -37,11 +37,11 @@
   <p>Listing open PRs on <code>cli/cli</code> shows something the single-PR view on the <a href="index.html">previous page</a> hid:</p>
 
   <span class="code-label">$ gh pr list -R cli/cli --limit 3</span>
-  <pre><code>14373  docs: Add step to install working version on Ubuntu Pro  <span class="dim">acoulton:patch-1</span>                    OPEN   2026-09-07T10:43:26Z
-14355  Remove obsolete Git test seams                           <span class="dim">williammartin-clean-git-test-seams</span>  DRAFT  2026-09-04T15:50:28Z
-14351  Improve git client tests                                 <span class="dim">williammartin-improve-git-tests</span>     DRAFT  2026-09-04T15:36:50Z</code></pre>
+  <pre><code>14437  Use internal Apple codesign action                       <span class="dim">williammartin-apple-codesign-action</span>  OPEN   2026-09-14T09:20:44Z
+14373  docs: Add step to install working version on Ubuntu Pro  <span class="dim">acoulton:patch-1</span>                     OPEN   2026-09-07T10:43:26Z
+14355  Remove obsolete Git test seams                           <span class="dim">williammartin-clean-git-test-seams</span>   DRAFT  2026-09-04T15:50:28Z</code></pre>
 
-  <p>Look at the third column (captured 2026-09-13; the open list moves daily, the shape does not). One of these heads is written <code>owner:branch</code> — <code>acoulton:patch-1</code> — and two are bare branch names. That is the difference between a <strong>cross-repository</strong> pull request, whose head branch lives in a contributor's fork, and a <strong>same-repository</strong> one, whose head branch lives in <code>cli/cli</code> itself. In <code>--json</code> output the same fact is the boolean <code>isCrossRepository</code>.</p>
+  <p>Look at the third column (captured 2026-09-14; the top row was one day old, and the list moves daily — the shape does not). One of these heads is written <code>owner:branch</code> — <code>acoulton:patch-1</code> — and two are bare branch names. That is the difference between a <strong>cross-repository</strong> pull request, whose head branch lives in a contributor's fork, and a <strong>same-repository</strong> one, whose head branch lives in <code>cli/cli</code> itself. In <code>--json</code> output the same fact is the boolean <code>isCrossRepository</code>.</p>
 
   <p>The base repository still owns the pull request. GitHub's documentation explains how: "When you open a pull request, GitHub creates temporary Git references that point to the pull request's head branch and, when possible, to a simulated merge result." Those refs are how CI, reviews, and the merge button can operate on code that lives in somebody else's copy — and, the docs add, they are "most relevant when you are building automation, debugging CI behavior, or fetching pull request state locally." You will meet them again in Week 5.</p>
 
@@ -62,7 +62,7 @@
 
   <div class="callout note">
     <span class="label">This distinction returns, and it bites</span>
-    <p>In Week 5 you will learn that a pull request from a fork cannot read the base repository's Actions secrets — so agentic review in CI cannot run on it. That limit is a direct consequence of what you just read: the head branch is untrusted code from outside the repository. Same-repo PR, secrets available. Fork PR, no secrets. Remember where you first saw the distinction; the reasoning is written up in <a href="../../../adr/0004-two-modes-on-the-upstream-repo.md"><code>adr/0004</code></a>.</p>
+    <p>In Week 5 you will learn that a pull request from a fork cannot read the base repository's Actions secrets — so agentic review in CI cannot run on it. That limit is a direct consequence of what you just read: the head branch is untrusted code from outside the repository. Same-repo PR, secrets available. Fork PR, no secrets. Remember where you first saw the distinction; the reasoning is written up in <a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/adr/0004-two-modes-on-the-upstream-repo.md"><code>adr/0004</code></a>.</p>
   </div>
 
   <h2>Draft is a state, not a folder</h2>
@@ -91,7 +91,7 @@
     <h2>Self-check</h2>
 
     <div class="q" data-answer="c">
-      <p class="q-text">1. In <code>gh pr list</code>, one PR's head shows as <code>acoulton:patch-1</code> and another as <code>clean-git-test-seams</code>. What does the difference tell you?</p>
+      <p class="q-text">1. In <code>gh pr list</code>, one PR's head shows as <code>acoulton:patch-1</code> and another as <code>williammartin-clean-git-test-seams</code>. What does the difference tell you?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">The first is a draft and the second is ready for review; the colon is how <code>gh</code> marks draft state in a listing</button></li>
         <li><button data-opt="b">The first has been approved and the second has not yet been reviewed by anyone</button></li>
@@ -179,7 +179,7 @@
     <ul>
       <li><a href="https://docs.github.com/en/pull-requests/reference/pull-requests">GitHub Docs: Pull requests</a> — draft behaviour, temporary refs, and the two development models; fetched 2026-09-12 (canonical URL)</li>
       <li><a href="https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets">GitHub Docs: Using secrets in GitHub Actions</a> — secrets are not passed to runs triggered from a fork; the quotation is recorded in the course's <code>NOTES.md</code></li>
-      <li>Live data: open pull requests in <a href="https://github.com/cli/cli">cli/cli</a>, read 2026-09-12.</li>
+      <li>Live data: open pull requests in <a href="https://github.com/cli/cli">cli/cli</a>, read 2026-09-12; the listing was re-captured 2026-09-13 and again 2026-09-14 (a new same-repository PR had arrived on top; the fork/bare-branch count was unchanged).</li>
     </ul>
   </section>
 
@@ -190,7 +190,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

@@ -18,7 +18,8 @@ three Week 3–5 rows (base branch, reviewing, CI) had moved and now carry their
 every other row answered 200 with no redirect. Re-checked again 2026-09-13 before Week 3: the Week 3
 rows below answered 200 with no redirect; five *new* URLs fetched for Week 3 (merge conflicts ×3,
 creating a PR, PR merges) redirected once each and are recorded at their canonical addresses.
-Re-check again before writing Weeks 4–6.
+Re-checked again in the 2026-09-14 Weeks 1–3 audit: **all 105 external URLs** on the site and in
+this file answered 200 with no redirect. Re-check again before writing Weeks 4–6.
 
 | Resource | URL | Used in |
 |---|---|---|
@@ -94,22 +95,31 @@ Re-check again before writing Weeks 4–6.
 | AI Hero: smart zone (the ~120k-token limit `ask-matt` links) | https://www.aihero.dev/ai-coding-dictionary/smart-zone | M18 |
 
 Local copies of the skills this course teaches are at `~/.agents/skills/`, symlinked into
-`~/.claude/skills/`. Read the installed `SKILL.md` when writing a lesson — it is the
-version students will actually run — and cite the upstream repo as the source.
+`~/.claude/skills/` — a `npx skills` snapshot dated 2026-07-09 (38 skills). Read the installed
+`SKILL.md` when writing a lesson and cite the upstream repo as the source — **but note (found
+2026-09-14) that students install the Claude Code plugin, whose manifest
+(`.claude-plugin/plugin.json`, v1.2.3) carries 25 skills tracking upstream head, so "the version
+students will actually run" is the plugin's, not this machine's.** The plugin lacks
+`request-refactor-plan` and `qa` (deleted upstream 2026-08-05, commit `c66bdee`; the changeset
+names `/to-spec` + `/improve-codebase-architecture` and `/triage` + `/to-tickets` as their
+replacements), `git-guardrails-claude-code` (`misc`), and `claude-handoff` (`in-progress`).
+See `NOTES.md`, Weeks 1–3 audit §1, for the file-by-file diff.
 
 The installed files Week 3 quotes, all dated 2026-07-09 and read 2026-09-13; upstream
-paths as of the same day (`skills/<bucket>/<name>/SKILL.md`):
+paths as of 2026-09-14, head `3cca18b` (`skills/<bucket>/<name>/SKILL.md`), with the
+substantive upstream changes since the snapshot:
 
 | Installed `SKILL.md` | Upstream bucket | Used in |
 |---|---|---|
-| `resolving-merge-conflicts` | `engineering` | M17 |
-| `ask-matt` | `engineering` | M18 |
-| `wayfinder` | `engineering` (upstream description re-punctuated 2026-08-19; same words) | M18 |
-| `request-refactor-plan` | **none — removed upstream 2026-08-05** (commit `c66bdee`); still installed and quoted from the installed file | M18 |
-| `grill-me` (delegates to `grilling`) | `productivity` | M18 |
-| `tdd` (+ `tests.md`, `mocking.md`) | `engineering` | M18 |
-| `handoff` | `productivity` | M18 |
-| `git-guardrails-claude-code` (+ `scripts/block-dangerous-git.sh`) | `misc` — "Tools I keep around but rarely use, not promoted in the plugin" | M18 |
+| `resolving-merge-conflicts` | `engineering`; in the plugin; same words (one em-dash → comma) | M17 |
+| `ask-matt` | `engineering`; in the plugin; **rewritten 2026-08-05**: smart zone ~150k (was ~120k), "Crossing sessions" → "Phase boundaries" (`/compact` the default, `/handoff` narrow), `resolving-merge-conflicts` now listed under Standalone | M18 |
+| `wayfinder` | `engineering`; in the plugin; description says "decision tickets" since 2026-07-13 (installed: "investigation tickets") and lost its em-dashes 2026-08-19 | M18 |
+| `request-refactor-plan` | **none — removed upstream 2026-08-05** (commit `c66bdee`, replaced by `/to-spec` + `/improve-codebase-architecture`); never in the plugin; still installed here and quoted from the installed file | M18 |
+| `grill-me` (delegates to `grilling`) | `productivity`; in the plugin; body now "Call the Skill tool with “grilling”." (2026-08-15); `grilling` itself rewritten into rounds 2026-07-13 → 2026-08-20 | M18 |
+| `tdd` (+ `tests.md`, `mocking.md`) | `engineering`; in the plugin; description unchanged | M18 |
+| `handoff` | `productivity`; in the plugin; description unchanged (one body line reworded 2026-08-15) | M18 |
+| `git-guardrails-claude-code` (+ `scripts/block-dangerous-git.sh`) | `misc` — "Tools I keep around but rarely use, not promoted in the plugin"; **not in the plugin**; description unchanged | M18 |
+| `qa` | **none — removed upstream 2026-08-05** with `request-refactor-plan` (replaced by `/triage` + `/to-tickets`); never in the plugin; still installed here | M05 (named), M24 (primary source) |
 
 ## Tier 4 — Linear official
 

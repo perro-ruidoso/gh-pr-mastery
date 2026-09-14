@@ -60,6 +60,7 @@ e474711 Initial commit
 
   <span class="code-label">$ gh api graphql -f query='{ repository(owner:"perro-ruidoso", name:"flashcards-w3probe") { issue(number:1) { linkedBranches(first:10) { nodes { ref { name } } } } } }' --jq '.data.repository.issue.linkedBranches.nodes[].ref.name'</span>
   <pre><code>1-add-review-state-to-card-repetitions-ease-factor-interval-due-date</code></pre>
+  <p>Re-run on 2026-09-14, after PR #4 had been opened from the branch and merged, the same query returns an empty <code>nodes</code> list — the relation had moved to the pull request, as the section below shows happening live. Run it before you open the PR if you want to see the branch.</p>
 
   <h2><code>--name</code> and <code>--base</code></h2>
   <p>Two flags change the defaults, and both were used for the second ticket. <code>--name</code> replaces the slugified title; <code>--base</code> — "Name of the remote branch you want to make your new branch from" — creates the branch from something other than the default branch. The manual adds a sentence that <a href="../m16-stacked-prs/index.html">M16</a> depends on: "The new branch will be configured as the base branch for pull requests created using <code>gh pr create</code>."</p>
@@ -189,7 +190,7 @@ e474711 Initial commit
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

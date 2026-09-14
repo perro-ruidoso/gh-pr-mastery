@@ -16,7 +16,7 @@
 
 <main>
   <h1>Ask Matt First</h1>
-  <p class="lede">You have used six of the installed skills so far — <code>setup-matt-pocock-skills</code>, <code>to-spec</code>, <code>to-tickets</code>, <code>resolving-merge-conflicts</code>, and soon <code>code-review</code> and <code>qa</code>. There are thirty-eight. One of them exists to tell you which of the others fits, and its own text is the best map of the toolbelt there is.</p>
+  <p class="lede">You have used four of the installed skills so far — <code>setup-matt-pocock-skills</code>, <code>to-spec</code>, <code>to-tickets</code>, <code>resolving-merge-conflicts</code> — and Week 4 adds <code>code-review</code> and the issue-filing step that <code>qa</code> used to own. There are thirty-eight on the course machine and twenty-five in the plugin (see the box below). One of them exists to tell you which of the others fits, and its own text is the best map of the toolbelt there is.</p>
 
   <div class="obj-banner">
     <div class="chips">
@@ -35,7 +35,7 @@
 
   <h2>What a skill is, and who gets to start one</h2>
   <p>Anthropic's documentation: "Skills extend what Claude can do. Create a <code>SKILL.md</code> file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with <code>/skill-name</code>." Every skill has "YAML frontmatter between <code>---</code> markers that tells Claude when to use the skill, and markdown content with the instructions Claude follows when the skill runs. The directory name becomes the command you type, and the description helps Claude decide when to load the skill automatically."</p>
-  <p>One front-matter field decides who can start a skill. From the same page: "To keep a personal or project skill but stop Claude from invoking it on its own, set <code>disable-model-invocation: true</code> in its frontmatter." The skills repository's README draws the same line in its own words: "User-invoked skills are reachable only when you type them (e.g. <code>/grill-me</code>); their job is to orchestrate. Model-invoked skills can be invoked by you or reached for automatically by the agent when the task fits; they hold the reusable discipline. A user-invoked skill may invoke model-invoked skills, but never another user-invoked one." That is why <span class="skill">/resolving-merge-conflicts</span> could have started on its own when M17's merge stopped, and <span class="skill">/ask-matt</span> never will.</p>
+  <p>One front-matter field decides who can start a skill. From the same page: "To keep a personal or project skill but stop Claude from invoking it on its own, set <code>disable-model-invocation: true</code> in its frontmatter, or “user-invocable-only” in skillOverrides when you don’t want to edit the file." The skills repository's README draws the same line in its own words: "User-invoked skills are reachable only when you type them (e.g. <code>/grill-me</code>); their job is to orchestrate. Model-invoked skills can be invoked by you or reached for automatically by the agent when the task fits; they hold the reusable discipline. A user-invoked skill may invoke model-invoked skills, but never another user-invoked one." That is why <span class="skill">/resolving-merge-conflicts</span> could have started on its own when M17's merge stopped, and <span class="skill">/ask-matt</span> never will.</p>
 
   <h2>The router</h2>
   <p>Installed at <code>~/.agents/skills/ask-matt/SKILL.md</code> (dated 2026-07-09, read 2026-09-13), front matter <code>description: Ask which skill or flow fits your situation. A router over the skills in this repo.</code> and <code>disable-model-invocation: true</code>. Its first line: "You don't remember every skill, so ask." Then a structure worth memorising, because it is how the toolbelt is organised:</p>
@@ -55,20 +55,24 @@
     </table>
   </div>
 
-  <p>Two sentences in the file matter beyond routing. On context: "Keep steps 1–3 in <strong>one unbroken context window</strong> — don't compact or clear until after <code>/to-tickets</code> — so the grilling, spec, and tickets all build on the same thinking. Each <code>/implement</code> then starts fresh, working from the ticket." That is the Week 2 sequence you ran, with the reason. And on the limit: "the <strong>smart zone</strong>: the window (~120k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before <code>/to-tickets</code>, don't push on degraded — <code>/handoff</code> and continue in a fresh thread."</p>
+  <p>Two sentences in the file matter beyond routing. On context: "Keep steps 1–3 in <strong>one unbroken context window</strong> — don't compact or clear until after <code>/to-tickets</code> — so the grilling, spec, and tickets all build on the same thinking. Each <code>/implement</code> then starts fresh, working from the ticket." That is the Week 2 sequence you ran, with the reason. And on the limit: "the <strong>smart zone</strong>: the window (~120k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before <code>/to-tickets</code>, don't push on degraded — <code>/handoff</code> and continue in a fresh thread." That is the 2026-07-09 copy. The upstream router was rewritten on 2026-08-05: the figure is now "~150k tokens", the advice is "<code>/compact</code> at the nearest phase boundary and carry on", and a new <em>Phase boundaries</em> section ranks five options — continue, <code>/clear</code>, <code>/handoff</code> ("Narrow: only for a new harness, a new directory, a colleague, or forking a side task mid-phase"), a subagent, and <code>/compact</code> ("The default"). A plugin install carries the new text; page 2's <code>handoff</code> entry is written so that it holds under both.</p>
 
   <div class="callout note">
     <span class="label">Where the course's skills sit on the map</span>
-    <p>Week 1's <code>setup-matt-pocock-skills</code> is the precondition. Week 2's <code>to-spec</code> and <code>to-tickets</code> are main-flow step 3. This week's <code>resolving-merge-conflicts</code> is not on the map at all — it is a model-invoked discipline that any step may need. Week 4's <code>code-review</code> is the close of <code>implement</code>, and <code>qa</code> is an on-ramp (it files issues for <code>triage</code>). Week 6's <code>triage</code> is the first on-ramp. Page 2 places the six the objective names.</p>
+    <p>Week 1's <code>setup-matt-pocock-skills</code> is the precondition. Week 2's <code>to-spec</code> and <code>to-tickets</code> are main-flow step 3. This week's <code>resolving-merge-conflicts</code> is not on the installed (2026-07-09) map at all — it is a model-invoked discipline that any step may need; the upstream router lists it under Standalone since 2026-08-05. Week 4's <code>code-review</code> is the close of <code>implement</code>, and <code>qa</code> is an on-ramp (it files issues for <code>triage</code>). Week 6's <code>triage</code> is the first on-ramp. Page 2 places the six the objective names.</p>
   </div>
 
-  <h2>Two things the installed copy does not match upstream</h2>
-  <p>The installed skills are a snapshot dated 2026-07-09. The upstream repository, read 2026-09-13, has moved. The differences that touch this objective:</p>
+  <h2>What the installed copy does not match upstream</h2>
+  <p>The installed skills are a snapshot dated 2026-07-09. The upstream repository, read 2026-09-13 and again 2026-09-14 (head <code>3cca18b</code>, 2026-09-04), has moved further than the first reading found. The differences that touch this objective:</p>
   <ul>
-    <li><strong><code>request-refactor-plan</code> no longer exists upstream.</strong> The commit <code>c66bdee</code>, 2026-08-05, "chore: remove six unused skills and the personal bucket," deleted it; the repository's <code>deprecated/README.md</code> says "a retired skill is deleted, and the changeset that removes it names whatever replaced it." It is still installed on the course machine and still runs; page 2 quotes it from the installed file and says so.</li>
-    <li><strong>Descriptions were re-punctuated.</strong> A commit on 2026-08-19 removed every em-dash from the repository, so <code>wayfinder</code>'s upstream description reads "(more than one agent session can hold)" where the installed one reads "— more than one agent session can hold —". Same words. Page 2 quotes the installed text, because that is what runs.</li>
-    <li><strong><code>git-guardrails-claude-code</code> lives in <code>skills/misc/</code></strong>, whose README calls its contents "Tools I keep around but rarely use, not promoted in the plugin." It is not in <code>ask-matt</code>'s map either. Installed, working, off the route.</li>
+    <li><strong><code>request-refactor-plan</code> no longer exists upstream.</strong> The commit <code>c66bdee</code>, 2026-08-05, "chore: remove six unused skills and the personal bucket," deleted it; the repository's <code>deprecated/README.md</code> says "a retired skill is deleted, and the changeset that removes it names whatever replaced it." The changeset that removed it names the replacement: "<code>request-refactor-plan</code> → <code>/to-spec</code> and <code>/improve-codebase-architecture</code>" — and, in the same list, "<code>qa</code> → <code>/triage</code> and <code>/to-tickets</code>". Both are still installed on the course machine and still run; page 2 quotes <code>request-refactor-plan</code> from the installed file and says so.</li>
+    <li><strong>Descriptions and bodies were reworded, not only re-punctuated.</strong> A commit on 2026-08-19 removed every em-dash from the repository, so <code>wayfinder</code>'s upstream description reads "(more than one agent session can hold)" where the installed one reads "— more than one agent session can hold —". But it also says "decision tickets" where the installed file says "investigation tickets" (renamed 2026-07-13, four days after the snapshot); <code>grilling</code>'s description and body were rewritten between 2026-07-13 and 2026-08-20 into a round-by-round format; <code>grill-me</code>'s one-line body became "Call the Skill tool with “grilling”." on 2026-08-15; and <code>to-tickets</code>, <code>to-spec</code>, and <code>code-review</code> each changed a few words. Page 2 quotes the installed text and marks each divergence, because on the course machine that is what runs — on a plugin install it is not.</li>
+    <li><strong><code>git-guardrails-claude-code</code> lives in <code>skills/misc/</code></strong>, whose README calls its contents "Tools I keep around but rarely use, not promoted in the plugin." It is not in <code>ask-matt</code>'s map either. Installed on the course machine, working, off the route.</li>
   </ul>
+  <div class="callout warn">
+    <span class="label">What the plugin gives you (checked 2026-09-14)</span>
+    <p>The setup handout installs the skills as the Claude Code plugin, and the plugin's manifest (<code>.claude-plugin/plugin.json</code>, version 1.2.3) lists <strong>twenty-five</strong> skills: the <code>engineering</code> and <code>productivity</code> buckets, updated whenever upstream ships. It does <strong>not</strong> contain <code>request-refactor-plan</code> or <code>qa</code> (deleted upstream), <code>git-guardrails-claude-code</code> (kept in <code>misc</code>, "not promoted in the plugin"), or <code>claude-handoff</code> (<code>in-progress</code>). So two of the six skills this objective names are ones a plugin install cannot run: you can read their descriptions here, and you can add <code>git-guardrails-claude-code</code> by itself with the other installer (<code>npx skills@latest add mattpocock/skills</code>, which lets you pick skills), but <code>request-refactor-plan</code> exists only as the course machine's 2026-07-09 copy. The course machine's <code>~/.agents/skills/</code> is that older, fuller snapshot (38 skills); the pages say which copy each quotation is from.</p>
+  </div>
   <p>The lesson is the one M05 gave for <code>CLAUDE.md</code>: read the installed file, not the README, when you want to know what will happen.</p>
 
   <section class="selfcheck">
@@ -103,13 +107,13 @@
     <div class="q" data-answer="a">
       <p class="q-text">3. Why does this course quote the installed <code>SKILL.md</code> files rather than the repository README?</p>
       <ol class="q-opts" type="A">
-        <li><button data-opt="a">Because the installed file is what runs, and the two have diverged — one skill is gone upstream, descriptions re-punctuated</button></li>
-        <li><button data-opt="b">Because the README is generated from the files and may lag behind by a release, so the files are the newer of the two sources</button></li>
+        <li><button data-opt="a">Because the installed file is what runs, and the two have diverged — two named skills gone upstream, wording changed</button></li>
+        <li><button data-opt="b">Because the README is generated from the files and may lag behind by a release or two, so the files are always the newer of the two sources</button></li>
         <li><button data-opt="c">Because GitHub renders the README with the front matter stripped, so the descriptions cannot be read from it</button></li>
         <li><button data-opt="d">Because the README lists only user-invoked skills, and four of the six on page 2 are model-invoked</button></li>
       </ol>
       <div class="q-why" hidden>
-        <p><strong>A.</strong> <code>request-refactor-plan</code> was deleted upstream on 2026-08-05 and is still installed; the installed copies are <em>older</em>, not newer (B). The README does show descriptions (C) and lists both kinds (D).</p>
+        <p><strong>A.</strong> <code>request-refactor-plan</code> and <code>qa</code> were deleted upstream on 2026-08-05 and are still installed here; the smart-zone figure and the <code>handoff</code>/<code>compact</code> advice changed the same day; the installed copies are <em>older</em>, not newer (B). The README does show descriptions (C) and lists both kinds (D).</p>
       </div>
     </div>
   </section>
@@ -123,9 +127,9 @@
       <div class="fc"><div class="fc-front">The main flow, idea → ship?</div><div class="fc-back"><code>grill-with-docs</code> → (prototype detour via <code>handoff</code>) → <code>to-spec</code> → <code>to-tickets</code> → <code>implement</code> (drives <code>tdd</code>, closes with <code>code-review</code>).</div></div>
       <div class="fc"><div class="fc-front">The three on-ramps?</div><div class="fc-back"><code>triage</code> (issues you did not create), <code>diagnosing-bugs</code> (something is broken), <code>wayfinder</code> (huge, foggy effort).</div></div>
       <div class="fc"><div class="fc-front">Context rule around the spec and tickets?</div><div class="fc-back">"Keep steps 1–3 in one unbroken context window — don't compact or clear until after /to-tickets"; each /implement starts fresh.</div></div>
-      <div class="fc"><div class="fc-front">The smart zone?</div><div class="fc-back">"~120k tokens on state-of-the-art models" within which the model still reasons sharply; near it, <code>/handoff</code> rather than push on.</div></div>
+      <div class="fc"><div class="fc-front">The smart zone?</div><div class="fc-back">"~120k tokens on state-of-the-art models" in the 2026-07-09 copy (upstream says ~150k since 2026-08-05) within which the model still reasons sharply; near it, don't push on degraded — the old router says <code>/handoff</code>, the new one <code>/compact</code> at a phase boundary.</div></div>
       <div class="fc"><div class="fc-front">User-invoked vs model-invoked, per the README?</div><div class="fc-back">User-invoked "orchestrate," reachable only by typing; model-invoked "hold the reusable discipline" and the agent may reach for them. User-invoked never call user-invoked.</div></div>
-      <div class="fc"><div class="fc-front">Which named skill is gone upstream, and since when?</div><div class="fc-back"><code>request-refactor-plan</code> — removed 2026-08-05 (commit c66bdee); still installed and quoted from the installed file.</div></div>
+      <div class="fc"><div class="fc-front">Which named skill is gone upstream, and since when?</div><div class="fc-back"><code>request-refactor-plan</code> — removed 2026-08-05 (commit c66bdee; replaced by <code>/to-spec</code> + <code>/improve-codebase-architecture</code>); still installed on the course machine, absent from the plugin.</div></div>
     </div>
   </section>
 
@@ -151,7 +155,7 @@
       <li><code>~/.agents/skills/resolving-merge-conflicts/SKILL.md</code> — absence of <code>disable-model-invocation</code> (read 2026-09-13)</li>
       <li><a href="https://code.claude.com/docs/en/skills">Claude Code docs: Skills</a> — definition, front-matter description, <code>disable-model-invocation</code> (fetched 2026-09-13)</li>
       <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — README "Reference" paragraph on invocation, <code>skills/misc/README.md</code>, <code>skills/deprecated/README.md</code>, the directory listing under <code>skills/</code>, and commits <code>c66bdee</code> (2026-08-05) and the em-dash removal (2026-08-19), all read via the GitHub API on 2026-09-13</li>
-      <li><code>ls ~/.agents/skills/</code> — 38 installed skills, counted 2026-09-13</li>
+      <li><code>ls ~/.agents/skills/</code> — 38 installed skills, counted 2026-09-13 and 2026-09-14; the plugin manifest (<code>.claude-plugin/plugin.json</code>, 25 skills) and the upstream <code>SKILL.md</code> files re-diffed against the installed copies on 2026-09-14</li>
     </ul>
   </section>
 
@@ -162,7 +166,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

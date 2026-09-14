@@ -37,18 +37,18 @@
   <p><code>gh</code> has <a href="https://jqlang.org/">jq</a> built in via <code>-q</code>/<code>--jq</code>, so you can reshape output without installing anything. It only applies when <code>--json</code> is present, because it filters the JSON <code>gh</code> is about to print:</p>
 
   <span class="code-label">$ gh issue list -R cli/cli --limit 3 --json number,title,labels --jq '.[] | {number, title, labels: [.labels[].name]}'</span>
-  <pre><code>{"labels":["more-info-needed","needs-triage"],"number":14432,"title":"docs: improve README wording for quick start"}
-{"labels":["more-info-needed","needs-triage"],"number":14420,"title":"gh 2.100.0 fails HTTPS requests with an instant connection reset"}
-{"labels":["enhancement"],"number":14413,"title":"Feature request: allow selecting fields for human-readable list output"}</code></pre>
+  <pre><code>{"labels":["needs-triage"],"number":14439,"title":"Allow for [skip ci] in gh repo create --template"}
+{"labels":["more-info-needed","needs-triage"],"number":14432,"title":"docs: improve README wording for quick start"}
+{"labels":["more-info-needed","needs-triage"],"number":14420,"title":"gh 2.100.0 fails HTTPS requests with an instant connection reset"}</code></pre>
 
   <p>Read the expression left to right. <code>.[]</code> walks the array; the <code>|</code> passes each element on; <code>{number, title, labels: [...]}</code> builds a smaller object, flattening each label to its <code>name</code>. Notice the labels themselves: <code>needs-triage</code>, <code>more-info-needed</code>. A real project runs a triage vocabulary very like the one you will configure in <a href="../m05-configuring-the-skills/index.html">M05</a> and use in Week 6.</p>
 
   <p>Extracting a single value is the building block of every script you will write here:</p>
 
   <span class="code-label">$ gh pr list -R cli/cli --limit 1 --json number --jq '.[0].number'</span>
-  <pre><code>14373</code></pre>
+  <pre><code>14437</code></pre>
 
-  <p>A bare scalar, no quotes, no braces — exactly what a shell variable or a checker wants.</p>
+  <p>A bare scalar, no quotes, no braces — exactly what a shell variable or a checker wants. (It was <code>14373</code> on 2026-09-13 and <code>14437</code> on 2026-09-14: the newest open PR changes whenever one is opened, which is the point of reading it from a command rather than remembering it.)</p>
 
   <h2>Diffing: what actually changed</h2>
 
@@ -122,7 +122,7 @@
     </div>
 
     <div class="q" data-answer="b">
-      <p class="q-text">3. <code>gh pr list -R cli/cli --limit 1 --json number --jq '.[0].number'</code> prints <code>14373</code>. What did each part do?</p>
+      <p class="q-text">3. <code>gh pr list -R cli/cli --limit 1 --json number --jq '.[0].number'</code> prints a bare number (<code>14437</code> on 2026-09-14). What did each part do?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a"><code>--json</code> picked the first PR; <code>--jq</code> converted the object to a number</button></li>
         <li><button data-opt="b"><code>--json</code> produced an array of one object; <code>--jq</code> took element zero and read its <code>number</code> field</button></li>
@@ -173,7 +173,7 @@
     <ul>
       <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_help_formatting">GitHub CLI manual: <code>gh help formatting</code></a><span class="why">How <code>--json</code>, <code>--jq</code>, and <code>--template</code> interact, with the examples <code>gh</code> itself ships.</span></li>
       <li><span class="tier">Reference</span><a href="https://jqlang.org/manual/">jq manual</a><span class="why">Everything <code>--jq</code> accepts. Start with "Basic filters" and "select"; you will not need most of the rest. (jq moved to <code>jqlang.org</code>; the old <code>jqlang.github.io</code> address redirects.)</span></li>
-      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a><span class="why"><code>--name-only</code>, <code>--patch</code>, <code>--color</code>, and <code>--web</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a><span class="why"><code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--color</code>, and <code>--web</code> — and no <code>--stat</code> (M14).</span></li>
       <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_api">GitHub CLI manual: <code>gh api</code></a><span class="why">When a <code>--json</code> field does not exist for what you need, <code>gh api</code> reaches any REST or GraphQL endpoint with the same auth. M06 and Week 2 use it for issue dependencies.</span></li>
       <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_list">GitHub CLI manual: <code>gh issue list</code></a><span class="why">The issue-side listing used in the first example, including <code>--label</code> and <code>--search</code>.</span></li>
     </ul>
@@ -185,7 +185,7 @@
       <li><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a> — <code>--name-only</code>, <code>--patch</code>; fetched 2026-09-12</li>
       <li><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a> — <code>--jq</code> "Filter JSON output using a jq expression"; the <code>isCrossRepository</code> and <code>headRepositoryOwner</code> fields confirmed present in the field list on 2026-09-12</li>
       <li><a href="https://cli.github.com/manual/gh_issue_list">GitHub CLI manual: <code>gh issue list</code></a></li>
-      <li>Every transcript on this page was captured by running the command shown against <a href="https://github.com/cli/cli">cli/cli</a> on 2026-09-12.</li>
+      <li>Every transcript on this page was captured by running the command shown against <a href="https://github.com/cli/cli">cli/cli</a> on 2026-09-12 and re-run on 2026-09-13 and 2026-09-14; the issue listing and the newest-PR number moved each day and are shown as of 2026-09-14.</li>
     </ul>
   </section>
 
@@ -196,7 +196,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

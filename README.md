@@ -121,6 +121,20 @@ timestamps. `check_a3.py` grades the evidence (branch named from its issue, four
 M18 quotes each installed skill's description verbatim and records that `request-refactor-plan`
 was removed upstream on 2026-08-05.
 
+**Weeks 1–3 were audited on 2026-09-14** (issue #19; PR stacked on #18, itself stacked on #16) the
+same way, plus a cross-week coherence pass no audit had done. All 105 source URLs still answer
+200; every quotation is present. What it found: the installed skills the pages quote are a
+2026-07-09 snapshot, and the plugin students install has drifted further than the 13th recorded —
+`qa` was retired with `request-refactor-plan` (the changeset names both replacements), the plugin
+carries 25 skills and lacks two of M18's six, and `ask-matt` now reverses its `/handoff`-versus-
+`/compact` advice; nine links to files outside `docs/` were 404 on the published site (fixed, and
+`check_site.py` now refuses them); M06's course-repo snapshot had gone a day stale (four recorded
+edges now, and a second stacked PR caught in its *before* state); M01 said the Seed's backlog is
+inherited (it is not). Checkers fault-injected 28/28, 16/16, and 22/22; 42 pages render clean at
+1200 and 400 px; 133 self-checks, 0 flagged. Three decisions are owed and listed in `NOTES.md`:
+pin or track the plugin, what replaces `request-refactor-plan` in M18, and what M24 names instead
+of `/qa`.
+
 Not yet built: Weeks 4–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
 authored on an Instance where T03 has landed, not against the template), the
 merge-strategy simulator widget (Week 5), and the UI captures.

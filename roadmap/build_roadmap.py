@@ -17,7 +17,7 @@ HERE = Path(__file__).resolve().parent
 
 TITLE = "GitHub Pull Requests for Agentic Coders"
 SUBTITLE = "Build roadmap"
-AS_OF = "2026-09-13"
+AS_OF = "2026-09-14"
 
 ACCENT = RGBColor(0x6D, 0x4A, 0xB8)
 MUTED = RGBColor(0x66, 0x66, 0x66)
@@ -78,6 +78,17 @@ SECTIONS = [
              "28 pages render-tested at 1200 and 400 px (one overflow fixed); 81 of 93 "
              "self-check questions rewritten so option length no longer gives the answer "
              "away."),
+            ("DONE", "Weeks 1-3 audit (issue #19, 2026-09-14)",
+             "Extended to Week 3 plus a cross-week pass: 105 URLs re-fetched (all 200, no "
+             "redirects), 621 quotations re-checked, every read-only gh transcript re-run "
+             "(cli/cli moved again; M06's course-repo snapshot was a day stale), the "
+             "installed skills re-diffed against upstream and the plugin manifest (the "
+             "plugin has 25 skills and lacks request-refactor-plan, qa, git-guardrails; "
+             "ask-matt reversed its handoff/compact advice), nine links dead on the "
+             "published site fixed and a check_site.py rule added (28/28 faults caught), "
+             "check_a3 16/16 by snapshot replay, check_a1/a2 22/22 by live mutation, 42 "
+             "pages render-tested at 1200 and 400 px, 133 self-checks with 0 flagged. "
+             "Three decisions owed (below)."),
         ],
     ),
     (
@@ -131,8 +142,16 @@ SECTIONS = [
              "Rulesets, merge queue configuration, and Linear settings -- the surfaces "
              "with no CLI equivalent. Stored under docs/assets/shots/ with visible "
              "capture dates, because they rot."),
+            ("TODO", "Exercise the checkers' --handles batch mode once per cohort",
+             "All three checkers accept --handles FILE and --json; no audit has run the "
+             "batch path. A three-line file (seed, w2probe, a nonexistent handle) catches a "
+             "loop or exit-code regression before grading night. Twenty minutes."),
+            ("TODO", "Part 7 live-demo scripts for Weeks 2 and 3",
+             "Week 1 has scripted demos with real output; Weeks 2-3 have Part 10 bullets. "
+             "The Week 3 pages already hold every command and output (the retarget, the "
+             "conflict); Week 2's is the M11 two-parent experiment. Two hours, with Week 4."),
             ("TODO", "Delete the throwaway Instances flashcards-w2probe and flashcards-w3probe",
-             "Both private, in the org. w2probe carried the M08/M11/M12 transcripts and "
+             "Both private, in the org (still there 2026-09-14; w2probe now also carries the 2026-09-14 audit's fault-injection commits and a ninth closed issue). w2probe carried the M08/M11/M12 transcripts and "
              "the 2026-09-13 checker fault-injection; w3probe carried every Week 3 "
              "transcript (issues #1-#3, PRs #4-#11) and the check_a3.py run. The build "
              "token lacks delete_repo: `gh auth refresh -s delete_repo && gh repo "
@@ -176,6 +195,19 @@ SECTIONS = [
              "and AI magic-word enrichment. Free caps at 2 teams and 250 issues, ample "
              "for one Instance. M12 is written on the Free assumption; one live check "
              "remains under Infrastructure."),
+            ("DECIDE", "Pin the skill set, or track the plugin?",
+             "Found 2026-09-14: the handout installs the Claude Code plugin (25 skills, "
+             "tracking upstream), the course machine runs a 2026-07-09 snapshot (38). Two of "
+             "M18's six named skills and M24's /qa are not in the plugin, and the plugin's "
+             "ask-matt gives the opposite handoff/compact advice. Recommendation: track the "
+             "plugin and swap the absent skills (NOTES.md, Weeks 1-3 audit, S1)."),
+            ("DECIDE", "Replace request-refactor-plan in M18",
+             "Its upstream changeset names /to-spec + /improve-codebase-architecture as the "
+             "replacement. Recommendation: improve-codebase-architecture (in the plugin, on "
+             "ask-matt's map). Touches M18 p2, the objective row, A3 item 6, check_a3.py."),
+            ("DECIDE", "Name M24's skill before Week 4 is built",
+             "/qa was retired upstream 2026-08-05 into /triage and /to-tickets. One objective "
+             "row and one primary source now; a page rewrite if left until later."),
             ("DECIDE", "Does a Pro subscription absorb the cohort's CI review volume?",
              "Or is Max needed? Measure during the Week 5 dry run, before it matters."),
         ],

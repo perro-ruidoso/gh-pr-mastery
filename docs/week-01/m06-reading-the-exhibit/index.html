@@ -119,7 +119,7 @@ graph LR
   <span class="code-label">$ gh issue view 13 -R perro-ruidoso/gh-pr-mastery --json number,state,closedAt,stateReason</span>
   <pre><code>{"closedAt":"2026-09-13T15:43:31Z","number":13,"state":"CLOSED","stateReason":"COMPLETED"}</code></pre>
 
-  <p>Two more facts complete the picture, both from artifacts you can fetch yourself: PR #12 (the Week 1 rebuild, closing #11) merged at <strong>15:40:01</strong>, and PR #14's body opens with <em>"Closes #13. Stacked on #12 — the base branch is <code>11-week1-pages-flashcards-learn-more</code>"</em>. The <code>gh pr view</code> above shows <code>baseRefName: "main"</code>, so the base changed at some point; the timeline says exactly when.</p>
+  <p>Two more facts complete the picture, both from artifacts you can fetch yourself: PR #12 (the Week 1 rebuild, closing #11) merged at <strong>15:40:01</strong>, and PR #14's body opens with <em>"Closes #13. Stacked on #12 (the Week 1 rebuild) — the base branch is <code>11-week1-pages-flashcards-learn-more</code>"</em>. The <code>gh pr view</code> above shows <code>baseRefName: "main"</code>, so the base changed at some point; the timeline says exactly when.</p>
 
   <div class="table-wrap">
     <table>
@@ -253,7 +253,7 @@ graph LR
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/mermaid.min.js"></script>
 <script src="../../assets/app.js"></script>
