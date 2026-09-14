@@ -1255,9 +1255,12 @@ restored on w3probe (`probe-child` remains).
     documentary; two branch-deletion paths untested; the `request-refactor-plan` decision.
 
 - **2026-09-14** — **Weeks 1–3 audit** (issue #19, branch `19-audit-weeks-1-3` from
-  `17-week3-pages` via `gh issue develop`; PR stacked on #18, which is stacked on #16 — #16
-  had not merged, so the #18 retarget the brief asked for could not be recorded; the *before*
-  state is on M06 p3 and M16 p2 instead). Findings, evidence, and fixes are in the
+  `17-week3-pages` via `gh issue develop`; **PR #20**, opened 13:00:50Z with base
+  `17-week3-pages` — picked by `gh pr create` from `gh-merge-base` — and
+  `closingIssuesReferences: []` on creation, stacked on #18, which is stacked on #16; #16 had
+  not merged, so the #18 retarget the brief asked for could not be recorded; the *before* state
+  is on M06 p3 and M16 p2 instead, and this three-deep stack is the next exhibit to record
+  when it unwinds). Findings, evidence, and fixes are in the
   "Weeks 1–3 audit" section above. Headlines: all 105 URLs 200 with no redirects; every
   quotation present, four course-artifact quotations tidied (an elision, a truncation, an
   "opens", a code block rendered as a sentence) and one Anthropic sentence extended
