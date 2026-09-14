@@ -42,7 +42,7 @@
     <table>
       <thead><tr><th>Criterion (from the backlog)</th><th>The wrong implementation it catches</th></tr></thead>
       <tbody>
-        <tr><td>"Intervals follow <code>I(1)=1</code>, <code>I(2)=6</code>, <code>I(n)=I(n-1)*EF</code>, rounded <strong>half-up</strong> with a floor of 1 day; bare <code>round()</code> is wrong" (#3)</td><td>Python's <code>round()</code>, which is banker's rounding: <code>round(2.5) == 2</code>. Off by one day, only on exact halves — the kind of bug tests miss unless one is written for it.</td></tr>
+        <tr><td>"Intervals follow <code>I(1)=1</code>, <code>I(2)=6</code>, <code>I(n)=I(n-1)*EF</code>, rounded <strong>half-up</strong> with a floor of 1 day; bare <code>round()</code> is wrong and <code>docs/adr/0001</code> says why" (#3)</td><td>Python's <code>round()</code>, which is banker's rounding: <code>round(2.5) == 2</code>. Off by one day, only on exact halves — the kind of bug tests miss unless one is written for it.</td></tr>
         <tr><td>"<code>today</code> is obtained once, in <code>cli/</code>, and passed down — no layer below reads the clock" (#5)</td><td>A <code>date.today()</code> call inside the scheduler. The command works; the tests become time-dependent and flaky.</td></tr>
         <tr><td>"a deck file written before this change still loads - missing fields fall back to the T01 defaults" (#2)</td><td>A loader that <code>KeyError</code>s on any deck saved before review state existed. Every existing user's data becomes unreadable.</td></tr>
         <tr><td>"A card with two tags is counted under both, and the totals row says so rather than silently exceeding the deck size" (#14)</td><td>A totals row that sums per-tag counts — 12 cards reported for a 10-card deck, with no explanation.</td></tr>
@@ -179,7 +179,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 2 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

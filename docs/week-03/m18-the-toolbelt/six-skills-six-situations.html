@@ -35,7 +35,7 @@
 
   <h2>wayfinder</h2>
   <div class="exhibit">
-    <span class="label"><code>~/.agents/skills/wayfinder/SKILL.md</code> · <code>disable-model-invocation: true</code> · on-ramp</span>
+    <span class="label"><code>~/.agents/skills/wayfinder/SKILL.md</code> · <code>disable-model-invocation: true</code> · on-ramp · in the plugin (whose copy says "decision tickets" for the installed "investigation tickets", renamed 2026-07-13)</span>
     <p><em>description:</em> "Plan a huge chunk of work — more than one agent session can hold — as a shared map of investigation tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear."</p>
   </div>
   <p>The body opens: "A loose idea has arrived — too big for one agent session, and wrapped in fog: the way from here to the <strong>destination</strong> isn't visible yet." Its first rule is "Plan, don't do": "each ticket resolves a decision, and the map is done when the way is clear — nothing left to decide before someone goes and does the thing." The map is "a single issue on this repo's issue tracker, labelled <code>wayfinder:map</code>," its tickets are child issues with <code>wayfinder:&lt;type&gt;</code> labels (research, prototype, grilling, task), and blocking "uses the tracker's <strong>native</strong> dependency relationship" — the same Week 2 issue dependencies, used to draw a frontier of decisions instead of tasks. "Never resolve more than one ticket per session."</p>
@@ -43,19 +43,19 @@
 
   <h2>request-refactor-plan</h2>
   <div class="exhibit">
-    <span class="label"><code>~/.agents/skills/request-refactor-plan/SKILL.md</code> · model-invocable · <strong>removed upstream 2026-08-05</strong>, still installed</span>
+    <span class="label"><code>~/.agents/skills/request-refactor-plan/SKILL.md</code> · model-invocable · <strong>removed upstream 2026-08-05</strong> (replaced, per its changeset, by <code>/to-spec</code> and <code>/improve-codebase-architecture</code>) · still installed on the course machine · <strong>not in the plugin</strong></span>
     <p><em>description:</em> "Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps."</p>
   </div>
   <p>Eight steps, of which the agent "may skip steps if you don't consider them necessary": a long description of the problem; explore the repo "to verify their assertions"; other options; a detailed interview; exact scope — "what you plan to change and what you plan not to change"; test coverage of the area; then "Break the implementation into a plan of tiny commits. Remember Martin Fowler's advice to 'make each refactoring step as small as possible, so that you can always see the program working.'" Step 8 files a GitHub issue with a fixed template — Problem Statement, Solution, <strong>Commits</strong>, Decision Document, Testing Decisions, Out of Scope, Further Notes — with the instruction "Do NOT include specific file paths or code snippets. They may end up being outdated very quickly."</p>
-  <p><strong>For:</strong> the M14 drive-by, done properly — the <code>format_deck</code> → <code>render_deck</code> rename, if it is worth doing at all, becomes an issue with a plan of tiny commits that each leave the suite green. <strong>Not for:</strong> a behaviour change; a refactor by this skill's definition keeps behaviour and moves structure. Note that its issue template is the <code>to-spec</code> shape with a Commits section in place of User Stories — and that the upstream author deleted the skill as unused; if you rely on it, keep your copy.</p>
+  <p><strong>For:</strong> the M14 drive-by, done properly — the <code>format_deck</code> → <code>render_deck</code> rename, if it is worth doing at all, becomes an issue with a plan of tiny commits that each leave the suite green. <strong>Not for:</strong> a behaviour change; a refactor by this skill's definition keeps behaviour and moves structure. Note that its issue template is the <code>to-spec</code> shape with a Commits section in place of User Stories — and that the upstream author deleted the skill as unused, naming <code>/to-spec</code> plus <code>/improve-codebase-architecture</code> as what does the job now. If you installed the plugin you do not have it; if you rely on the old copy, keep it.</p>
 
   <h2>grill-me</h2>
   <div class="exhibit">
-    <span class="label"><code>~/.agents/skills/grill-me/SKILL.md</code> · <code>disable-model-invocation: true</code> · standalone</span>
+    <span class="label"><code>~/.agents/skills/grill-me/SKILL.md</code> · <code>disable-model-invocation: true</code> · standalone · in the plugin</span>
     <p><em>description:</em> "A relentless interview to sharpen a plan or design."</p>
-    <p>Its entire body is one line: "Run a <code>/grilling</code> session."</p>
+    <p>Its entire body is one line: "Run a <code>/grilling</code> session." (Since 2026-08-15 the upstream line reads "Call the Skill tool with “grilling”." — same shape, same delegate.)</p>
   </div>
-  <p>So the substance is in <code>grilling</code>, the model-invoked primitive it delegates to — description "Grill the user relentlessly about a plan or design. Use when the user wants to stress-test a plan before building, or uses any 'grill' trigger phrases." Its body: "Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer. Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering." <code>ask-matt</code> places <code>grill-me</code> off the main flow: "the same relentless interview as <code>/grill-with-docs</code>, but for when you have <strong>no codebase</strong>. Stateless: it saves nothing locally, builds no <code>CONTEXT.md</code>."</p>
+  <p>So the substance is in <code>grilling</code>, the model-invoked primitive it delegates to — description "Grill the user relentlessly about a plan or design. Use when the user wants to stress-test a plan before building, or uses any 'grill' trigger phrases." Its installed body: "Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer. Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering." (Upstream rewrote <code>grilling</code> between 2026-07-13 and 2026-08-20 — the description now reads "Grill the user relentlessly about a plan, decision, or idea", and the body works the design tree in numbered <em>rounds</em> with a recommended answer under each question; the one-at-a-time rule became one-round-at-a-time. A plugin install runs that version.) <code>ask-matt</code> places <code>grill-me</code> off the main flow: "the same relentless interview as <code>/grill-with-docs</code>, but for when you have <strong>no codebase</strong>. Stateless: it saves nothing locally, builds no <code>CONTEXT.md</code>."</p>
   <p><strong>For:</strong> stress-testing your A3 plan — which two tickets, why that edge, what ticket C will collide on — before you touch a branch; or any design with no repository behind it. <strong>Not for:</strong> a design that lives in a repo and should update <code>CONTEXT.md</code> and ADRs as it goes — that is <code>grill-with-docs</code>, "the one that leaves a paper trail."</p>
 
   <h2>tdd</h2>
@@ -68,15 +68,15 @@
 
   <h2>handoff</h2>
   <div class="exhibit">
-    <span class="label"><code>~/.agents/skills/handoff/SKILL.md</code> · <code>disable-model-invocation: true</code> · <code>argument-hint: "What will the next session be used for?"</code> · crossing sessions</span>
+    <span class="label"><code>~/.agents/skills/handoff/SKILL.md</code> · <code>disable-model-invocation: true</code> · <code>argument-hint: "What will the next session be used for?"</code> · crossing sessions · in the plugin</span>
     <p><em>description:</em> "Compact the current conversation into a handoff document for another agent to pick up."</p>
   </div>
   <p>The body: "Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS - not the current workspace. Include a 'suggested skills' section … Do not duplicate content already captured in other artifacts (specs, plans, ADRs, issues, commits, diffs). Reference them by path or URL instead. Redact any sensitive information." And on the argument: "If the user passed arguments, treat them as a description of what the next session will focus on and tailor the doc accordingly." <code>ask-matt</code> on when: "when a thread is full or you need to branch off … You don't continue in place — you <strong>open a new session and reference that file</strong>." Against the built-in: "<code>/handoff</code> forks; <code>/compact</code> continues."</p>
-  <p><strong>For:</strong> the A3 conflict resolution is half-done, the session is near the smart zone, and you want a fresh session to finish it with the reasoning intact — <code>/handoff finish resolving the conflict on PR #5</code>. <strong>Not for:</strong> an intentional pause between phases in the same conversation where losing the verbatim history is fine — that is <code>/compact</code>. (A sibling, <code>claude-handoff</code>, is installed too and instead launches a background agent with the summary; it is in upstream's <code>in-progress</code> bucket.)</p>
+  <p><strong>For:</strong> the A3 conflict resolution is half-done and has to continue somewhere this session cannot follow — a colleague's machine, a different directory, a different harness — with the reasoning intact: <code>/handoff finish resolving the conflict on PR #5</code>. <strong>Not for:</strong> a pause between phases in the same conversation, where losing the verbatim history is fine — that is <code>/compact</code>. The two routers differ on the case in between: the installed <code>ask-matt</code> (2026-07-09) says a nearly full window is a <code>/handoff</code> case ("<code>/handoff</code> forks; <code>/compact</code> continues"); the upstream one (2026-08-05) makes <code>/compact</code> "the default" at a phase boundary and calls <code>/handoff</code> "Narrow: only for a new harness, a new directory, a colleague, or forking a side task mid-phase." The description has not changed; the recommendation around it has, so ground your answer in the description. (A sibling, <code>claude-handoff</code>, is installed too and instead launches a background agent with the summary; it is in upstream's <code>in-progress</code> bucket.)</p>
 
   <h2>git-guardrails-claude-code</h2>
   <div class="exhibit">
-    <span class="label"><code>~/.agents/skills/git-guardrails-claude-code/SKILL.md</code> (+ <code>scripts/block-dangerous-git.sh</code>) · model-invocable · <code>skills/misc/</code> upstream, not in <code>ask-matt</code></span>
+    <span class="label"><code>~/.agents/skills/git-guardrails-claude-code/SKILL.md</code> (+ <code>scripts/block-dangerous-git.sh</code>) · model-invocable · <code>skills/misc/</code> upstream, not in <code>ask-matt</code>, <strong>not in the plugin</strong> — add it alone with <code>npx skills@latest add mattpocock/skills</code> and pick it</span>
     <p><em>description:</em> "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code."</p>
   </div>
   <p>"Sets up a PreToolUse hook that intercepts and blocks dangerous git commands before Claude executes them." What gets blocked, from the file: "<code>git push</code> (all variants including <code>--force</code>) · <code>git reset --hard</code> · <code>git clean -f</code> / <code>git clean -fd</code> · <code>git branch -D</code> · <code>git checkout .</code> / <code>git restore .</code>." Five steps: ask the scope (project <code>.claude/settings.json</code> or global <code>~/.claude/settings.json</code>); copy the bundled script; add the hook to settings — "If the settings file already exists, merge the hook into existing <code>hooks.PreToolUse</code> array — don't overwrite other settings"; ask about customisation; verify with <code>echo '{"tool_input":{"command":"git push origin main"}}' | &lt;path-to-script&gt;</code>, which "Should exit with code 2 and print a BLOCKED message to stderr." The script itself reads the tool input with <code>jq</code>, so <code>jq</code> must be on the PATH.</p>
@@ -84,7 +84,7 @@
 
   <div class="callout note">
     <span class="label">The six on the map</span>
-    <p>Two on-ramps or standalone entries (<code>wayfinder</code>, <code>grill-me</code>), one discipline inside the main flow (<code>tdd</code>), one bridge between sessions (<code>handoff</code>), and two off the map entirely — <code>request-refactor-plan</code>, deleted upstream, and <code>git-guardrails-claude-code</code>, kept in <code>misc</code>. Knowing which is which is most of the objective; <code>ask-matt</code> will tell you the rest.</p>
+    <p>Two on-ramps or standalone entries (<code>wayfinder</code>, <code>grill-me</code>), one discipline inside the main flow (<code>tdd</code>), one bridge between sessions (<code>handoff</code>), and two off the map entirely — <code>request-refactor-plan</code>, deleted upstream, and <code>git-guardrails-claude-code</code>, kept in <code>misc</code> — which are also the two the plugin does not install. Knowing which is which is most of the objective; <code>ask-matt</code> will tell you the rest.</p>
   </div>
 
   <section class="selfcheck">
@@ -104,7 +104,7 @@
     </div>
 
     <div class="q" data-answer="a">
-      <p class="q-text">2. What is the one instruction in the installed <code>grill-me</code> file?</p>
+      <p class="q-text">2. What is the one instruction in the course machine's installed <code>grill-me</code> file?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a">"Run a <code>/grilling</code> session." — the interview itself lives in the model-invoked <code>grilling</code> primitive</button></li>
         <li><button data-opt="b">"Ask the questions one at a time" — the rest of the interview is left to the agent's judgement</button></li>
@@ -112,7 +112,7 @@
         <li><button data-opt="d">"For each question, provide your recommended answer" — grill-me adds recommendations to plain grilling</button></li>
       </ol>
       <div class="q-why" hidden>
-        <p><strong>A.</strong> The body is that single line. B and D are sentences from <code>grilling</code>, which it delegates to; C describes <code>grill-with-docs</code> — <code>grill-me</code> is the stateless one.</p>
+        <p><strong>A.</strong> The body is that single line (the plugin's copy says the same thing as "Call the Skill tool with “grilling”."). B and D are sentences from the installed <code>grilling</code>, which it delegates to; C describes <code>grill-with-docs</code> — <code>grill-me</code> is the stateless one.</p>
       </div>
     </div>
 
@@ -130,7 +130,7 @@
     </div>
 
     <div class="q" data-answer="b">
-      <p class="q-text">4. You are mid-task, the context window is nearly full, and you want to keep going with the reasoning intact. Which, and why not the other?</p>
+      <p class="q-text">4. Mid-task, the work has to continue in a different directory — a prototype checkout — with the reasoning intact. Which, and why not the other?</p>
       <ol class="q-opts" type="A">
         <li><button data-opt="a"><code>/compact</code>, because it writes the summary to a file the next session can read; <code>/handoff</code> only trims the current thread in place</button></li>
         <li><button data-opt="b"><code>/handoff</code>, because it writes a document for a fresh session; <code>/compact</code> stays in the same thread and drops verbatim history</button></li>
@@ -138,7 +138,7 @@
         <li><button data-opt="d"><code>/compact</code>, because <code>/handoff</code> is model-invoked and cannot be started by typing it mid-task</button></li>
       </ol>
       <div class="q-why" hidden>
-        <p><strong>B.</strong> <code>ask-matt</code>: "<code>/handoff</code> forks; <code>/compact</code> continues." A reverses them; <code>/compact</code> is built in, not a skill (C); <code>handoff</code> is user-invoked (D).</p>
+        <p><strong>B.</strong> Both routers agree on this case: the installed <code>ask-matt</code> ("<code>/handoff</code> forks; <code>/compact</code> continues") and the upstream one ("<code>/handoff</code> … only for a new harness, a new directory, a colleague"). A reverses them; <code>/compact</code> is built in, not a skill (C); <code>handoff</code> is user-invoked (D).</p>
       </div>
     </div>
   </section>
@@ -179,7 +179,7 @@
     <h2>Sources for this page</h2>
     <ul>
       <li><code>~/.agents/skills/wayfinder/SKILL.md</code>, <code>request-refactor-plan/SKILL.md</code>, <code>grill-me/SKILL.md</code>, <code>grilling/SKILL.md</code>, <code>tdd/SKILL.md</code>, <code>handoff/SKILL.md</code>, <code>claude-handoff/SKILL.md</code>, <code>git-guardrails-claude-code/SKILL.md</code> and <code>scripts/block-dangerous-git.sh</code> — every quoted sentence and every front-matter field, read 2026-09-13 (files dated 2026-07-09)</li>
-      <li><code>~/.agents/skills/ask-matt/SKILL.md</code> — the placement sentences for <code>wayfinder</code>, <code>grill-me</code>, and <code>handoff</code> (read 2026-09-13)</li>
+      <li><code>~/.agents/skills/ask-matt/SKILL.md</code> — the placement sentences for <code>wayfinder</code>, <code>grill-me</code>, and <code>handoff</code> (read 2026-09-13); upstream <code>ask-matt</code>'s Phase boundaries section, <code>grilling</code>, <code>grill-me</code>, <code>wayfinder</code>, and the plugin manifest re-read 2026-09-14</li>
       <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — <code>skills/</code> directory listing, <code>skills/misc/README.md</code>, commit <code>c66bdee</code> (2026-08-05), upstream <code>SKILL.md</code> descriptions for <code>wayfinder</code>, <code>tdd</code>, <code>grill-me</code>, <code>handoff</code>, <code>git-guardrails-claude-code</code>, compared with the installed copies via the raw-file URLs on 2026-09-13</li>
       <li>PR #4 on <code>perro-ruidoso/flashcards-w3probe</code> — the test-per-criterion mapping cited under <code>tdd</code> (2026-09-13)</li>
     </ul>
@@ -192,7 +192,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

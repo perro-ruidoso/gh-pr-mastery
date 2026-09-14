@@ -6,7 +6,8 @@ organization administration, Claude Code skills, or Linear. Where those three ar
 involved, every step is spelled out.
 
 **Scope:** everything you need to stand the course up and teach **Week 1** (M01–M06,
-assignment A1). Weeks 2–6 do not exist yet; see `roadmap/roadmap.docx`.
+assignment A1), plus Part 10's notes for Weeks 2 and 3, which are built and audited (2026-09-14).
+Weeks 4–6 do not exist yet; see `roadmap/roadmap.docx`.
 
 ---
 
@@ -182,7 +183,7 @@ first.
 |---|---|---|
 | `git` | 2.30+ | `git --version` |
 | Python | 3.10+ (the Seed Repo's CI pins 3.12) | `python --version` |
-| GitHub CLI (`gh`) | 2.60+ | `gh --version` |
+| GitHub CLI (`gh`) | **2.94.0+** (Week 2's `--type`, `--parent`, `--blocked-by` flags and `check_a2.py`/`check_a3.py` need it; the handout says the same) | `gh --version` |
 | Claude Code | current | `claude --version` |
 
 Reference state on the build machine **[run 2026-09-13]**: `gh` 2.100.0 (2026-09-03; it was 2.92.0 until the
@@ -248,6 +249,20 @@ The course's workflow spine (`/to-spec`, `/to-tickets`, `/implement`, `/code-rev
 `mattpocock/skills`. **There are two install routes, and installing both leaves you with
 every skill twice** — the upstream README says so explicitly. Pick one.
 
+> **Found 2026-09-14, and it needs a decision before Week 3 is taught.** The two routes do
+> not give the same skills. Route A (the plugin, which the handout prescribes) carries the 25
+> skills in its manifest — the `engineering` and `productivity` buckets, tracking upstream. It
+> does **not** contain `request-refactor-plan` or `qa` (both deleted upstream on 2026-08-05;
+> their changeset names `/to-spec` + `/improve-codebase-architecture` and `/triage` +
+> `/to-tickets` as replacements), `git-guardrails-claude-code` (kept in `misc`, "not promoted
+> in the plugin"), or `claude-handoff`. The teaching machine's `~/.agents/skills/` is an older
+> Route-B snapshot (2026-07-09, 38 skills), which is what the M18 pages quote — and its
+> `ask-matt` gives the *opposite* advice from the plugin's about `/handoff` versus `/compact`
+> (upstream rewrote it on 2026-08-05). The pages now say which copy each quotation is from and
+> A3's third situation was rewritten to hold under both; the decisions owed are in `NOTES.md`
+> (Weeks 1–3 audit, S1–S3): pin a skill set or track the plugin; what replaces
+> `request-refactor-plan` in M18; what M24 names instead of `/qa`.
+
 **Route A — Claude Code plugin (recommended for a cohort).** A managed, read-only bundle
 that updates when upstream ships. Inside Claude Code:
 
@@ -289,12 +304,17 @@ cd gh-pr-mastery
 python checkers/check_site.py
 ```
 
-Expected **[run 2026-09-12]**:
+Expected **[run 2026-09-14]**:
 
 ```
-8 pages, 67 internal links checked
+42 pages, 453 internal links checked
 all checks passed
 ```
+
+(It was `8 pages, 67 internal links` on 2026-09-12, before Weeks 1–3 were built; the count
+grows with the site. Nine links dropped out of the total on 2026-09-14 when they were changed
+from repository-relative paths, which 404 on the published site, to GitHub URLs — and the
+checker now refuses any relative link that leaves `docs/`.)
 
 `check_site.py` validates internal links, asset wiring, lesson structure, and self-check
 answer keys. Run it after any edit to `docs/`. It has been fault-injection tested — a
@@ -722,8 +742,10 @@ One live-demo risk: `cli/cli` is a real, moving repository. PR 14398 was open on
 and was **closed unmerged on 2026-09-13** (`closedAt` `2026-09-13T06:06:03Z`); the M02 and
 M04 pages now show its `"state": "CLOSED"` and use it to make the point that closing changes
 `state` and nothing else, and the `gh pr list` listings were re-captured (#14373, #14355,
-#14351). Re-run every command in this section the morning of the session, and if a number
-has gone stale, pick a current one with `gh pr list`. The Learning Pages carry dated
+#14351) — and again on 2026-09-14, when #14437 had arrived on top and #14351 had fallen off,
+and `--limit 1 --jq '.[0].number'` printed 14437 instead of 14373. Re-run every command in
+this section the morning of the session, and if a number has gone stale, pick a current one
+with `gh pr list`. The Learning Pages carry dated
 transcripts, so a stale live demo is an annoyance, not a gap.
 
 ### 7.4 Live demo: the exhibit (M06)
@@ -758,7 +780,8 @@ gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by \
   --jq '.[] | "#\(.number) [\(.state)] \(.title)"'
 ```
 
-Issue #2 is recorded as blocked by #1, and #13 by #11 (the same command with `13`) — real
+Issue #2 is recorded as blocked by #1, #13 by #11, #17 by #13, and #19 by #17 (the same
+command with each number; four edges as of 2026-09-14, and one more each unit) — real
 Issue Dependencies, the same mechanism the Seed Repo's backlog uses, which is what makes A1
 item 6's second question answerable from data rather than from prose. Every other issue
 returns `[]`; the page teaches students to report that as "no relation is recorded", not
@@ -964,7 +987,7 @@ Three things worth rewarding explicitly:
   not a sub-issue — and a sub-issue could not express this at all if the ticket had two
   blockers" has understood the week.
 - **"Nothing blocked this one, and here is the evidence for that"** is a fine answer if they
-  picked such a PR. Most of the four merged PRs have no recorded blocker.
+  picked such a PR. Most of the seven merged PRs (as of 2026-09-14) have no recorded blocker.
 - **Criticism earns full marks.** "The first commit is a squashed import of 31 files; it
   demonstrates nothing about process, and the repo's own M06 page admits this" is an
   excellent answer. Do not mark a student down for auditing you honestly — that is the
@@ -1025,7 +1048,8 @@ Consolidated. Each is written up in `NOTES.md` with its source and date.
 
 **Not built yet**
 
-10. Weeks 2–6 and assignments A2–A6; the two graded concept quizzes; the capstone.
+10. Weeks 4–6 and assignments A4–A6; the two graded concept quizzes; the capstone.
+    (Weeks 2 and 3 are built and audited — Part 10.)
 11. `flashcards-upstream`, needed by Week 5.
 12. The Week 4 planted-bug diff. Blocked for a structural reason worth knowing: the three
     SM-2 bugs live in `scheduler.py`, which is ticket T03's output, so the diff can only be
@@ -1046,9 +1070,12 @@ and every Linear UI step (5.2).
 2. **Re-verify the vendor-behaviour rows in `NOTES.md`.** Those are the ones that move.
    Before each cohort, not once.
 3. **Re-audit M06's claims** against the course repo's history as it grows. The page
-   describes the history that actually exists; keep that true. Last done 2026-09-13
-   (issue #15, which also re-fetched every source, re-ran every transcript, and
-   render-tested every page — repeat that audit before each cohort).
+   describes the history that actually exists; keep that true. Last done 2026-09-14
+   (issue #19, which also re-fetched every source, re-ran every transcript, re-diffed the
+   installed skills against upstream **and against the plugin manifest** — the 13th's audit
+   missed that and it is the largest drift found — and render-tested every page; repeat
+   that audit before each cohort). The snapshot goes stale with every unit: on the 14th it
+   was one day old and already wrong about the edge count and the open PRs.
 4. **Collect A1 write-ups into a calibration set.** Two or three good ones and one
    over-reading one make the Week 4 review objectives much easier to teach, because you can
    show the cohort its own work.
@@ -1090,6 +1117,19 @@ and every Linear UI step (5.2).
      (a shared file is a conflict risk, not a dependency) is the model answer; expect students
      to argue for adding the edge, and make them defend it against M10's "could it be started"
      test.
+   - **Two of M18's six skills are not in the plugin** (`request-refactor-plan`, deleted
+     upstream; `git-guardrails-claude-code`, in `misc`), and the plugin's `ask-matt` reverses
+     the installed one's `/handoff`-versus-`/compact` advice. The M18 pages say so and A3's
+     third situation ("work that must continue in a different directory, or on a colleague's
+     machine") was chosen so that `handoff` is the answer under both routers. Decide S1–S3 in
+     `NOTES.md` before teaching M18; if you keep the plugin, tell students to add
+     `git-guardrails-claude-code` with `npx skills@latest add mattpocock/skills` (pick it in the
+     installer) and read `request-refactor-plan`'s description from the page.
+   - **A deleted label does not come back onto issues.** Found while fault-injecting
+     `check_a2.py`: `gh label delete layer:cli` strips the label from every issue, and
+     `gh label create layer:cli` afterwards does not re-attach it. A student who "fixed" a
+     label by deleting and recreating it will fail *Every ticket has a layer label* until they
+     re-apply it; the checker's detail line names the issues.
    - **M13 page 2's Linear half is documentary**, like M12: the branch-name linking rule is
      quoted from Linear's docs and has not been observed in a live workspace. Fold it into
      the Issues Sync live check in item 1.
@@ -1150,6 +1190,7 @@ gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by \
 
 ---
 
-*Written against the repository state of 2026-09-12. Commands marked **[run 2026-09-12]**
+*Written against the repository state of 2026-09-12 and re-checked in the audits of 2026-09-13
+and 2026-09-14. Commands marked **[run 2026-09-12]**
 were executed; those marked **[untested]** were not. Re-verify vendor behaviour before each
 cohort — `NOTES.md` is the record.*

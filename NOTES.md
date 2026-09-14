@@ -693,6 +693,210 @@ list; same `delete_repo` refresh, then `gh repo delete perro-ruidoso/flashcards-
 Nothing on the pages depends on it surviving. Not done: the Linear branch-name link, live (M13
 p2 says so); the two untested branch-deletion paths (M16 p3 says so).
 
+### Weeks 1–3 audit — 2026-09-14
+
+Hostile re-check of everything shipped for Weeks 1–3, run with the tools live on `gh`
+2.100.0, extending the 2026-09-13 audit to Week 3 and adding the cross-week pass no audit
+had done. Filed as issue **#19** (blocked by #17); branch `19-audit-weeks-1-3` made with
+`gh issue develop 19 --name 19-audit-weeks-1-3 --base 17-week3-pages --checkout` at
+12:17 UTC, which wrote `branch.19-audit-weeks-1-3.gh-merge-base = 17-week3-pages` — the M13
+move on the course repo. Preconditions checked first: **#16 was still open** (base `main`,
+`closingIssuesReferences` → #15) and **#18 still based on `15-audit-weeks-1-2`** with
+`closingIssuesReferences: []` at 12:26 UTC, so the retarget the brief asked for could not be
+done; the *before* state is recorded on M06 p3 and M16 p2 instead (below). Both throwaways
+exist (`flashcards-w2probe`, `flashcards-w3probe`, private). The Chrome extension was not
+connected; rendering ran in headless Chrome as on 2026-09-13.
+Each row: **fact · evidence · page · fixed or open.**
+
+#### 1. Sources — every URL re-fetched, every quotation re-checked, every skill re-diffed
+
+105 distinct external URLs across the three hubs, all 39 Learning Pages, Course Home, and
+`RESOURCES.md` were fetched with `curl -sL` and their status, effective URL, and redirect
+count recorded. **All 105 answered 200 with zero redirects** — no new URL rot since the 13th.
+Then every quoted span of four words or more outside `<pre>` (621 spans; curly and straight
+quotes paired separately) was searched, alphanumeric-only and fragment-by-fragment across
+`…`, in the fetched text of the sources its page links, then in the installed `SKILL.md`
+files, then in the course's own documents; the 199 survivors were read by hand (prompts,
+answer options, transcript strings, and the course's own phrases in quotation marks).
+
+| Fact | Evidence | Page | Status |
+|---|---|---|---|
+| Every GitHub Docs, `gh` manual, git-scm, Linear, Google, and Anthropic quotation is present verbatim, including the three the scan could not match because of a bracketed edit (`focus[es]`, `create[s]`, `stop[s]`). | Hand check against the fetched text. | all | Verified. |
+| **One Anthropic sentence has grown.** M18 p1 quoted "…set `disable-model-invocation: true` in its frontmatter." with a full stop; the page now continues ", or “user-invocable-only” in skillOverrides when you don’t want to edit the file." | code.claude.com/docs/en/skills, fetched 2026-09-14. | M18 p1 | **Fixed** — quoted in full. |
+| M06 p1 quoted PR #14's body as "Closes #13. Stacked on #12 — the base branch is …" and dropped "(the Week 1 rebuild)" without an ellipsis. | `gh pr view 14 --json body`. | M06 p1 | **Fixed** — quoted as written. |
+| M15 p1 cut the commit message after "Nothing reads or writes them yet" (the line continues "; that is #2 and the scheduler ticket"), and called it "missing three of the four sections" — it carries a hint of Scope. | `gh api repos/…/pulls/4/commits`. | M15 p1 | **Fixed** — full sentence; "nothing under Verification or Risk". |
+| M16 p1 said PR #5's Intent section "opens" with the stacked-on sentence; it is the section's second sentence. | `gh pr view 5 --json body` on w3probe. | M16 p1 | **Fixed**. |
+| M17 p2 presented three lines of the Seed `CLAUDE.md` Commands block as one quoted sentence with semicolons. | `gh api repos/…/flashcards-seed/contents/CLAUDE.md`. | M17 p2 | **Fixed** — shown as the three command lines. |
+| M07 p2 cut a Seed criterion at "bare `round()` is wrong" — the line ends "and `docs/adr/0001` says why". | `gh issue view 3 -R flashcards-seed`. | M07 p2 | **Fixed** — quoted to the end. |
+| M12's Linear property list and the Seed criteria on M07 p2 use em-dashes where the sources use hyphens or bullets; words identical. | Fetched text. | M07 p2, M12 | Left; noted so nobody "corrects" them. |
+
+**Skills — installed (`~/.agents/skills/`, 38 files dated 2026-07-09) versus upstream
+(`mattpocock/skills` head `3cca18b`, 2026-09-04), re-diffed file by file.** The 2026-09-13
+note that upstream descriptions were "word-for-word the installed ones except `wayfinder`'s
+em-dashes" was **false on the day it was written** — it must have compared only the last
+commit. What is actually different, with the commit dates:
+
+| Fact | Evidence | Page | Status |
+|---|---|---|---|
+| **`qa` was removed upstream in the same commit as `request-refactor-plan`** (`c66bdee`, 2026-08-05), "each already absorbed by a promoted skill". The changeset names the replacements: `qa` → `/triage` and `/to-tickets`; `request-refactor-plan` → `/to-spec` and `/improve-codebase-architecture` (the open question below had guessed `implement`). `ubiquitous-language` → `/domain-modeling`; `design-an-interface` → `/codebase-design`. The same commit removed `qa` from `setup-matt-pocock-skills`'s issue-tracker explainer. | `gh api repos/mattpocock/skills/commits/c66bdee`; `.changeset/remove-deprecated-and-personal.md` (its text now lives in upstream `CHANGELOG.md`, which also says "None of them was in the Claude Code plugin"); raw-URL 404 under every bucket. | M05 p1, M18 p1/p2, M24's primary source | **Fixed on the pages** (M05 p1 caveat; M18 names the replacements). **Open:** what Week 4 names for M24, and whether M18 swaps the skill — see suggestions. |
+| **The plugin students install carries 25 skills, not 38.** `.claude-plugin/plugin.json` v1.2.3 lists the `engineering` and `productivity` buckets only: no `request-refactor-plan`, no `qa` (deleted), no `git-guardrails-claude-code` (`misc`, "not promoted in the plugin"), no `claude-handoff` (`in-progress`). `student-setup.md` says "Use the plugin." So a student following the handout cannot run two of M18's six named skills, nor M24's. The course machine's `~/.agents/skills/` is an older, fuller `npx skills` snapshot. | Manifest fetched 2026-09-14; handout line 136. | M18 p1/p2, A3 item 6, student-setup | **Fixed on the pages** (a "What the plugin gives you" box; each skill header says whether it is in the plugin; `git-guardrails` can be added alone with `npx skills@latest add`). **Open:** pin a version or track the plugin — suggestion below. |
+| `wayfinder`'s description says "decision tickets" upstream, "investigation tickets" installed — renamed 2026-07-13, four days after the snapshot, not merely re-punctuated. | Raw file diff; `commits?path=`. | M18 p1 ("Same words" — false), M18 p2 | **Fixed** — both quoted, dated. |
+| `grilling` was rewritten upstream between 2026-07-13 and 2026-08-20: description now "…about a plan, decision, or idea. Use when the user wants to stress-test their thinking…"; body works the design tree in numbered rounds with a recommended answer under each question. M18 p2 quotes the installed one-question-at-a-time body. | Raw file diff (installed 12 lines, upstream 28). | M18 p2 | **Fixed** — installed text kept, upstream change described and dated. |
+| `grill-me`'s body became "Call the Skill tool with "grilling"." on 2026-08-15 (`fcf0071`); `grill-with-docs` and `handoff` got the same "Skill tool" phrasing. | Raw file diff. | M18 p2, self-check Q2 | **Fixed** — noted; Q2 now says "the course machine's installed file". |
+| **`ask-matt` was rewritten on 2026-08-05** (`fa1e322`): the smart zone is "~150k tokens" (was ~120k); "Crossing sessions" became "Phase boundaries", which ranks five options and makes `/compact` "The default" and `/handoff` "Narrow: only for a new harness, a new directory, a colleague, or forking a side task mid-phase" — the reverse of the installed advice M18 p1 quoted ("`/handoff` and continue in a fresh thread"); `/resolving-merge-conflicts` now appears under Standalone (M18 p1 said "not on the map at all"); `wizard`, `to-questionnaire`, `wait-what` were added. | Raw file diff; commit list. | M18 p1 (three sentences), M18 p2 `handoff`, M18 p2 Q4, A3 item 6 | **Fixed** — M18 p1 quotes both versions with dates; the `handoff` entry, Q4, and A3 situation 2 were rewritten around a case both routers agree on (work continuing in another directory or with a colleague) so the objective does not depend on which copy a student has. |
+| `to-tickets` description: "edges as text in one file per ticket locally" (2026-07-10); `to-spec` dropped "(you may know this document as a PRD)" (2026-08-03); `code-review` description says "issue/spec" not "issue/PRD" (2026-08-03); em-dashes → colons/commas repo-wide (2026-08-19); descriptions with colons now YAML-quoted (2026-08-19); `disable-model-invocation: true` added to `grill-with-docs`, `implement`, `setup-matt-pocock-skills`, `triage`, `claude-handoff` (2026-08-15). None of these changes a sentence the pages quote as fact. | Diffs. | M09, M10, M03 p2 | Verified; recorded here. |
+| `code-review`'s "three-dot, so the comparison is against the merge-base" line, `resolving-merge-conflicts`'s description and five steps, `tdd`'s seam rule, `handoff`'s description, and `git-guardrails`'s description and block list are unchanged in wording. | Diffs. | M03 p2, M17 p2, M18 p2 | Verified. |
+| `deprecated/README.md` and `misc/README.md` sentences quoted on M18 p1 are present verbatim; the commit message "chore: remove six unused skills and the personal bucket" is exact. | Raw fetch; `gh api …/commits/c66bdee`. | M18 p1 | Verified. |
+
+#### 2. Transcripts — every printed `gh` command re-run
+
+Every read-only command on every page was re-run at 12:26–12:40 UTC on 2026-09-14 against
+`cli/cli`, `perro-ruidoso/gh-pr-mastery`, `flashcards-seed`, `flashcards-w2probe`, and
+`flashcards-w3probe`, and diffed against the page. Mutations on the throwaways (the sub-issue
+move, the cycle, the probes, `gh pr merge`, the closes) were **not** re-run; the pages call
+the repositories throwaways and the state they left behind was read instead.
+
+| Fact | Evidence | Page | Status |
+|---|---|---|---|
+| `gh pr list -R cli/cli --limit 3` moved again: **#14437** (same-repo, opened 09:20 that morning) is on top; #14373 (fork) and #14355 (draft) remain; #14351 fell off. One fork head of three, as the prose says. | Live 12:26 UTC. | M02 p2, M04 p1 | **Fixed** — re-captured, dated 2026-09-14, the movement described in the prose. |
+| `gh pr list --limit 1 --json number --jq '.[0].number'` prints **14437**, not 14373. | Live. | M04 p2 transcript and self-check Q3 | **Fixed** — transcript re-captured with both days' values; the question now asks about "a bare number" rather than a fixed one. |
+| `gh issue list -R cli/cli --limit 3`: **#14439** new on top (`needs-triage`); #14413 fell off. | Live. | M04 p2 | **Fixed** — re-captured. |
+| `cli/cli#14398`: still `CLOSED`, `closedAt 2026-09-13T06:06:03Z`, 2/0/1, same refs; `--json nope` still lists 46 fields; `gh pr diff 14373 --name-only` → `docs/install_linux.md`; `#14404`/`#14429` identical to the page. | Live. | M02 p1, M04, M06 p1 | Verified. |
+| **The course-repo snapshot on M06 p3 had gone stale again in one day.** Open issues are #15, #17, **#19** (this audit); open PRs #16 (→ #15) and #18 (stacked on #16's branch, `closes []`); recorded edges are now **four** — #2←#1, #13←#11, **#17←#13**, **#19←#17** — where the page said "exactly one more"; the number lists lacked 17/19 and 16/18. The merged list (seven PRs) had not changed. | `gh pr list`, `gh issue list`, `dependencies/blocked_by` for every issue. | M06 p3 | **Fixed** — snapshot re-captured and dated; the open pair is now shown as the *before* state of a stack (`Closes #17` in the body, link empty) that M16 p2 also records with the 11:50:18Z / 12:26Z timestamps and the `gh pr view 18` command to run. |
+| `#14`'s `gh pr view`, timeline, GraphQL `BaseRefChangedEvent`/`HeadRefForcePushedEvent`/`MergedEvent`, #12's `mergedAt`/`cf6d380`, #11's and #13's `closedAt` — all identical. #13's REST timeline has still no `connected` event. | Live. | M06 p1, M16 p2 | Verified. |
+| Seed Repo: issue #1's body, the four criteria on M07 p2, the 15-issue listing, `waves_from_github.py` (15/19/joins #5 #7 #9 #13 #14/waves 1-3-4-4-3/width 4; `--mermaid` output identical), #14's `blocked_by` with ids, no labels/type, `parent` → 404, the ten default labels, `isTemplate: true`. | Live. | M07, M10 p2, M11 p2, M01 p2 | Verified. |
+| `flashcards-w2probe` read-only commands (label queries, `--type Task`, `--search` forms, template listing, #5's parent/blockedBy, #1's subIssues, #2's `blocking`, database id `5440629998`, `waves_from_github.py` and `--mermaid`, probe #7 closed/completed with one comment): every output identical to the page. | Live. | M08 p1/p2, M11 p1/p2, M12 p2 | Verified (first time these were re-run; the 09-13 audit skipped w2probe). |
+| `flashcards-w3probe`: `gh issue develop --list 1` empty; PR #4's `--name-only`, `--json files`, and the full diff (md5 `8cea3fec…`); PR #6's seven files and counts; #3 → `prs [7]` (now `CLOSED`, as the page's "before #7 merged" comment allows); PR #5's `BaseRefChangedEvent` 17:03:12; #2's `connected` 17:03:13; the three `closedAt` one second after each `mergedAt`; `#5`'s timeline four events; `dd3293d` with two parents; PR #7's body; probes #8–#11 timelines and the `AutomaticBaseChangeSucceededEvent` 17:15:53; `delete_branch_on_merge: false`. | Live. | M13–M17 | Verified. |
+| `issue.linkedBranches` on w3probe #1 and #3 now returns **`[]`** — the page shows the branch name, captured before PR #4 existed. | GraphQL. | M13 p1 | **Fixed** — dated note under the transcript: the relation moved to the PR, as the page's next section says. |
+| A **merged** PR reports `mergeable: UNKNOWN` / `mergeStateStatus: UNKNOWN`, permanently: a student re-running M17 p1's command on PR #5 sees the page's middle value again for a different reason. | `gh pr view 5 --json mergeable,mergeStateStatus` on w3probe. | M17 p1 | **Fixed** — dated note; read `state` beside it. |
+| PR #11's timeline gained `commented`, `closed`, `head_ref_deleted` (17:16:30–34) after the probe; `probe-child` is the one probe branch still on the repository (the page said four branches "restored"). | REST timeline; `gh api repos/…/branches`. | M16 p3 | **Fixed** — sentence extended. |
+| PR #5's final shape is 5 files, +99 −9, commits `37d4731 3b9501a dd3293d`. | Live. | M17 p2 (shows `changedFiles: 5`) | Verified. |
+
+#### 3. Checkers — run, then fault-injected rule by rule
+
+- `check_site.py`: **42 pages, 462 internal links, clean** before the audit. **New rule, from a
+  real defect:** nine relative links (`../../assignments/a1.md`, `adr/0003`, `adr/0004`,
+  `CONTEXT.md`, on the three hubs and M01 p2, M02 p2, M05 p2, M06 p3) resolve on disk and
+  passed the checker, but GitHub Pages serves `docs/` alone, so on the published site every
+  one was a **404** (`curl` → 404 for `…/gh-pr-mastery/assignments/a1.md`). All nine now point
+  at the GitHub blob URLs, and `check_site.py` refuses any relative link whose target is
+  outside `docs/`. **28 faults injected** into a scratch copy, one per rule — the 25 from the
+  last audit, the Create- and Evaluate-checklist cases, and the new escaping-link rule —
+  **28/28 caught on the first run**. After the fixes: **42 pages, 453 internal links, clean.**
+- `check_a1.py` / `check_a2.py` / `check_a3.py` against `flashcards-seed`, `flashcards-w2probe`,
+  `flashcards-w3probe`, and `flashcards-nonexistent-zz`: each fails on exactly what the
+  target lacks and stops at *Instance exists* for the nonexistent handle; all three exit 1 on a
+  failure. `check_a3.py` on w3probe still passes every rule but `a3-writeup.md`. One nuance
+  recorded: `check_a2.py`'s *Every open issue has a label / has a type* pass **vacuously** on a
+  repository with no open issues (w3probe), because the rules quantify over open issues.
+- `check_a3.py` fault-injected by **snapshot replay** (`fault_a3.py`, rebuilt this session:
+  record the eight `gh` calls the checker makes against w3probe, replay them with one JSON
+  mutation per rule): **16/16** rules reported by name — the 13 from the 13th plus the three
+  write-up rules, exercised with a synthetic write-up whose positive control passes every rule.
+- `check_a1.py` / `check_a2.py` fault-injected by **live mutation** on `flashcards-w2probe`
+  (`fault_a12.py`; each mutation reverted and the final run compared to the baseline):
+  **22/22** reported by name — delete `needs-info`; delete `wontfix`; add then remove
+  `docs/agents/issue-tracker.md` (pass → fail); add then remove `## Agent skills` in
+  `CLAUDE.md`; a five-word `a1-writeup.md` (length, evidence, cites) then a good one (all pass);
+  #4 loses its type; the spec loses `ready-for-agent` and becomes a Task; the mermaid fence
+  removed; `layer:cli` deleted; cycle #2←#5; join edge #5←#4 removed (also *Blocked-by lines are
+  recorded edges*); probe reopened; probe comment deleted; a template without `type:`, a heading
+  missing, and a `tests/` line (three rules); every label removed from #2; a hand ticket without
+  a test path; a five-word `a2-writeup.md` with no image; a spec heading renamed (spec not
+  found, tickets not found). **One thing the revert did not restore by itself:** `gh label
+  delete layer:cli` strips the label from every issue carrying it, and `gh label create` does
+  not put it back — #5 had to be re-labelled by hand. Worth knowing before grading a student who
+  "recreated" a label. The throwaway now carries a run of `audit fault injection` / `audit
+  fault revert` commits on `main` and one more closed probe issue (#9); nothing on the pages
+  depends on either.
+
+#### 4. Render — every page, headless Chrome, 1200 px and 400 px
+
+Chrome extension not connected. A same-origin iframe harness (`docs/_harness.html`, deleted
+before commit) served over `http.server` and driven by `chrome --headless=new
+--virtual-time-budget=240000 --enable-logging=stderr --dump-dom` at each width; a deliberate
+`console.error` + `ReferenceError` probe page confirmed the console channel captures both.
+
+| Check | 1200 px | 400 px |
+|---|---|---|
+| Mermaid diagrams drawn (10 across 9 pages), no error text | 10/10 | 10/10 |
+| Decks built and run to "Deck complete" with the list hidden and a `localStorage` record (38 decks, 286 cards) | 38/38 | 38/38 |
+| Self-checks: wrong first click marks `.incorrect` with the rationale hidden; correct click reveals it; tally `0 / N` after a wrong-first pass (133 questions) | 133/133 | 133/133 |
+| Console messages / in-frame `error` events | none | none |
+| Horizontal overflow | none | none |
+
+Re-run after every edit in this audit at both widths: identical totals.
+
+#### 5. Self-checks — option form
+
+133 questions, **0 flagged** (correct option never uniquely longest, uniquely shortest, or the
+only one with `<code>`). Answer letters **36 / 33 / 29 / 35** across A–D. Three questions were
+rewritten for content, not form (M04 p2 Q3 number-agnostic; M18 p2 Q2 names the copy; M18 p2
+Q4 built on a case both routers agree on); the scan is still 0 after the rewrites.
+
+#### 6. Cross-week coherence — read in pager order
+
+| Fact | Evidence | Page | Status |
+|---|---|---|---|
+| **Contradiction across weeks:** M01 p2's learn-more said the Seed's "15-issue backlog" is "what you are about to inherit"; Week 2 is built on the verified fact that a template copies files, not issues. | The two sentences. | M01 p2 vs Week 2 hub / M07 | **Fixed**. |
+| **Term before definition:** "frontier" is quoted from `to-tickets` on M07 p1 and used on M11 p1, and first *defined* on M17 p1 ("Week 2 called this the frontier" — it had not). | grep. | M07 p1 | **Fixed** — glossed where it first appears, tied to M10 p2's waves. |
+| "Squash" is used (`gh pr merge --squash`, M15 p2) one page before M16 p2 explains it. | Reading order. | M15 p2 | Open — minor; M16 p2 quotes the definition and A3's notes point there. |
+| **Fact stated differently:** M15 p2 called M06's worked-example gap "one second"; M06 p1's is two seconds (`cli/cli`), the course repo's one. | Both pages. | M15 p2 | **Fixed**. |
+| M14 p1 said `gh pr diff` has "four flags" (`--name-only --patch --exclude --web`); the manual lists six (plus `--color`, `--allow-escape-sequences`); M04 p2's learn-more listed a different four. | Fetched manual. | M14 p1, M04 p2 | **Fixed** — six named, dated. |
+| The instructor guide's toolchain table says `gh` **2.60+**; the handout, Week 2 hub, and M08 say 2.94.0+. | Guide 2.1 vs `student-setup.md` line 48. | Guide | **Fixed**. |
+| M02 p2 self-check Q1 abbreviated a head to `clean-git-test-seams`; the listing shows `williammartin-clean-git-test-seams`. | Page. | M02 p2 | **Fixed**. |
+| M05 p2's checklist said the checker verifies "the five labels exist"; it grades four and notes `wontfix`. | `check_a1.py`. | M05 p2 | **Fixed**. |
+| M18 p1 said "You have used six of the installed skills so far" and listed four plus two "soon". | Page. | M18 p1 | **Fixed**. |
+| Guide 8.3: "Most of the four merged PRs have no recorded blocker" — seven merged PRs, four edges. Guide header: "Weeks 2–6 do not exist yet". Guide 2.4: expected `check_site.py` output "8 pages, 67 internal links". Guide Part 9 item 10: "Not built yet: Weeks 2–6 and assignments A2–A6". | Guide. | Guide | **Fixed** — each dated. |
+| **Ask-your-teacher prompts that assume tools a student may not have:** M18 p2's asks the student to "open each chosen skill's installed `SKILL.md`" — two of the six are not in the plugin. Every other prompt assumes only Claude Code, `gh`, and (M12/M13 p2) the Linear workspace the course requires. | Reading. | M18 p2 | **Fixed** — the page now says which two are absent and how to add one; the prompt stands for the four. |
+| **Flashcards whose back is not on the page:** a scripted pass over all 286 cards (every `<code>` span and number on a back looked for elsewhere on its page) flagged 18, all generalised command forms (`N`, `O/R`, `<handle>`) whose concrete instances are on the page; none states a fact its page does not. | Script; hand reading. | all | Verified. |
+| **Hands-on items no assignment exercises** (by design, listed so the instructor can decide): M03's four-minute experiment (Quiz 1 objective); M04 p2 "largest open PR on a repository I care about"; M06 p2 "the method on a repository I did not choose"; M08 p2 "opened `gh issue create --web`"; M11 p1 "repeated the two-parent experiment on my own tickets"; M13 p2 "wrote the convention into `CLAUDE.md`" and the Linear-ID half of the branch name (A3 reads only the leading number); M15 p2 "read the `connected` event"; M16 p3's probes (the page says so). | Reading A1–A3 against every checklist. | — | Recorded. |
+| **Assignment items no page teaches:** none. Every command in A1–A3 appears on a page; the one out-of-order use is A2 item 5's `gh pr close`, taught on M14 p2 (Week 3) and used in Week 2's Linear preview. | Reading. | A2 | Recorded; minor. |
+| **Checkers vs rubrics vs what pages say:** every "the checker verifies…" sentence on M05–M17 matches the code, with two precisions — M11 p1 says the checker verifies "every ticket has the spec as its parent" (it counts the tickets that do; one without a parent is silently not a ticket), and M12 p2 says it "looks for the capture file" (it looks for an image reference, as a note). A1–A3's "Graded:" lines match the rule lists. | `check_a1/2/3.py` read against the pages. | M11 p1, M12 p2 | Recorded; wording left. |
+| `check_a2.py` passes *Every open issue has a label/type* vacuously on a repo with no open issues. | w3probe run. | — | Recorded (a student with tickets is never in that state). |
+
+#### 7. The course repo as exhibit, 2026-09-14
+
+At 12:26 UTC: PR #16 open (base `main`, closes #15); PR #18 open, base `15-audit-weeks-1-2`,
+`closingIssuesReferences: []`, body "Closes #17. **Stacked on #16**…" (created 11:50:18Z);
+issue #19 filed 12:16:51Z, blocked by #17; branch `19-audit-weeks-1-3` created from
+`17-week3-pages` by `gh issue develop` a minute later. That is a three-deep stack
+(#16 ← #18 ← this PR) in the state M15 p2's condition one describes, on a repository every
+student can read; M06 p3 and M16 p2 now say so and print the command that will show when it
+changes. When #16 merges, #18 and then this PR need `gh pr edit --base main` and the rebase
+M16 p2 describes — record the timestamps on M06 p1/M16 p2 when it happens.
+
+#### 8. Suggestions (not done; each needs the instructor's call unless marked)
+
+| # | What | Evidence | Cost | Objective | Decision needed? |
+|---|---|---|---|---|---|
+| S1 | **Pin the skills the course teaches, or track the plugin.** Either ship `student-setup.md` with `npx skills@latest add mattpocock/skills` (a fixed set, editable, *including* `git-guardrails` and — from a fork or vendored copy — `request-refactor-plan`), or keep the plugin and rewrite M18/A3/M24 around the 25 skills it contains. | §1: plugin manifest; two of six M18 skills and M24's `qa` absent from the plugin; `ask-matt`'s advice reversed upstream. | Half a day either way; the handout, guide 2.3, M18, A3 item 6, and RESOURCES change. | M18, M24, M05 | **Yes.** Recommendation: track the plugin (students get updates; the course stops teaching a stale snapshot) and swap the two absent skills. |
+| S2 | **Replace `request-refactor-plan` in M18** with what its own changeset names — `/to-spec` + `/improve-codebase-architecture` — or with `/improve-codebase-architecture` alone (in the plugin, on `ask-matt`'s map under Codebase health). | §1: changeset `remove-deprecated-and-personal.md`. | Two hours: one M18 p2 section, objective text in `build_objectives.py`, A3 item 6's first situation, `check_a3.py`'s skill list. | M18 | **Yes** (was already open; the evidence is now specific). Recommendation: `improve-codebase-architecture`. |
+| S3 | **Name M24's skill now.** `/qa` is gone upstream; the changeset says `/triage` + `/to-tickets`. Week 4 is unbuilt, so the cost is one objective row and one primary source. | §1. | Minutes now; a page rewrite later. | M24 | **Yes.** |
+| S4 | **Label and type the Seed backlog** (`layer:*`, `Task`) — or leave it as M08's exhibit of an unclassified backlog. Judgement: leave it. M08 p1 uses the gap deliberately ("try to find its domain-layer tickets without reading every body"), A2 item 1 has students classify their *own* backlog, and labelling the Seed would remove the only unclassified backlog students see. If labelled, M08 p1's last callout and A2's "compare with the Seed" lose their point. | M08 p1; A2 item 1. | An hour to label; two page edits. | M08 | **Yes**, but the recommendation is no. |
+| S5 | **M13 p2's Linear half stays documentary until a workspace exists** — the same standing as M12, and the same five-minute live check would settle both. Nothing else on the page depends on it, and A3 reads only the leading number. Do the M12 walk first; fold this in. | M12 p1, M13 p2 "Not run live". | Five minutes once a workspace exists; two dated captures. | M13, M12 | No — already decided to keep documentary; needs the workspace. |
+| S6 | **A `--handles` batch exercise.** All three checkers accept `--handles FILE` and `--json`, and the guide's 8.1 shows the form, but no run in any audit has exercised it, and the guide's calibration advice assumes single runs. One run against a three-line file (`seed`, `w2probe`, `nonexistent-zz`) each cohort would catch a regression in the loop or the exit code before grading night. Judgement: worth doing and cheap; a `checkers/handles.example` file would make it a one-liner. | `main()` in each checker. | Twenty minutes. | Grading (A1–A3) | No — do it in the next unit. |
+| S7 | **Part 7 live-demo scripts for Weeks 2 and 3.** Week 1 has 7.2–7.4 with real output; Weeks 2–3 have Part 10 bullets ("live demo the retarget", "let the conflict happen") with no script or expected output. The Week 3 pages already contain every command and output a demo needs, so the script is a compilation, not new research; Week 2's would be the M11 two-parent experiment and the cycle. Judgement: yes for Week 3 (the retarget and the conflict are the two moments that surprise people and both are ten-minute demos); Week 2's can be the M11 p1 transcript read aloud. | Guide Part 7 vs Part 10. | Two hours for both. | M11, M16, M17 | No — build it with Week 4. |
+| S8 | **Delete the two throwaways.** Nothing on any page depends on either surviving (every transcript is printed); both are private; w2probe now carries audit commits and a ninth issue. The build token still lacks `delete_repo` (`gh auth status`, 2026-09-14). **Ask before deleting** — the command is in Part 10. | `gh repo list perro-ruidoso`. | One `gh auth refresh -s delete_repo`, two `gh repo delete --yes`. | Hygiene | **Yes** — needs the scope and the go-ahead. |
+| S9 | **Bring the plugin/skills drift into the audit checklist.** Add "re-diff installed vs upstream vs plugin manifest" to Part 10 item 3 and to the next audit issue, since the 13th's check missed it. Done in this unit for the guide. | §1. | Done. | — | No. |
+
+**Claims that turned out to be false** (the PR body repeats this list): every upstream
+description was "word-for-word" the installed one except `wayfinder`'s punctuation (`wayfinder`,
+`grilling`, `to-tickets`, `code-review`, `to-spec` differ in words); `request-refactor-plan` is the
+only named skill gone upstream (`qa` went in the same commit); "still installed and still runs"
+applies to students (the plugin never had it); `resolving-merge-conflicts` is "not on the map at
+all" (it is, upstream, since 2026-08-05); the smart zone is ~120k tokens (upstream: ~150k); the
+router's advice for a nearly full window is `/handoff` (upstream: `/compact`); the Seed's
+15-issue backlog is "what you are about to inherit"; the course repo has exactly two recorded
+edges and one open issue with no PR; `gh pr list --limit 1` prints 14373; the top three open
+PRs on `cli/cli` are #14373/#14355/#14351; `gh pr diff` has four flags; "Week 2 called this the
+frontier"; M06's worked-example gap is one second; the instructor guide's `gh` minimum is 2.60;
+the guide's `check_site.py` expected output is "8 pages, 67 links"; the nine `../../` links to
+the assignments, ADRs, and `CONTEXT.md` work on the published site (they 404); `check_site.py`
+was clean in the sense that mattered (it accepted those links); PR #5's Intent "opens" with the
+stacked-on sentence; the Seed `CLAUDE.md` "names them" in one sentence; four probe branches were
+restored on w3probe (`probe-child` remains).
+
 ## Open questions
 
 - ~~Linear Free plan's Issues Sync availability~~ — **resolved 2026-09-13**, twice: the
@@ -739,8 +943,20 @@ p2 says so); the two untested branch-deletion paths (M16 p3 says so).
   observed. Do it with the Issues Sync live check (same workspace, five minutes).
 - **`request-refactor-plan` is gone upstream** (2026-08-05). M18 names it because the
   objective does; the page quotes the installed copy and says it was removed. Decide before
-  cohort 2 whether to keep it in M18 or swap in a surviving skill (`implement` or
-  `improve-codebase-architecture` are the nearest neighbours on `ask-matt`'s map).
+  cohort 2 whether to keep it in M18 or swap in a surviving skill. **Sharpened 2026-09-14:**
+  the changeset that removed it names its replacement — `/to-spec` and
+  `/improve-codebase-architecture` — and the plugin students install never contained it, so
+  "keep it" means shipping a copy the course maintains. Recommendation: swap in
+  `improve-codebase-architecture` (Weeks 1–3 audit, S2).
+- **The plugin and the course machine run different skills** (found 2026-09-14). The
+  handout installs the Claude Code plugin (25 skills, tracking upstream); the course machine
+  has a 2026-07-09 `npx skills` snapshot (38). The plugin lacks `request-refactor-plan`, `qa`,
+  `git-guardrails-claude-code`, and `claude-handoff`; its `ask-matt` gives the opposite
+  advice about `/handoff` versus `/compact` and a different smart-zone figure. Decide whether
+  the course pins a skill set or tracks the plugin (Weeks 1–3 audit, S1); until then the M18
+  pages quote both and A3's third situation was rewritten to hold under either.
+- **M24 names `/qa`, which upstream retired on 2026-08-05** into `/triage` and `/to-tickets`.
+  Week 4 is unbuilt; decide the skill before it is (Weeks 1–3 audit, S3).
 - Whether instructor's Pro subscription usage limits can absorb CI review volume for
   8–14 students, or whether Max is needed. Measure during the Week 5 dry run.
 
@@ -1037,3 +1253,27 @@ p2 says so); the two untested branch-deletion paths (M16 p3 says so).
     verified in headless Chrome at 1200 and 400 px (the extension was not connected).
   - Left over: delete `flashcards-w3probe` (with `w2probe`); the Linear branch-name link is
     documentary; two branch-deletion paths untested; the `request-refactor-plan` decision.
+
+- **2026-09-14** — **Weeks 1–3 audit** (issue #19, branch `19-audit-weeks-1-3` from
+  `17-week3-pages` via `gh issue develop`; PR stacked on #18, which is stacked on #16 — #16
+  had not merged, so the #18 retarget the brief asked for could not be recorded; the *before*
+  state is on M06 p3 and M16 p2 instead). Findings, evidence, and fixes are in the
+  "Weeks 1–3 audit" section above. Headlines: all 105 URLs 200 with no redirects; every
+  quotation present, four course-artifact quotations tidied (an elision, a truncation, an
+  "opens", a code block rendered as a sentence) and one Anthropic sentence extended
+  upstream; **the skills drift is far larger than the 13th recorded** — `qa` was retired with
+  `request-refactor-plan` and the changeset names both replacements, the plugin students
+  install has 25 skills and lacks two of M18's six, `ask-matt` reversed its `/handoff`
+  advice and moved the smart zone to ~150k, `grilling` was rewritten, `wayfinder` says
+  "decision tickets"; `cli/cli`'s listings moved again and M06's course-repo snapshot was a
+  day stale (four edges now, three open issues, a second stack in its *before* state);
+  **nine links to files outside `docs/` were 404 on the published site** (fixed, and
+  `check_site.py` now refuses them — 28/28 faults caught); `check_a3.py` 16/16 by snapshot
+  replay, `check_a1/a2` 22/22 by live mutation on w2probe (a deleted-and-recreated label
+  does not re-attach to issues); 42 pages render clean at both widths (10 diagrams, 38 decks,
+  133 self-checks, 0 flagged, A–D 36/33/29/35); cross-week pass found one contradiction
+  (M01 p2 said the backlog is inherited), one term used before definition ("frontier"), a
+  one-second/two-second mismatch, a four-flags/six-flags mismatch, and the guide's stale
+  `gh` minimum and scope lines. Nine suggestions recorded, three needing decisions (pin or
+  track the plugin; swap `request-refactor-plan`; name M24's skill). Not done: deleting the
+  throwaways (no `delete_repo`; ask first), the Linear live walk, the #18 retarget.

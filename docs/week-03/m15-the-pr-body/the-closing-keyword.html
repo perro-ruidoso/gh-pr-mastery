@@ -77,7 +77,7 @@
 {"mergeCommit":"0b9a901","mergedAt":"2026-09-13T17:02:47Z","state":"MERGED"}
 <span class="prompt">$</span> gh issue view 1 --json state,stateReason,closedAt
 {"closedAt":"2026-09-13T17:02:48Z","state":"CLOSED","stateReason":"COMPLETED"}</code></pre>
-  <p>Merged at 17:02:47, closed at 17:02:48, <code>stateReason: COMPLETED</code>. The same one-second gap M06 built its worked example on, now produced by your own PR. The other two tickets on the throwaway closed the same way — #3 at 17:09:15 after a 17:09:14 merge, #2 at 17:12:48 after a 17:12:47 merge — and <code>check_a3.py</code> reads exactly this: a <code>closedAt</code> within seconds of the linking PR's <code>mergedAt</code>, with reason <code>COMPLETED</code>. An issue closed by hand with <code>gh issue close</code> has a gap of minutes, or a close before the merge, and fails the rule.</p>
+  <p>Merged at 17:02:47, closed at 17:02:48, <code>stateReason: COMPLETED</code>. The same machine-time gap M06's worked examples turn on — two seconds on <code>cli/cli</code>, one on the course repo — now produced by your own PR. The other two tickets on the throwaway closed the same way — #3 at 17:09:15 after a 17:09:14 merge, #2 at 17:12:48 after a 17:12:47 merge — and <code>check_a3.py</code> reads exactly this: a <code>closedAt</code> within seconds of the linking PR's <code>mergedAt</code>, with reason <code>COMPLETED</code>. An issue closed by hand with <code>gh issue close</code> has a gap of minutes, or a close before the merge, and fails the rule.</p>
 
   <div class="diagram">
     <pre class="mermaid">
@@ -194,7 +194,7 @@ graph LR
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/mermaid.min.js"></script>
 <script src="../../assets/app.js"></script>

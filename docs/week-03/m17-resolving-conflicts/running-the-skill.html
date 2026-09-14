@@ -136,7 +136,10 @@ diff --cc tests/domain/test_models.py
   <p>Nothing was invented: every kept line existed on one side or the other, and the only new content is the two blank lines that Python's formatter requires between top-level functions (the <code>++</code> column — present on neither side). No trade-off to note, because nothing was dropped.</p>
 
   <h2>Step 4 — the project's checks</h2>
-  <p>The Seed's <code>CLAUDE.md</code> names them: "<code>pytest</code>; <code>ruff check . &amp;&amp; ruff format --check .</code> — exactly what CI runs; <code>mypy</code>."</p>
+  <p>The Seed's <code>CLAUDE.md</code> names them in its Commands block — three lines, one of them commented "exactly what CI runs":</p>
+  <pre><code>pytest                      # the whole suite, well under a second
+ruff check . &amp;&amp; ruff format --check .   # exactly what CI runs
+mypy                        # src/ only, advisory for now</code></pre>
   <pre><code><span class="prompt">$</span> pytest
 <span class="dim">..................................                                       [100%]
 34 passed in 0.17s</span>
@@ -287,7 +290,7 @@ M  tests/domain/test_models.py
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

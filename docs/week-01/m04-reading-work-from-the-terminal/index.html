@@ -49,11 +49,11 @@
   <h2>Listing: what is in flight?</h2>
 
   <span class="code-label">$ gh pr list -R cli/cli --limit 3</span>
-  <pre><code>14373  docs: Add step to install working version on Ubuntu Pro  acoulton:patch-1                    OPEN   2026-09-07T10:43:26Z
-14355  Remove obsolete Git test seams                           williammartin-clean-git-test-seams  DRAFT  2026-09-04T15:50:28Z
-14351  Improve git client tests                                 williammartin-improve-git-tests     DRAFT  2026-09-04T15:36:50Z</code></pre>
+  <pre><code>14437  Use internal Apple codesign action                       williammartin-apple-codesign-action  OPEN   2026-09-14T09:20:44Z
+14373  docs: Add step to install working version on Ubuntu Pro  acoulton:patch-1                     OPEN   2026-09-07T10:43:26Z
+14355  Remove obsolete Git test seams                           williammartin-clean-git-test-seams   DRAFT  2026-09-04T15:50:28Z</code></pre>
 
-  <p>Number, title, head ref, state, age (captured 2026-09-13 — yours will differ). Note the third column again — <code>owner:branch</code> means a fork, as <a href="../m02-what-a-pull-request-is/heads-forks-and-drafts.html">M02</a> covered.</p>
+  <p>Number, title, head ref, state, age (captured 2026-09-14 — yours will differ; between the 13th and the 14th a new PR arrived on top and the third row fell off). Note the third column again — <code>owner:branch</code> means a fork, as <a href="../m02-what-a-pull-request-is/heads-forks-and-drafts.html">M02</a> covered.</p>
 
   <p>Two defaults from the manual are worth knowing, because they silently shape what you see: <code>--limit</code> defaults to <strong>30</strong> items, and <code>--state</code> defaults to <strong><code>open</code></strong> (the choices are <code>open</code>, <code>closed</code>, <code>merged</code>, <code>all</code>). A "how many PRs does this repo have?" question answered with the defaults is actually "how many of the first thirty open ones" — raise the limit and widen the state before you count anything.</p>
 
@@ -199,7 +199,7 @@ Available fields:
     <ul>
       <li><a href="https://cli.github.com/manual/gh_pr_list">GitHub CLI manual: <code>gh pr list</code></a> — defaults for <code>--limit</code> (30) and <code>--state</code> (<code>open</code>); fetched 2026-09-12</li>
       <li><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a> — <code>--json</code>, <code>--jq</code>, <code>--template</code>, <code>-R</code>; fetched 2026-09-12</li>
-      <li>Every transcript on this page was captured by running the command shown against <a href="https://github.com/cli/cli">cli/cli</a> on 2026-09-12; the field list was re-captured the same day.</li>
+      <li>Every transcript on this page was captured by running the command shown against <a href="https://github.com/cli/cli">cli/cli</a> on 2026-09-12; the field list was re-captured the same day, and the listing again on 2026-09-13 and 2026-09-14.</li>
     </ul>
   </section>
 
@@ -210,7 +210,7 @@ Available fields:
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

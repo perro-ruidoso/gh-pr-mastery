@@ -34,7 +34,7 @@
   </nav>
 
   <h2>What a skill is, and why it needs configuring</h2>
-  <p>A <strong>skill</strong> is a packaged set of instructions Claude Code loads when a task matches it. This course uses a family of engineering skills — <span class="skill">/to-spec</span>, <span class="skill">/to-tickets</span>, <span class="skill">/implement</span>, <span class="skill">/code-review</span>, <span class="skill">/qa</span>, <span class="skill">/triage</span> — that form the workflow spine of Weeks 2 through 6.</p>
+  <p>A <strong>skill</strong> is a packaged set of instructions Claude Code loads when a task matches it. This course uses a family of engineering skills — <span class="skill">/to-spec</span>, <span class="skill">/to-tickets</span>, <span class="skill">/implement</span>, <span class="skill">/code-review</span>, <span class="skill">/qa</span>, <span class="skill">/triage</span> — that form the workflow spine of Weeks 2 through 6. (One caveat, found 2026-09-14: upstream retired <code>qa</code> on 2026-08-05, folding its job into <code>/triage</code> and <code>/to-tickets</code>, and the plugin never shipped it — so the Week 4 pages will name whichever of those the instructor decides on; the course machine still has the older installed copy.)</p>
 
   <p>Several of them read from and write to your issue tracker. But a skill cannot guess whether "file this ticket" means <code>gh issue create</code>, a markdown file in a scratch folder, or something else entirely. So they all read a small set of configuration files, and <span class="skill">/setup-matt-pocock-skills</span> is the one-time run that writes them. Its own description: "Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."</p>
 
@@ -187,7 +187,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-13.</div>
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 1 learning pages. Source links verified 2026-09-14.</div>
 </footer>
 <script src="../../assets/app.js"></script>
 <script src="../../assets/flashcards.js"></script>

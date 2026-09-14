@@ -7,7 +7,7 @@ page that does not exist, a page that uses a Mermaid diagram without loading Mer
 self-check whose data-answer names an option that is not there, a flashcard with no back,
 an objective folder whose pages do not all link each other, an Apply, Create, or Evaluate
 page with no hands-on checklist, two decks sharing a localStorage id, a Week Hub the Course Home does
-not link.
+not link, a relative link that leaves docs/ and so 404s on the published site.
 
 Layout it expects: docs/week-NN/index.html is the Week Hub; docs/week-NN/mNN-slug/ is one
 objective, holding index.html (the entry Learning Page) plus any supporting pages.
@@ -52,9 +52,14 @@ def check_links(path: Path, html: str, problems: list[str]) -> int:
                 continue
             resolved = (path.parent / target).resolve()
             checked += 1
+            rel = path.relative_to(ROOT)
             if not resolved.exists():
-                rel = path.relative_to(ROOT)
                 problems.append(f"{rel}: broken link -> {raw}")
+            elif not resolved.is_relative_to(DOCS):
+                # Resolves on disk, but GitHub Pages serves docs/ alone, so on the
+                # published site this is a 404 (found 2026-09-14: nine links to
+                # assignments/, adr/, and CONTEXT.md). Link the GitHub blob URL instead.
+                problems.append(f"{rel}: link escapes docs/ (dead on the published site) -> {raw}")
     return checked
 
 
