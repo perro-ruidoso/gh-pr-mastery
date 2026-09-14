@@ -1065,6 +1065,19 @@ either surviving. Not done: the Seed's ADR 0001 rounding-source sentence (w3prob
 to change — suggest a one-line fix in the Seed before cohort 1); S1/S2; the
 `can_approve_pull_request_reviews` flip (not needed).
 
+## How to build the remaining weeks (preference recorded 2026-09-14)
+
+Weeks 1–4 were each one long session; the instructor's context window is the limiting
+resource. From Week 5 on, build a week in **six short sessions on one `gh issue develop`
+branch**, each ending in a commit and a NOTES.md update so the next session starts cold from
+this file: (1) sources + the whole throwaway run in one go — the exhibit's timestamps must be one
+story — recording every command and output in the week's NOTES section as it happens; (2–4)
+pages, two objectives per session, `check_site.py` and the option-form scan on those pages
+only, a hub stub first; (5) assignment + checker + fault injection; (6) hub, Course Home,
+pager, objectives, README/roadmap/guide, render at both widths, PR. Each prompt opens with
+"read NOTES.md's Week N section; do not re-run anything on the throwaway." Do not split the
+throwaway run or the final whole-week render pass.
+
 ## Open questions
 
 - ~~Linear Free plan's Issues Sync availability~~ — **resolved 2026-09-13**, twice: the
