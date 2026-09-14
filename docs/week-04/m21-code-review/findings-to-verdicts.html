@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From Findings to Verdicts — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M21 · Page 3 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>From Findings to Verdicts</h1>
+  <p class="lede">A finding is a candidate, not a defect. This page takes every item the two sub-agents produced on PR #15, checks the ones that can be checked, and gives each a verdict — <strong>must-fix</strong>, <strong>nit</strong>, or <strong>false positive</strong> — with the rule from <code>seed/SPEC.md</code> §5 (the ADR's source) that a real one violates. The agents found all three planted bugs and invented none; what they also produced is the reason this page exists.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M21 · Agentic review</span>
+      <span class="chip bloom">Bloom: Analyze</span>
+      <span class="chip assessed">Assessed by: A4 (written)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Run <span class="skill">/code-review</span> on a branch and separate verified findings from noise across its Standards and Spec axes.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M21 pages</span>
+    <a href="index.html"><span class="num">1</span>Two /code-reviews, Two Axes</a>
+    <a href="the-output-verbatim.html"><span class="num">2</span>The Output, Unedited</a>
+    <span class="here"><span class="num">3</span>From Findings to Verdicts</span>
+  </nav>
+
+  <h2>The vocabulary</h2>
+  <p><code>CONTEXT.md</code> for this course: a <strong>Finding</strong> is "One item reported by an automated review … before a human has judged it. A finding is a candidate, not a defect." A <strong>Verdict</strong> is "A human's disposition of a finding: must-fix, nit, or false positive." Must-fix: the PR should not merge with it. Nit: real, worth fixing, not blocking. False positive: the finding is wrong, or is about something other than what it claims. A fourth disposition, <em>duplicate</em>, is not a verdict — it is a finding that restates another and inherits its verdict.</p>
+
+  <h2>Verify first</h2>
+  <p>Three claims in the reports could be checked by running something. All three were, on the planted branch, before any verdict was given:</p>
+  <pre><code><span class="prompt">$</span> python -c "
+from datetime import date
+from flashcards.domain.models import Card
+from flashcards.domain.scheduler import review
+c=Card(id='c',front='f',back='b',repetitions=1,ease_factor=1.3,interval=1)
+try: review(c,3,date(2026,9,14))
+except ValueError as e: print('grade 3 from 1.3 ->', e)
+c=Card(id='c',front='f',back='b',repetitions=2,ease_factor=2.5,interval=5)
+print('5*2.5 ->', review(c,4,date(2026,9,14)).interval)
+c=Card(id='c',front='f',back='b',repetitions=3,ease_factor=2.36,interval=15)
+print('fail from 2.36 ->', review(c,1,date(2026,9,14)).ease_factor)"
+grade 3 from 1.3 -> Card.ease_factor must be at least 1.3
+5*2.5 -> 12
+fail from 2.36 -> 2.5</code></pre>
+  <p>All three behavioural claims hold: the floor case raises from the model (the Standards agent's "which <code>replace()</code> raises on" — close enough; it is <code>Card.__post_init__</code> that raises, reached through <code>replace</code>), 12.5 rounds to 12, a failed card comes back at 2.5. Then the Spec agent's number:</p>
+  <pre><code><span class="prompt">$</span> git show main:tests/domain/test_scheduler.py &gt; tests/domain/test_scheduler_main.py
+<span class="prompt">$</span> pytest tests/domain/test_scheduler_main.py
+ImportError: cannot import name 'round_half_up' from 'flashcards.domain.scheduler'
+<span class="prompt">$</span> <span class="dim"># stub the removed helper so the file imports, then:</span>
+FAILED test_scheduler_main.py::test_ease_factor_floor_is_applied_after_the_update_not_before
+FAILED test_scheduler_main.py::test_failure_restarts_repetitions_and_leaves_the_ease_factor_unchanged
+FAILED test_scheduler_main.py::test_fail_then_recover_keeps_the_ease_factor_history
+FAILED test_scheduler_main.py::test_exact_half_interval_rounds_up_not_to_even
+4 failed, 11 passed in 0.26s</code></pre>
+  <p>"Fails 5 of them" is <strong>4</strong> — or 5 if you count the file not importing at all, which is presumably what the agent did. The substance (main's tests reject the new code) is right; the number was not quotable as written. That is the smallest possible instance of the whole objective: check the checkable thing, then say what you found.</p>
+
+  <h2>Every finding, one verdict</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Finding (axis)</th><th>Verdict</th><th>§5 rule / basis</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Failure branch resets the ease factor to 2.5 (Standards hard #1; Spec (c) 2)</td><td><strong>must-fix</strong></td><td>§5 <em>Failure</em>: "start repetitions for the item from the beginning without changing the E-Factor" — leaves EF untouched</td><td>Verified: 2.36 → 2.5. Planted bug 2. Both axes, independently.</td></tr>
+        <tr><td>2</td><td>Floor applied before the update (Standards hard #2; Spec (c) 1)</td><td><strong>must-fix</strong></td><td>§5 <em>Ease factor update</em>: <code>EF' := EF + (…)</code>, then <code>if EF' &lt; 1.3 then EF' := 1.3</code></td><td>Verified: grade 3 from 1.3 raises instead of holding 1.3. Planted bug 1. The "pre-check is a no-op" observation is correct and useful.</td></tr>
+        <tr><td>3</td><td><code>round()</code> for the interval (Standards hard #3; Spec (c) 3)</td><td><strong>must-fix</strong></td><td>§5 decision 1 <em>Rounding</em>: "Round half-up to the nearest integer, with a floor of 1 day … do not leave it to <code>round()</code>"</td><td>Verified: 12.5 → 12. Planted bug 3.</td></tr>
+        <tr><td>4</td><td>Tests rewritten to pin the new behaviour; three rules no longer tested (Spec (a); Standards hard #6 on the floor test's name)</td><td><strong>must-fix</strong></td><td>Ticket #14 criterion 4: tests "must assert the same behaviour"; <code>CLAUDE.md</code>: "Name tests after the behaviour they pin"</td><td>The changed assertions are how bugs 1–3 got past CI. The 4-vs-5 count is a detail; the finding stands.</td></tr>
+        <tr><td>5</td><td>Module docstring promises the three rules the code breaks (Standards hard #4; Spec (b) tail)</td><td><strong>nit</strong></td><td>No §5 rule; <code>CLAUDE.md</code> docstring convention</td><td>Real and misleading, but it becomes true again when 1–3 are fixed. Not blocking on its own.</td></tr>
+        <tr><td>6</td><td>"The commit message names none [of the ADR rules]; if the PR body matches, that's a breach" (Standards hard #5)</td><td><strong>false positive</strong></td><td><code>CLAUDE.md</code> <em>Working here</em> — the rule is about the PR description</td><td>The agent read the commit, not the PR. PR #15's body names <strong>Ease Factor</strong>, <strong>Failure</strong>, and <strong>Rounding</strong> by name (and then claims they are unchanged, which is finding 1–3's problem, not this one). The conditional "if the PR body matches" was the agent hedging a claim it had not checked.</td></tr>
+        <tr><td>7</td><td>"<code>docs/agents/domain.md</code> also requires ADR conflicts to be surfaced explicitly" (Standards hard #5, second sentence)</td><td><strong>nit</strong></td><td><code>domain.md</code> "Flag ADR conflicts": "If your output contradicts an existing ADR, surface it explicitly rather than silently overriding"</td><td>The sentence exists and applies — the PR does silently override the ADR. But it is a process rule about how to <em>present</em> a contradiction, and the contradiction itself is already 1–3. Real, secondary.</td></tr>
+        <tr><td>8</td><td>Mysterious Name: <code>ef</code>, <code>reps</code>; constants replaced by bare <code>3</code>, <code>1</code>, <code>6</code> (Standards smell)</td><td><strong>nit</strong></td><td>Baseline smell, judgement call; <code>CONTEXT.md</code>: "<em>Avoid</em>: EF in prose; <code>ease_factor</code> in code is fine"</td><td><code>CONTEXT.md</code> permits <code>ease_factor</code>; it does not forbid <code>ef</code>. A readability preference; the lost constant names are the better half of the point.</td></tr>
+        <tr><td>9</td><td>"Primitive Obsession (magic literals)" on the nested conditional (Standards smell)</td><td><strong>nit</strong> — mislabelled</td><td>Baseline smell, judgement call</td><td>Primitive Obsession is "a primitive or string standing in for a domain concept"; a one-line <code>if/else</code> chain with literals is not that. The readability complaint is fair; the label is wrong. Keep the complaint, correct the name.</td></tr>
+        <tr><td>10</td><td>"Speculative Generality (inverse)": the up-front clamp guards an impossible state (Standards smell)</td><td><em>duplicate of 2</em></td><td>—</td><td>Same line, same defect, different vocabulary. Inherits must-fix; not a separate item.</td></tr>
+        <tr><td>11</td><td>"Constants deleted (not just inlined) — acceptable under 'fold the helpers back in'" (Spec (b))</td><td><em>not a finding</em></td><td>—</td><td>The agent says so itself. Recorded so the count is honest.</td></tr>
+        <tr><td>12</td><td>"<code>Card</code>, storage, and CLI are untouched — that criterion is met" (Spec)</td><td><em>pass</em></td><td>Ticket #14 criterion 5</td><td>A criterion checked and satisfied. The Spec axis reports these too.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What the tally says</h2>
+  <p>Four must-fix (three planted, plus the test rewrite that hid them), four nits (one mislabelled), one false positive, one duplicate, and two non-findings — out of the "6 hard + 3 smells" and "3 + 1 + 1" the axes reported. The agents missed nothing that was planted and invented nothing that was not there; the noise was a wrong number, a claim about a document the agent had not opened, a smell with the wrong name, and one defect stated twice. None of it would have survived a reviewer who read the PR body and ran two commands — and all of it would have been repeated verbatim by a reviewer who did not.</p>
+
+  <div class="callout warn">
+    <span class="label">The decoys were the agents', not the planter's</span>
+    <p><code>seed/SPEC.md</code> §7 asks each planted bug to have "a decoy: at least one <code>/code-review</code> finding that is a genuine nit or a false positive". The planted diff put a few in reach — the stale docstring, the <code>ef</code> rename, the nested conditional — and the agents took them, but the false positive that mattered (finding 6) was one nobody planted: an agent reasoning from the commit message about a rule that binds the PR description. You cannot anticipate every false positive; you can make it a habit to ask, for each finding, "what did it read, and did I read it too?"</p>
+  </div>
+
+  <h2>Writing it up</h2>
+  <p>Assignment A4's written part is this page, for your peer's PR: the two reports pasted unedited under <code>## Standards</code> and <code>## Spec</code>, then a table like the one above with a verdict per finding and, for every must-fix, the ADR or ticket sentence it violates. <code>check_a4.py</code> reads only the evidence — that the two headings are there, that the three verdict words appear, that it is long enough to have said something. Whether the verdicts are right is the rubric's job, and the rubric's first question is whether you verified what could be verified.</p>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. The Standards agent wrote: "The commit message names none [of the ADR rules]; if the PR body matches, that's a breach." Why is this a false positive rather than a nit?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because <code>CLAUDE.md</code>'s rule about naming ADR rules applies only to merged PRs, and #15 was still open when the agent ran</button></li>
+        <li><button data-opt="b">Because commit messages are not part of the review surface; the skill's step 1 captures only the diff, never the log</button></li>
+        <li><button data-opt="c">Because the rule binds the PR description, and PR #15's body names the three rules — the agent read the wrong document</button></li>
+        <li><button data-opt="d">Because the smell baseline says every finding about documentation or process is a judgement call, never a hard violation</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The rule: "A pull request that changes scheduling arithmetic must say, in its description, which rule…". The body says Ease Factor, Failure, Rounding. The agent read the commit, and its "if" was an admission. A invents a condition; B is wrong (step 1 also notes the commit list); D confuses the baseline with documented standards.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Which §5 rule does planted bug 1 — the floor applied before the update — violate?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The starting ease factor of 2.5, since clamping first changes what a brand-new <code>Card</code> begins its life with</button></li>
+        <li><button data-opt="b">The ease factor update: <code>EF' := EF + (…)</code> first, and only then <code>if EF' &lt; 1.3 then EF' := 1.3</code></button></li>
+        <li><button data-opt="c">The failure rule, because a clamp applied before the update also changes what a failed card keeps afterwards</button></li>
+        <li><button data-opt="d">The interval rule <code>I(n) := I(n-1) * EF</code>, since the clamped value feeds the multiplication</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The floor belongs to the updated value. The clamp does not touch a new card's 2.5 (A) or the failure path (C, which is bug 2's rule); the interval rule (D) is downstream of whichever EF you compute — the defect is in the EF, not the multiplication.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. The Standards agent labelled the nested conditional expression "Primitive Obsession (magic literals)". What is the right disposition?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">False positive: baseline smells are never findings at all, so nothing under that heading gets a verdict of any kind</button></li>
+        <li><button data-opt="b">Must-fix: a mislabelled smell is a documented-standard breach under "The repo overrides"</button></li>
+        <li><button data-opt="c">Duplicate: it restates the <code>round()</code> finding, since the literals are in the same expression</button></li>
+        <li><button data-opt="d">Nit, with the label corrected: the readability complaint is fair, but Primitive Obsession names something else</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Keep the substance, fix the name. Smells are judgement calls but still findings (A); nothing documented is breached (B); the complaint is about the <code>if/else</code> chain, not the rounding (C).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">4. What is the first thing this page did before assigning any verdict?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Ran the three behavioural claims and the "fails 5 of them" claim on the branch, and recorded the results</button></li>
+        <li><button data-opt="b">Re-ran the skill at a higher effort level to see whether the two reports stayed the same the second time</button></li>
+        <li><button data-opt="c">Asked the author which findings they agreed with, so that none of the verdicts would later be contested</button></li>
+        <li><button data-opt="d">Sorted all twelve items into one list by severity, so the worst could be handled first</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> "Verify first" — and one number changed (5 → 4). The Pocock skill has no effort levels (B); the author's agreement is not evidence (C); ranking across axes is what the skill forbids (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m21-verdicts">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Finding versus verdict, per <code>CONTEXT.md</code>?</div><div class="fc-back">A finding is "a candidate, not a defect"; a verdict is "a human's disposition of a finding: must-fix, nit, or false positive."</div></div>
+      <div class="fc"><div class="fc-front">The §5 rule behind each planted bug?</div><div class="fc-back">1 floor-before-update → EF update then <code>if EF' &lt; 1.3</code>; 2 failure resets EF → "without changing the E-Factor"; 3 <code>round()</code> → decision 1, half-up with a floor of 1.</div></div>
+      <div class="fc"><div class="fc-front">What did "fails 5 of them" turn out to be?</div><div class="fc-back">4 failures once the removed helper was stubbed; the file did not import at all before that. Substance right, number wrong.</div></div>
+      <div class="fc"><div class="fc-front">The one false positive on PR #15, and why?</div><div class="fc-back">"The commit message names none [of the ADR rules]" — the rule binds the PR <em>description</em>, which does name them. The agent read the wrong document.</div></div>
+      <div class="fc"><div class="fc-front">Which finding was a duplicate?</div><div class="fc-back">"Speculative Generality (inverse)" on the early clamp — the same line and defect as must-fix 2, restated as a smell.</div></div>
+      <div class="fc"><div class="fc-front">Why is the stale docstring a nit and not a must-fix?</div><div class="fc-back">It is real and misleading, but it becomes true again when the three rules are restored; it does not block on its own.</div></div>
+      <div class="fc"><div class="fc-front">The final tally on PR #15?</div><div class="fc-back">4 must-fix (3 planted + the test rewrite), 4 nits (1 mislabelled), 1 false positive, 1 duplicate, 2 non-findings. Nothing missed, nothing invented.</div></div>
+      <div class="fc"><div class="fc-front">The question to ask of every finding?</div><div class="fc-back">"What did the agent read to reach this, and did I read it too?"</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Paste your two reports into Claude Code and ask: "for each finding, name the document and sentence it rests on, and tell me whether you actually opened that document during the review." Then open them yourself. Where the answer is "I inferred it", you have a candidate false positive; where you and the agent read the same sentence differently, bring both readings to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/docs/adr/0001-sm2-rounding-and-the-clock.md">Seed Repo — ADR 0001</a><span class="why">The three sentences every must-fix above rests on. Its rounding section says the original publication "does not settle" rounding; the publication it cites says "round it up" — M24 files that.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/seed/SPEC.md">Course repo — <code>seed/SPEC.md</code> §5 and §7</a><span class="why">The SM-2 rules as the course states them, and the three planted bugs with the decoy requirement.</span></li>
+      <li><span class="tier anc">Ancillary</span><a href="https://super-memory.com/english/ol/sm2.htm">SuperMemo: Application of a computer to improve the results obtained in working with the SM-2 method</a><span class="why">The 1990 publication behind §5 — read the algorithm's numbered steps and compare the wording on failure and rounding with the ADR's.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md">mattpocock/skills — <code>code-review/SKILL.md</code>, the smell baseline</a><span class="why">The twelve smells with their one-line definitions; check finding 9's label against the Primitive Obsession entry yourself.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/code-review">Claude Code docs: Code Review</a><span class="why">"Each finding is tagged with a severity level" — Important, Nit, Pre-existing — and "a verification step checks candidates against actual code behavior to filter out false positives": the managed product automates the step this page did by hand.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/CONTEXT.md">Course repo — <code>CONTEXT.md</code></a> — Finding and Verdict definitions</li>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/seed/SPEC.md">Course repo — <code>seed/SPEC.md</code></a> §5, §7</li>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/docs/adr/0001-sm2-rounding-and-the-clock.md">Seed Repo — ADR 0001</a>, <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, and <code>docs/agents/domain.md</code> as present on the throwaway (read 2026-09-14)</li>
+      <li>The two sub-agent reports (page 2) and the verification commands run on <code>flashcards-w3probe</code> at <code>b0fac63</code>, 2026-09-14, Python 3.14, pytest 9</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="the-output-verbatim.html"><span class="dir">Previous · M21, page 2</span>The Output, Unedited</a>
+    <a class="next" href="../m22-comments-a-peer-can-act-on/index.html"><span class="dir">Next · M22</span>Located, Specific, Severity-Marked</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

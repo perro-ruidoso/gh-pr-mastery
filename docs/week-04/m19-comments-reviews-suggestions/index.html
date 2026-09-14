@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three Things That Look Alike — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M19 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Three Things That Look Alike</h1>
+  <p class="lede">A comment on the Conversation tab, a review with inline comments and a verdict, and a suggested change are three different objects on GitHub, stored in three places, with three different consequences. This page tells them apart with GitHub's own definitions and with <code>gh</code> against a real pull request — including what happens when the author tries to review their own.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M19 · Review mechanics</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Distinguish a single comment, a review, and a suggested change; batch comments and submit a review with a verdict.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M19 pages</span>
+    <span class="here"><span class="num">1</span>Three Things That Look Alike</span>
+    <a href="batching-from-the-terminal.html"><span class="num">2</span>A Batched Review from gh</a>
+  </nav>
+
+  <h2>The exhibit</h2>
+  <p>Every transcript on the M19–M24 pages comes from one pull request on the course's throwaway Instance, <code>perro-ruidoso/flashcards-w3probe</code>, run on 2026-09-14: <strong>PR #15</strong>, "Simplify the scheduler: one bounds check, one reset path, one rounding call". It refactors the SM-2 scheduler that PR #13 had landed correctly, and its body claims "the rules themselves are unchanged". Three of them are not — the three defects <code>seed/SPEC.md</code> plants for this week — and its tests pass anyway. The PR was opened by the course account, which matters on this page: some of what a reviewer does, GitHub does not let the author do.</p>
+
+  <h2>Three objects</h2>
+  <p>GitHub's commenting page draws the line in two sentences (fetched 2026-09-14): "You can comment on a pull request's Conversation tab to leave general comments, questions, or praise. You can also suggest changes that the pull request author can apply directly from your comment." and "You can also comment on specific files or sections of a file in a pull request's Files changed tab as individual line or file comments, or as part of a pull request review."</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Object</th><th>Where it lives</th><th>What it carries</th><th><code>gh</code></th></tr></thead>
+      <tbody>
+        <tr><td><strong>Single comment</strong></td><td>The Conversation tab — an <em>issue comment</em> on the PR's timeline (<code>/issues/N/comments</code>)</td><td>Markdown. No file, no line, no verdict. One notification.</td><td><code>gh pr comment N --body</code></td></tr>
+        <tr><td><strong>Review</strong></td><td>The Files changed tab — a group of inline comments plus a summary, submitted together with one of three verdicts (<code>/pulls/N/reviews</code>)</td><td>Pending until submitted; inline comments anchored to a file and a diff line; the state <code>COMMENTED</code>, <code>APPROVED</code>, or <code>CHANGES_REQUESTED</code>. One notification for the batch.</td><td><code>gh pr review N --comment | --approve | --request-changes</code> for the verdict and summary; <code>gh api</code> for inline comments (page 2)</td></tr>
+        <tr><td><strong>Suggested change</strong></td><td>Inside an inline comment: a fenced <code>```suggestion</code> block</td><td>Replacement text for the commented lines. The author can commit it from the comment; the commit is co-authored.</td><td>Written into a comment body, from either of the above</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The REST reference puts the second object in one sentence: "Pull Request Reviews are groups of pull request review comments on a pull request, grouped together with a state and optional body comment." And it separates the inline kind from the first: "Pull request review comments are comments made on a portion of the unified diff during a pull request review. These are different from commit comments and issue comments in a pull request." So a "comment" on a PR is one of two things, and only the inline kind can carry a suggestion.</p>
+
+  <h2>The single comment, from <code>gh</code></h2>
+  <p>The first move on PR #15 was a Conversation-tab comment: a note on what the reviewer was about to do, and one observation that did not belong on any line — the test file's changed expected values.</p>
+  <pre><code><span class="prompt">$</span> gh pr comment 15 --body "Reading this against \`docs/adr/0001\` now. Before I go line by line: the body says the rules are unchanged, but the test file changes three expected values (2.36 → 2.5 twice, and the 12.5 → 13 case is gone). A refactor with the same behaviour should not need new assertions — so I am treating those three lines as the map of where to look."
+https://github.com/perro-ruidoso/flashcards-w3probe/pull/15#issuecomment-5664781550
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/issues/15/comments --jq '.[] | {id, user: .user.login, created_at}'
+{"created_at":"2026-09-14T13:31:29Z","id":5664781550,"user":"acatlin"}</code></pre>
+  <p>Note the route it was read back from: <code>/issues/15/comments</code>. A PR is an issue with code attached, and a Conversation-tab comment is an issue comment. It will never appear at <code>/pulls/15/comments</code>, which is where the inline review comments live.</p>
+
+  <h2>The three verdicts</h2>
+  <p>GitHub's reviewing page (fetched 2026-09-14) defines them when you submit: "Select <strong>Comment</strong> to leave general feedback without explicitly approving the changes or requesting additional changes. Select <strong>Approve</strong> to submit your feedback and approve merging the changes proposed in the pull request. Select <strong>Request changes</strong> to submit feedback that must be addressed before the pull request can be merged." The same three are the <code>event</code> values of the REST create-review endpoint — <code>COMMENT</code>, <code>APPROVE</code>, <code>REQUEST_CHANGES</code> — and the three flags of <code>gh pr review</code>: <code>-c/--comment</code>, <code>-a/--approve</code>, <code>-r/--request-changes</code>.</p>
+
+  <div class="callout warn">
+    <span class="label">"Must be addressed" is not enforced by default</span>
+    <p>From the same page: "The <strong>Request changes</strong> option is purely informational and will not prevent merging unless a ruleset or classic branch protection rule is configured with the 'require a pull request' option." Your Instance has no ruleset yet — Week 5 adds one (M26). Until then a <code>CHANGES_REQUESTED</code> verdict changes <code>reviewDecision</code> (M20) and nothing about the merge button.</p>
+  </div>
+
+  <h2>What the author cannot do — verified live</h2>
+  <p>The reviewing page says it once, flatly: "Pull request authors cannot approve their own pull requests." The course account opened PR #15, so every route was tried:</p>
+  <pre><code><span class="prompt">$</span> gh pr review 15 --approve
+failed to create review: GraphQL: Review Can not approve your own pull request (addPullRequestReview)
+<span class="prompt">$</span> gh pr review 15 --request-changes --body "The failure path resets the ease factor; ADR 0001 says it must not."
+failed to create review: GraphQL: Review Can not request changes on your own pull request (addPullRequestReview)
+<span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w3probe/pulls/15/reviews -f event=APPROVE
+{"message":"Unprocessable Entity","errors":["Review Can not approve your own pull request"],"documentation_url":"https://docs.github.com/rest/pulls/reviews#create-a-review-for-a-pull-request","status":"422"}
+gh: Unprocessable Entity (HTTP 422)
+<span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w3probe/pulls/15/reviews -f event=REQUEST_CHANGES -f body=x
+{"message":"Unprocessable Entity","errors":["Review Can not request changes on your own pull request"],"documentation_url":"https://docs.github.com/rest/pulls/reviews#create-a-review-for-a-pull-request","status":"422"}
+gh: Unprocessable Entity (HTTP 422)</code></pre>
+  <p>Both verdicts refused, by both routes; <code>gh pr review</code> surfaces the GraphQL mutation's message, <code>gh api</code> the REST 422. What the author <em>can</em> submit is a review with the <code>COMMENT</code> verdict — page 2 does exactly that — and Conversation-tab comments. This is the reason Assignment A4 is paired and the reason the student, not the instructor, opens the drill PR on their Instance: the person who is going to review with a verdict must not be the author.</p>
+
+  <div class="callout note">
+    <span class="label">Who may review at all</span>
+    <p>The pull-request-reviews reference (fetched 2026-09-14): "Anyone with read access can review and comment on proposed changes." Your Instance is public, so your peer can review it with no collaborator invitation. Requesting a review is the narrower permission: "To request a review, you need write access to the repository. You can request a review from a person or team with read access to the repository." That is M20's business.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>On your peer's drill PR (Assignment A4, items 2–3), before you write anything substantive:</p>
+    <label class="check"><input type="checkbox"><span>Left one Conversation-tab comment with <code>gh pr comment</code> and read it back from <code>/issues/N/comments</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed you are not the PR's author (<code>gh pr view N --json author</code>) — otherwise GitHub will refuse the verdict you are about to give.</span></label>
+    <label class="check"><input type="checkbox"><span>Decided which of the three verdicts the review will carry <em>before</em> writing the inline comments, and can say what each would mean on this PR.</span></label>
+    <label class="check"><input type="checkbox"><span>On your own drill PR, tried <code>gh pr review --approve</code> once, to see the refusal with your own eyes.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. A colleague writes "I left a comment on your PR." Which of these is the only one that could carry a <code>```suggestion</code> block?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">A Conversation-tab comment posted with <code>gh pr comment</code>, since suggestions are Markdown</button></li>
+        <li><button data-opt="b">An inline comment on a diff line, whether posted alone or as part of a review</button></li>
+        <li><button data-opt="c">The summary body of a review submitted with <code>gh pr review --comment</code></button></li>
+        <li><button data-opt="d">A commit comment left on the PR's head commit from the Commits tab</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> A suggestion replaces the commented lines, so it needs a file and a line to anchor to — only an inline (review) comment has them. A Conversation comment (A) and a review summary (C) have no line; a commit comment (D) is a different object again ("different from commit comments and issue comments").</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. The author of PR #15 ran <code>gh pr review 15 --request-changes --body "…"</code>. What happened?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The review was recorded with state <code>CHANGES_REQUESTED</code> and the PR became unmergeable until a second review approved it until a second review approved it</button></li>
+        <li><button data-opt="b">The review was recorded as <code>COMMENTED</code>, since <code>gh</code> downgrades an author's verdict silently</button></li>
+        <li><button data-opt="c">The review was saved as <code>PENDING</code> and waits for a collaborator with write access to submit it on the author's behalf</button></li>
+        <li><button data-opt="d">Nothing was recorded: GitHub answered "Can not request changes on your own pull request"</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The transcript above. GitHub refuses both verdicts from the author, by GraphQL and by REST; nothing is downgraded (B) or parked (C). A would also be wrong for a second reason: without a ruleset, Request changes "is purely informational".</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Your peer's Instance is public and you are not a collaborator on it. Which is true?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">You can submit a review with any of the three verdicts, but cannot request a review from anyone</button></li>
+        <li><button data-opt="b">You can leave Conversation comments only; inline review comments and verdicts both need write access to the repository</button></li>
+        <li><button data-opt="c">You can approve but not request changes, since blocking needs write access</button></li>
+        <li><button data-opt="d">You can do nothing on the PR until the owner adds you as a collaborator with at least triage permission</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> "Anyone with read access can review and comment on proposed changes," and a public repository gives everyone read access. Requesting a review is the thing that needs write access. B, C, and D each invent a permission the reference does not describe.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m19-three-things">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Where does a Conversation-tab comment live in the API?</div><div class="fc-back">As an issue comment: <code>/repos/O/R/issues/N/comments</code>. Never under <code>/pulls/N/comments</code>.</div></div>
+      <div class="fc"><div class="fc-front">GitHub's one-sentence definition of a review?</div><div class="fc-back">"Pull Request Reviews are groups of pull request review comments on a pull request, grouped together with a state and optional body comment."</div></div>
+      <div class="fc"><div class="fc-front">The three verdicts, and their <code>gh pr review</code> flags?</div><div class="fc-back"><code>COMMENT</code> (<code>-c</code>), <code>APPROVE</code> (<code>-a</code>), <code>REQUEST_CHANGES</code> (<code>-r</code>).</div></div>
+      <div class="fc"><div class="fc-front">What can an author submit on their own PR?</div><div class="fc-back">Comments and a <code>COMMENT</code>-verdict review. <code>APPROVE</code> and <code>REQUEST_CHANGES</code> are refused: "Can not approve your own pull request".</div></div>
+      <div class="fc"><div class="fc-front">Does Request changes block the merge on your Instance?</div><div class="fc-back">No — "purely informational" until a ruleset with "require a pull request" exists (Week 5).</div></div>
+      <div class="fc"><div class="fc-front">Who can review a public repository's PR?</div><div class="fc-back">"Anyone with read access can review and comment" — so any GitHub user. Requesting a review needs write access.</div></div>
+      <div class="fc"><div class="fc-front">Where can a suggested change appear?</div><div class="fc-back">Only in an inline (review) comment, as a <code>```suggestion</code> block — it needs a file and a line to replace.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Open your peer's drill PR and ask Claude Code, in a session inside your clone of their Instance: "list every comment on PR N and tell me, for each, whether it is an issue comment, a review, or a review comment, and which API route you read it from." If it lumps them together, it has not learned the distinction this page makes — and neither has a reviewer who reads only the Conversation tab. Bring the cases you are unsure about to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request">GitHub Docs: Reviewing proposed changes in a pull request</a><span class="why">The primary source: starting a review, pending comments, "Submitting your review" with the three verdicts, and the sentence about authors.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a><span class="why">Single comment versus "Start a review", and why batching "avoids sending multiple notifications".</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/pull-request-reviews">GitHub Docs: Pull request reviews (reference)</a><span class="why">The decision-types table and the permissions for reviewing and requesting — short enough to read twice.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/pulls/reviews">REST API: pull request reviews</a><span class="why">The object model behind the tab: reviews, their <code>state</code>, and the <code>event</code> that submits them.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_review">GitHub CLI manual: <code>gh pr review</code></a> and <a href="https://cli.github.com/manual/gh_pr_comment"><code>gh pr comment</code></a><span class="why">The two commands used here; note that neither takes a file or line — inline comments are page 2's <code>gh api</code> call.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request">GitHub Docs: Reviewing proposed changes in a pull request</a> — the three verdict sentences, the "purely informational" tip, "Pull request authors cannot approve their own pull requests" (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a> — the two opening sentences (fetched 2026-09-14; the recorded URL redirected once to this canonical address)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/pull-request-reviews">GitHub Docs: Pull request reviews</a> — "Anyone with read access…", "To request a review, you need write access…" (fetched 2026-09-14; formerly "About pull request reviews")</li>
+      <li><a href="https://docs.github.com/en/rest/pulls/reviews">REST API endpoints for pull request reviews</a> and <a href="https://docs.github.com/en/rest/pulls/comments">for review comments</a> — the two definitions quoted (fetched 2026-09-14)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_review">gh pr review</a>, <a href="https://cli.github.com/manual/gh_pr_comment">gh pr comment</a> — flags (fetched 2026-09-14)</li>
+      <li>PR #15 on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14, <code>gh</code> 2.100.0 — every transcript on this page, including the four refusals</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../index.html"><span class="dir">Previous</span>Week 4 hub</a>
+    <a class="next" href="batching-from-the-terminal.html"><span class="dir">Next · M19, page 2</span>A Batched Review from gh</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 4 · Owning the Diff — GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb">Week 4</span>
+  </div>
+</header>
+
+<main>
+  <h1>Week 4 — Owning the Diff</h1>
+  <p class="lede">A pull request with three planted defects and a green test suite. This week you sit on both sides of it: review a peer's copy with the terminal and with <span class="skill">/code-review</span>, judging what the agent found rather than repeating it; then answer review on your own copy through Claude Code, and file what the review uncovered but the PR must not absorb.</p>
+
+  <p>Weeks 1–3 built the machinery — issues with edges, branches from issues, PRs that close them. Week 4 is about the conversation in the middle: what a comment, a review, and a suggestion each are (M19); what resolving, re-requesting, and <code>reviewDecision</code> actually record (M20); how to read an automated review's findings as candidates and give each a verdict (M21); how to write a comment the author can act on without asking a question (M22); how to answer review as the author without losing the thread (M23); and how to turn out-of-scope discoveries into issues instead of drive-by commits (M24). Every transcript on these pages is from one pull request on a throwaway Instance, <code>flashcards-w3probe#15</code>, run on 2026-09-14 — a "refactor" of a correct SM-2 scheduler that quietly breaks three rules of the Seed's ADR and rewrites the tests that pinned them.</p>
+
+  <div class="callout note">
+    <span class="label">Suggested order, and the pairing</span>
+    <p>Read <strong>M19</strong> and <strong>M20</strong> first — they are the mechanics everything else stands on. <strong>M21</strong> and <strong>M22</strong> are the reviewer's week; <strong>M23</strong> and <strong>M24</strong> the author's. Assignment A4 pairs you with another student: you review their drill PR and they review yours, so both seats get played for real. The instructor publishes the pairing before the meeting; the drill PR is opened on <em>your</em> Instance by <em>you</em>, with <code>seed/tools/plant_review_pr.py</code>, because GitHub will not let an author approve or request changes on their own pull request — the week's first verified fact.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Three things that surprised the course itself</span>
+    <p><strong>A push does not clear <code>CHANGES_REQUESTED</code></strong> — the throwaway's PR still reads it after the fix landed, every thread was replied to, and every thread was resolved; only the reviewer's next review can move it. <strong>The installed <code>/code-review</code> is not Claude Code's <code>/code-review</code></strong> — same name, different tool, different output shape; M21 tells them apart. And <strong><code>/qa</code> applies no labels and no type</strong> — the issues it files are unlabelled by design, because labelling is <code>/triage</code>'s job in Week 6. The M20, M21, and M24 pages have the transcripts.</p>
+  </div>
+
+  <h2>Objectives</h2>
+  <div class="table-wrap">
+    <table class="objtable">
+      <thead><tr><th>ID</th><th>Objective</th><th>Bloom</th><th>Assessed by</th></tr></thead>
+      <tbody>
+        <tr><td class="id">M19</td><td><a href="m19-comments-reviews-suggestions/index.html">Distinguish a single comment, a review, and a suggested change; batch comments and submit a review with a verdict.</a></td><td class="bloom">Apply</td><td class="bloom">A4 (checker)</td></tr>
+        <tr><td class="id">M20</td><td><a href="m20-review-state/index.html">Resolve conversations, re-request review, and read a PR's review state correctly.</a></td><td class="bloom">Apply</td><td class="bloom">A4 (checker)</td></tr>
+        <tr><td class="id">M21</td><td><a href="m21-code-review/index.html">Run <span class="skill">/code-review</span> on a branch and separate verified findings from noise across its Standards and Spec axes.</a></td><td class="bloom">Analyze</td><td class="bloom">A4 (written)</td></tr>
+        <tr><td class="id">M22</td><td><a href="m22-comments-a-peer-can-act-on/index.html">Write review comments a peer can act on without asking a clarifying question: located, specific, and severity-marked.</a></td><td class="bloom">Create</td><td class="bloom">A4 paired (rubric)</td></tr>
+        <tr><td class="id">M23</td><td><a href="m23-answering-review/index.html">Respond to review as the author: direct Claude to address findings, push, and re-request review without losing the thread.</a></td><td class="bloom">Apply</td><td class="bloom">A4 paired (checker)</td></tr>
+        <tr><td class="id">M24</td><td><a href="m24-filing-what-review-uncovers/index.html">Turn what review uncovers into filed issues with <span class="skill">/qa</span> rather than fixing out of scope in the open PR.</a></td><td class="bloom">Apply</td><td class="bloom">A4 (checker)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Learning pages</h2>
+  <p>Each objective has an entry page (<code>index.html</code>) and one or two supporting pages. Every page ends with a self-check, a flashcard deck, and a where-to-learn-more list; the pager at the bottom of each page walks the whole week in order.</p>
+  <ul class="card-grid">
+    <li class="card">
+      <div class="meta"><span class="chip">M19</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m19-comments-reviews-suggestions/index.html">Three Things That Look Alike</a>
+      <p>Issue comment, review, suggestion — where each lives, what each carries, and the four refusals an author gets when they try to approve their own PR.</p>
+      <p><a href="m19-comments-reviews-suggestions/batching-from-the-terminal.html">A Batched Review from gh</a> — one <code>gh api</code> call, five inline comments, one suggestion block, two 422s on the way, and how to tell a batch from five comments afterwards.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M20</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m20-review-state/index.html">Threads, Resolution, Re-request</a>
+      <p>Review threads as GraphQL objects, <code>isOutdated</code> versus <code>isResolved</code>, the <code>resolveReviewThread</code> mutation, and why a bot cannot be a requested reviewer.</p>
+      <p><a href="m20-review-state/reading-the-state.html">Reading reviewDecision Correctly</a> — every transition on the throwaway's PR with timestamps, and <code>cli/cli#14136</code> going changes-requested → re-requested → approved.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M21</span><span class="chip bloom">Analyze</span><span class="chip">3 pages</span></div>
+      <a class="title" href="m21-code-review/index.html">Two /code-reviews, Two Axes</a>
+      <p>The built-in versus the Pocock skill, the skill's five steps as installed, and the run's setup: fixed point, spec via the issue tracker, four standards sources.</p>
+      <p><a href="m21-code-review/the-output-verbatim.html">The Output, Unedited</a> — both sub-agent reports, byte for byte.</p>
+      <p><a href="m21-code-review/findings-to-verdicts.html">From Findings to Verdicts</a> — verify first, then every finding gets must-fix, nit, or false positive with the §5 rule it violates; the agents found all three planted bugs and one thing that was not there.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M22</span><span class="chip bloom">Create</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m22-comments-a-peer-can-act-on/index.html">Located, Specific, Severity-Marked</a>
+      <p>The five comments actually submitted, dissected; the same findings rewritten so the author has to ask; the test — could they start typing?</p>
+      <p><a href="m22-comments-a-peer-can-act-on/severity-and-anti-patterns.html">Severity Words and the Comments That Force a Question</a> — must-fix, nit, question, praise; five shapes that force a reply; the one-paragraph template the rubric grades.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M23</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m23-answering-review/index.html">Direct Claude, Push, Reply</a>
+      <p>The author's prompt, the fix that kept the ticket's shape while restoring the rules, and five replies in five threads with the SHA.</p>
+      <p><a href="m23-answering-review/re-requesting-review.html">Re-request Without Losing the Thread</a> — resolve what you answered, re-request after the push, and the four-line sequence the checker reads back.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M24</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m24-filing-what-review-uncovers/index.html">Out of Scope Means an Issue, Not a Commit</a>
+      <p>Two things review uncovered outside the PR, the <span class="skill">/qa</span> run that filed them as three issues, the vendored skill students install, and the PR untouched afterwards.</p>
+      <p><a href="m24-filing-what-review-uncovers/what-qa-writes.html">What /qa Writes, and What It Does Not</a> — the two body templates, the five rules, and the empty <code>labels</code> and <code>issueType</code> that are the skill's design, not the run's omission.</p>
+    </li>
+  </ul>
+
+  <h2>Assignment A4</h2>
+  <p>Due before the Week 5 meeting. Paired. The full brief is in <a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/assignments/a4.md"><code>assignments/a4.md</code></a>; in short:</p>
+  <ol>
+    <li>Open the drill PR on your own Instance with <code>seed/tools/plant_review_pr.py</code> — you are its author.</li>
+    <li>On your peer's drill PR: one Conversation comment, then a batched review with inline comments, a suggestion block, and a <code>REQUEST_CHANGES</code> verdict.</li>
+    <li>Run <span class="skill">/code-review</span> on your peer's branch; write up both reports unedited and a verdict per finding in <code>a4-writeup.md</code> on your Instance.</li>
+    <li>On your own PR: direct Claude Code to address your peer's threads, push, reply in each thread with the SHA, resolve, re-request review from your peer.</li>
+    <li>Run <span class="skill">/qa</span> on something review uncovered outside the PR's scope; leave the PR's files alone.</li>
+    <li>When your peer approves, merge; the drill ticket closes itself.</li>
+  </ol>
+  <p>Items 1–2 and 4–6 leave evidence <code>checkers/check_a4.py --handle you --peer them</code> reads: a review with a verdict by the peer, inline comments with a suggestion, a resolved thread, a commit after the verdict, a <code>review_requested</code> event after that commit, issues with <code>/qa</code>'s headings filed after the PR opened, the PR's file set unchanged. Whether the comments were actionable, whether the verdicts were right, and whether the out-of-scope call was sound are graded by a human against the rubric.</p>
+
+  <h2>Assigned sources</h2>
+  <ul>
+    <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request">GitHub Docs: Reviewing proposed changes in a pull request</a> — "Submitting your review" and the sentence about authors; then <a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">Commenting on a pull request</a> for batching and "Resolving conversations"</li>
+    <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback in your pull request</a> — the author's page: suggestions, re-requesting, out-of-scope issues</li>
+    <li><a href="https://docs.github.com/en/rest/pulls/reviews">REST API: pull request reviews</a> and <a href="https://docs.github.com/en/graphql/reference/pulls">GraphQL: Pull requests</a> — <code>PullRequestReviewThread</code>, <code>resolveReviewThread</code>, <code>PullRequestReviewDecision</code></li>
+    <li><a href="https://cli.github.com/manual/gh_pr_review">GitHub CLI manual: <code>gh pr review</code></a>, <a href="https://cli.github.com/manual/gh_pr_comment"><code>gh pr comment</code></a>, <a href="https://cli.github.com/manual/gh_pr_edit"><code>gh pr edit</code></a>, <a href="https://cli.github.com/manual/gh_api"><code>gh api</code></a></li>
+    <li><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md">mattpocock/skills: <code>code-review</code></a> (in the plugin) and the course's vendored <a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/skills/qa/SKILL.md"><code>qa</code></a> — both short; read them before running them</li>
+    <li><a href="https://code.claude.com/docs/en/code-review">Claude Code docs: Code Review</a> — the <em>other</em> <code>/code-review</code>, so you know which one ran</li>
+    <li><a href="https://google.github.io/eng-practices/review/reviewer/comments.html">Google eng-practices: How to write code review comments</a> — practitioner material, marked ancillary on the M22 pages</li>
+  </ul>
+  <p><strong>Time estimate:</strong> 4–5 hours including the assignment; the pairing hand-offs are the variable part — agree a time with your peer before the week starts.</p>
+
+  <nav class="pager">
+    <a href="../week-03/index.html"><span class="dir">Previous</span>Week 3 hub</a>
+    <a class="next" href="m19-comments-reviews-suggestions/index.html"><span class="dir">Start · M19</span>Three Things That Look Alike</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 hub. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

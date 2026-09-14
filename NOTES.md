@@ -897,6 +897,174 @@ was clean in the sense that mattered (it accepted those links); PR #5's Intent "
 stacked-on sentence; the Seed `CLAUDE.md` "names them" in one sentence; four probe branches were
 restored on w3probe (`probe-child` remains).
 
+### Week 4 — owning the diff — verified 2026-09-14
+
+Everything below was **run**, not read, on the Week 3 throwaway `perro-ruidoso/flashcards-w3probe`
+(private) with `gh` 2.100.0, git 2.52.0, Python 3.14, Claude Code (Opus 5), between 13:24 and
+13:55 UTC, plus one run of the planting script on `flashcards-w2probe`. Filed as **#21**
+(blocked by #17 and #19); branch `21-week4-pages` from `19-audit-weeks-1-3` via `gh issue
+develop` (13:15 UTC) — stacked on #20, which is stacked on #18, which is stacked on #16. The
+brief said to stack on `17-week3-pages` if #18 was unmerged; the audit branch on top of it
+carries the `check_site.py` rule and the NOTES/guide edits this unit extends, so the tip of the
+stack was used and the PR body says so. The transcripts on the Week 4 pages are these runs
+verbatim; the session's full log is `transcript-w4.txt` (scratchpad, not committed).
+
+#### Sources — every URL fetched before writing
+
+The one existing Week 4 row (reviewing proposed changes) answered 200 with no redirect. Seven
+URLs new to the course redirected once each and are recorded canonically in `RESOURCES.md`:
+commenting, incorporating feedback, approving with required reviews, dismissing a review
+(`collaborating-with-pull-requests/reviewing-changes-in-pull-requests/…` →
+`how-tos/review-pull-requests/…`); requesting a review (→ `how-tos/create-pull-requests/…`);
+"About pull request reviews" (→ `pull-requests/reference/pull-request-reviews`); and **the
+GraphQL reference has been regrouped by domain** — `graphql/reference/mutations` and
+`graphql/reference/objects` both redirect to the bare `graphql/reference` index, and
+`resolveReviewThread`, `PullRequestReviewThread`, `PullRequestReviewDecision`, and
+`ReviewRequestedEvent` all live on `graphql/reference/pulls`. The REST pages (reviews, review
+comments, issue comments, timeline, event types), the five `gh` manual pages, code.claude.com's
+Code Review page, Google's reviewer-comments page, and `super-memory.com/english/ol/sm2.htm`
+answered 200 with no redirect. Three course-repo blob URLs on the pages (`skills/qa/SKILL.md`,
+`skills/README.md`, `assignments/a4.md`) are **404 until this PR merges**; every other external
+URL on the 14 pages answered 200.
+
+| Fact | Source |
+|---|---|
+| "Pull request authors cannot approve their own pull requests." | Reviewing proposed changes |
+| "The **Request changes** option is purely informational and will not prevent merging unless a ruleset or classic branch protection rule is configured with the 'require a pull request' option." | Reviewing proposed changes |
+| "Anyone with read access can review and comment on proposed changes." / "To request a review, you need write access to the repository. You can request a review from a person or team with read access." | Pull request reviews (reference) |
+| "You can resolve a conversation in a pull request if you opened the pull request or if you have write access to the repository where the pull request was opened." / "If the suggestion in a comment is out of your pull request's scope, you can open a new issue that tracks the feedback and links back to the original comment." | Commenting on a pull request |
+| "Applying one suggested change or a batch of suggested changes creates a single commit on the compare branch of the pull request. Each person who suggested a change included in the commit will be a co-author of the commit." | Incorporating feedback |
+| "After someone reviews your pull request and you make changes, you can request another review from the same reviewer." | Requesting a pull request review |
+| `gh pr edit --add-reviewer <login>`: "Add or re-request reviewers by their login." The only special value is `@copilot`. | gh manual |
+| Create-review `comments[]` accept `path`, `position`, `line`, `side`, `start_line`, `start_side`, `body` — not `subject_type`, which is on the single-comment endpoint only. "The position parameter is closing down." | REST pulls/reviews, pulls/comments (and the live 422 below) |
+| `PullRequestReviewDecision`: `APPROVED`, `CHANGES_REQUESTED`, `REVIEW_REQUIRED`. `PullRequestReviewThread`: `isResolved`, `isOutdated` ("outdated by newer changes"), `isCollapsed` ("collapsed (resolved)"), `resolvedBy`. `resolveReviewThread(input:{threadId})` "Marks a review thread as resolved." | GraphQL pulls |
+| **Claude Code has a built-in `/code-review`** ("reviews a diff in your terminal … reports correctness bugs and reuse, simplification, and efficiency cleanups"; `--fix`, `--comment`, effort levels, `ultra`) that is not the Pocock skill of the same name. On the course machine the Skill tool lists the installed Pocock skill; the pages teach telling them apart by output shape. | code.claude.com/docs/en/code-review |
+| **The SuperMemo SM-2 page says "If interval is a fraction, round it up to the nearest integer."** The Seed's ADR 0001 says the original "does not settle" rounding. The ADR's half-up decision is the binding rule; its claim about its source is wrong. Filed as w3probe#18 by `/qa`; **not fixed in the Seed** (out of this unit's scope — suggestion below). | super-memory.com |
+| Installed `code-review` vs upstream `3cca18b`: same process; punctuation, "issue/PRD" → "issue/spec", and "run /setup-matt-pocock-skills" → "tell the user to run" differ. Installed `qa` is byte-identical (CRLF aside) to `skills/deprecated/qa/SKILL.md` at `f958fa1` = `c66bdee^`. Repo licence MIT. | raw fetches; `gh api …/contents/…?ref=c66bdee^`; `gh api repos/mattpocock/skills/license` |
+| The plugin manifest (v1.2.3) lists `skills/engineering/code-review`; no `qa`. | `.claude-plugin/plugin.json` |
+
+#### The exhibit: T03, then the planted refactor
+
+| Fact | Evidence | Page |
+|---|---|---|
+| T03 filed as w3probe#12 (`--blocked-by 1`, a closed blocker — accepted), branch `12-sm2-scheduler` via `gh issue develop`, implemented per ADR 0001 (EF update then floor; failure keeps EF; `math.floor(x+0.5)` with floor 1), 15 tests, PR #13 with a four-section body; CI lint 6 s / test 17 s green; squash-merged 13:27:53Z; #12 closed `COMPLETED` **13:27:54Z**. | `gh pr view 13`; `gh issue view 12`. | M19 p1 (context) |
+| `closingIssuesReferences` on #13 was **populated in the same second the PR was created** (13:26:50Z) — not the one-to-fifteen-second lag Week 3 saw. Both happen. | `gh pr view 13 --json closingIssuesReferences` immediately after `gh pr create`. | — |
+| Where the ADR is silent — whether `I(n)` uses the EF before or after this review's update — T03 uses the updated value and says so in the docstring and PR body. `test_third_success…` uses grade 4 (delta 0) so it holds either way. | `scheduler.py`, PR #13 body. | — |
+| `Card.__post_init__` rejects `ease_factor < 1.3`, so planted bug 1 (clamp before update) manifests as `ValueError` from `replace()` on the 9th consecutive grade-3 review from 2.5 (2.5 − 9×0.14 = 1.24), not as a stored bad value. | `python -c` probe on the planted branch. | M21 p3 |
+| The planted refactor (w3probe#14 "Simplify the scheduler", branch `14-simplify-scheduler`, **PR #15**, commit `b0fac63`, 13:30:43Z) carries the three §7 bugs, deletes the helpers and three constants, keeps a docstring that promises the rules, and rewrites four tests (floor test → single grade-5 pass; two failure tests → 2.5; exact-half → 35.4 → 35). **48 tests pass**; lint, format, mypy clean. The body claims "the rules themselves are unchanged". | PR #15 diff, 2 files, +29 −71. | M19–M23 |
+| The `docs/agents/*` files and the four triage labels were added to w3probe `main` first (commit `309b051`), so `/code-review` step 2 could find the issue tracker. `main` then moved again (`bba30dd`, the review-bot workflow); the three-dot diff's merge base is `309b051`. | `git merge-base`. | M21 p1 |
+
+#### Review mechanics (M19/M20)
+
+| Fact | Evidence | Page |
+|---|---|---|
+| **An author cannot approve or request changes on their own PR**, by either route. `gh pr review 15 --approve` → `failed to create review: GraphQL: Review Can not approve your own pull request (addPullRequestReview)`; `--request-changes` → `… Can not request changes on your own pull request …`; REST `POST …/pulls/15/reviews -f event=APPROVE` → 422 `["Review Can not approve your own pull request"]`; `event=REQUEST_CHANGES` → 422 `["Review Can not request changes on your own pull request"]`. A `COMMENT` review is accepted. | Live, 13:31:31Z. | M19 p1 |
+| **Requesting a review from yourself is a silent no-op**: `gh pr edit 15 --add-reviewer acatlin` exits 0 and prints the URL; `reviewRequests` stays `[]`. | Live. | M20 p1 |
+| A Conversation-tab comment is an issue comment: read back from `/issues/15/comments` (id 5664781550, 13:31:29Z); never at `/pulls/15/comments`. | Live. | M19 p1 |
+| Create-review with a comment on a line outside every hunk → 422 `"Line could not be resolved"`. With `subject_type: file` in the `comments[]` array → 422 `Variable $comments of type [DraftPullRequestReviewComment] was provided invalid value for 0.subjectType (Field is not defined on DraftPullRequestReviewComment), 0.position (Expected value to not be null)` — the REST route is a GraphQL mutation underneath, and file-level comments exist only on the single-comment endpoint. | Live, two attempts. | M19 p2 |
+| A comment on a deleted line anchors with `side: LEFT` and the **old** line number (`import math`, LEFT 15). | Live. | M19 p2 |
+| The batched review (id 5198312441, `COMMENTED`, 13:33:07Z) put the same `created_at` and `pull_request_review_id` on all five inline comments (ids 4005702541–571). `reviewDecision` stayed `""` — a `COMMENTED` review is not a decision. | `gh api …/pulls/15/comments`; `gh pr view --json reviewDecision`. | M19 p2, M20 p2 |
+| `gh pr view --json reviewDecision` prints `""` where GraphQL returns `null`. | Both queried at 13:33Z. | M20 p1 |
+| Review threads exist only in GraphQL (`reviewThreads`, ids `PRRT_…`). After the author's push (`0c5a18d`, 13:41:11Z) **all five threads read `isOutdated: true`**, and `line` went `null` on the four RIGHT-side threads while the LEFT-side one kept `line: 15` (a deleted line is a fact about the base). Outdated ≠ resolved. | Two queries, 13:33:29Z and 13:41:34Z. | M20 p1, M23 p1 |
+| `resolveReviewThread` works for the author; `resolvedBy` records the login. **Resolution leaves no REST timeline event** — `/issues/15/timeline` shows `committed`, `connected`, `commented`, `reviewed` only. | Five mutations 13:42:07–13Z; REST timeline. | M20 p1 |
+| Each reply via `POST …/pulls/15/comments/{id}/replies` carries `in_reply_to_id` **and is recorded as a `COMMENTED` review** in `--json reviews` (five extra reviews at 13:42:00–07Z). `latestReviews` keeps one entry per reviewer and **omits the PR author entirely** — it listed only the bot. The GraphQL timeline with `PULL_REQUEST_REVIEW` items did not list these reply pseudo-reviews. | `gh pr view 15 --json reviews,latestReviews`; GraphQL timeline. | M20 p2, M23 p1 |
+| **`reviewDecision` did not move** through the push, five replies, and five resolutions: `CHANGES_REQUESTED` from 13:34:14Z onward. Only a review with a verdict moves it. | Read at 13:41:14Z, 13:45:12Z, 13:47Z. | M20 p2 |
+| `gh pr view --comments` labels review summaries `status: commented` / `changes requested` and Conversation comments `status: none`, interleaved. | Live. | M20 p2 |
+| `gh issue view --comments` and `--json` are mutually exclusive: `specify only one of --comments or --json`. | Live (while fetching #14 for `/code-review`). | M24 p2 |
+
+#### The second identity
+
+| Fact | Evidence | Page |
+|---|---|---|
+| A `workflow_dispatch` workflow (`.github/workflows/review-bot.yml`, left on w3probe `main` at `bba30dd`) running `gh pr review` with `GITHUB_TOKEN` **can `--request-changes`**: review by `github-actions[bot]` at 13:34:14Z; `reviewDecision` `""` → `CHANGES_REQUESTED`. | Run 34850034617. | M20 p1/p2 |
+| **It cannot approve by default**: `failed to create review: GraphQL: GitHub Actions is not permitted to approve pull requests. (addPullRequestReview)`. `GET repos/…/actions/permissions/workflow` and `GET orgs/perro-ruidoso/actions/permissions/workflow` both return `{"default_workflow_permissions":"read","can_approve_pull_request_reviews":false}`. **Flipping it is a permission grant; the auto-mode classifier refused the `PUT` in this session and it was left alone.** | Run 34850913901, 13:42:40Z. | M20 p1 |
+| **A bot cannot be a requested reviewer**: `gh pr edit 15 --add-reviewer "github-actions[bot]"` → `GraphQL: Could not resolve user with login 'github-actions[bot]'. (requestReviewsByLogin)`; REST `POST …/requested_reviewers -f "reviewers[]=github-actions[bot]"` → 201 with `requested_reviewers: []`. | Live, 13:35:00Z. | M20 p1, M23 p2 |
+| Therefore PR #15 has **no `review_requested` event and no `APPROVED`**, and cannot with one human. The transitions are shown read-only on **`cli/cli#14136`** ("Add worktree checkout to `gh issue develop`", author sergiou87): `CHANGES_REQUESTED` by babakks 2026-08-18T11:46:11Z → commits by tidy-dev 08-20T15:35:03Z → `review_requested babakks by tidy-dev` 08-20T17:31:39Z → commits 17:31:57Z, 08-21T14:19:44Z → `APPROVED` by babakks 08-21T14:36:57Z → merged 15:11:54Z; `reviewDecision` now `APPROVED`. Three of its `review_requested` events have a non-User `requestedReviewer` (Copilot) and print as `null` under a `... on User` fragment. | GraphQL `timelineItems` with `REVIEW_REQUESTED_EVENT, PULL_REQUEST_REVIEW, PULL_REQUEST_COMMIT, MERGED_EVENT`. | M20 p2, M23 p2 |
+| Of 100 recent merged `cli/cli` PRs, **4** carried a `CHANGES_REQUESTED` review (#14278, #14198, #14178, #14136). | `gh pr list --state merged --limit 100 --json reviews`. | — |
+| **Consequence for the course:** A4 is paired; the student opens the drill PR on their own Instance so they are its author and the peer can give a verdict; the guide answers the second-identity question ("the peer, and only the peer") and says what a stand-in costs. | — | A4, guide Part 10 item 7 |
+
+#### `/code-review` (M21)
+
+| Fact | Evidence | Page |
+|---|---|---|
+| Invoked as the installed Pocock skill on the planted branch, fixed point `main` (`bba30dd`), merge base `309b051`, one commit, 2 files. Spec source found at step 2's first rung (`Closes #14` in the commit → `gh issue view 14`); standards sources `CLAUDE.md`, `CONTEXT.md`, `docs/adr/0001…`, `docs/agents/domain.md`. Two `general-purpose` sub-agents in parallel: Standards 64 s / 3 tool uses, Spec 56 s / 3 tool uses. | Session. | M21 p1 |
+| **Both axes found all three planted bugs and invented no bug.** Standards: 6 hard findings (failure reset; floor order; `round()`; stale docstring; "PR must name the ADR rule — the commit message names none; if the PR body matches, that's a breach" + `domain.md`'s flag-ADR-conflicts rule; the floor test's name) + 3 smells (Mysterious Name `ef`/`reps`/bare literals; "Primitive Obsession (magic literals)" on the nested conditional; "Speculative Generality (inverse)" on the no-op clamp). Spec: 3 wrong-implementation, 1 missing (tests no longer pin every rule), 1 scope creep, verdict "does not satisfy #14". Kept **verbatim** in `code-review-output.md` and on M21 p2 (including the agent's literal `&lt;`). | Sub-agent returns. | M21 p2 |
+| **Verified before judging:** the three behavioural claims hold (grade 3 from 1.3 raises `Card.ease_factor must be at least 1.3`; 5×2.5 → 12; fail from 2.36 → 2.5). The Spec agent's "Running the pre-change main tests against the new code fails 5 of them" is **4** once the removed `round_half_up` import is stubbed (the file does not import at all otherwise). | `pytest` on `main`'s test file against the planted code. | M21 p3 |
+| Verdicts: 4 must-fix (bugs 1–3 + the test rewrite), 4 nits (docstring; `domain.md` process rule; naming; the mislabelled smell), **1 false positive** (the CLAUDE.md "must name the ADR rule" finding — the rule binds the PR description, and PR #15's body names Ease Factor, Failure, and Rounding; the agent read the commit and hedged), 1 duplicate (the clamp smell = bug 1), 2 non-findings. | Reading against the sources. | M21 p3 |
+| `docs/agents/domain.md` does contain "## Flag ADR conflicts — If your output contradicts an existing ADR, surface it explicitly rather than silently overriding" — the Standards agent's citation was accurate. | File. | M21 p3 |
+
+#### The author's turn (M23) and `/qa` (M24)
+
+| Fact | Evidence | Page |
+|---|---|---|
+| Fix commit `0c5a18d` (13:41:11Z): the three rules restored in the one-function shape, `main`'s tests restored under their names (the two `round_half_up` unit tests became one through `review()`); **49 passed**, ruff/format/mypy clean; commit message names each ADR rule and the thread it answers. | `git log -1`; checks. | M23 p1 |
+| The prompt on M23 p1 is the direction recorded for the drill; on the throwaway the direction came from the build session, and the page says so. | — | M23 p1 |
+| `/qa` (installed) was given a two-part report in one message; **no clarifying question** was needed; an `Explore` sub-agent (96 s, 13 tool uses) returned the `CONTEXT.md` vocabulary, the `list` command's documented contract (exit 1 "if the deck could not be read"), that per-card error indexes are **zero-based** ("card 1" is the second card), that no test covers a below-floor EF in a deck file, and the ADR sentence verbatim. Scope: report 1 split into two thin issues; report 2 single. | Session. | M24 p1 |
+| Filed **#16** (a deck with one invalid card cannot be listed), **#17** (errors name a card by zero-based position), **#18** (ADR 0001 misstates SuperMemo on rounding) at 13:48:35/40/44Z with `gh issue create --body-file`. **No labels, no type** — the skill's text says `gh issue create` and nothing else; `triage-labels.md` is `/triage`'s. Bodies carry `\r\n` (written on Windows); GitHub renders them fine, but jq's `scan("^## .*"; "m")` returned one heading swallowing the body — `split("\n")[] | select(startswith("## ")) | rtrimstr("\r")` works. | `gh issue view 17 --json …`. | M24 p2 |
+| PR #15 unchanged after `/qa`: 2 files, commits `b0fac63 0c5a18d`, `closingIssuesReferences` → #14 only. | `gh pr view 15`. | M24 p1 |
+| Probe behind #16/#17: `flashcards list --deck bad.json` with one card at EF 1.2 prints `flashcards: ..\bad-deck.json: card 1: Card.ease_factor must be at least 1.3`, exit 1, no traceback, no other cards shown. | Local run. | M24 p1 |
+
+#### Decisions taken in this unit
+
+- **`seed/SPEC.md` §10 — prepared PR versus patch: prepared PR, opened by the student from
+  course-supplied files.** `seed/planted/` (`scheduler.py` with its own `ReviewState` so it
+  depends only on the template's ADR, not on T01; `test_scheduler.py`; `ticket.md`; `pr-body.md`)
+  and `seed/tools/plant_review_pr.py` (files the ticket, `gh issue develop`, copies, commits,
+  pushes, opens the PR with `Closes #N`; refuses if `scheduler.py` exists). Reasons in §10.
+  **Tested live** on `flashcards-w2probe` (fresh-template Instance, no T01): issue #10, branch
+  `10-sm2-scheduler`, PR #11 authored by the runner, `closes [10]`, 2 files, **CI green with the
+  three bugs in**. Refusal path tested on w3probe. The earlier note that the diff "can only be
+  built on top of an Instance where T03 has landed" was true of the Card-based version only.
+- **S3 (M24's skill): keep `/qa`, vendored.** `skills/qa/SKILL.md` + `skills/README.md` (origin,
+  MIT, one-`curl` install). `/triage` and `/to-tickets` do different jobs. Objective row's
+  primary source now says "vendored by the course - removed upstream 2026-08-05".
+- **Stack on the audit branch, not `17-week3-pages`** (above).
+- **Not decided here:** S1 (pin vs track the plugin) and S2 (`request-refactor-plan` in M18);
+  the `can_approve_pull_request_reviews` flip (not needed — A4 pairs students).
+
+#### Checkers and site
+
+- `checkers/check_a4.py` (new; two handles, `--pairs FILE` runs both directions) grades: Instance
+  exists; a drill PR touching `src/flashcards/domain/scheduler.py` (light `gh pr list` then
+  `gh pr view` — the full field set on 100 PRs exceeds GitHub's GraphQL node limit, "requesting
+  up to 1,000,000 possible nodes which exceeds the maximum limit of 500,000"); authored by the
+  student; a peer review with a verdict; ≥ 2 inline comments by the peer; a ```suggestion block;
+  ≥ 1 resolved thread; a commit after the verdict; a `ReviewRequestedEvent` for the peer after
+  the last commit; peer re-review (note); issues with `/qa`'s headings created after the PR
+  opened (labels/type as a note); file set ⊆ the drill's two; PR not closing the `/qa` issues;
+  `a4-writeup.md` (≥ 300 words, `## Standards` + `## Spec`, the three verdict words). Against
+  w3probe with `--peer github-actions` it fails author, inline, suggestion, re-request, write-up;
+  with `--peer acatlin` it fails author, verdict, follow-up, re-request, write-up — **one identity
+  cannot pass it, which is the point**. Nonexistent handle stops at *Instance exists*.
+  **Fault-injected 16/16 by snapshot replay** (`fault_a4.py` in the scratchpad: 9 recorded `gh`
+  calls; a synthetic positive control that passes all 18 checks; one mutation per rule).
+  Cascades are expected (no verdict → no follow-up → no re-request; no inline → no suggestion).
+- `checkers/check_site.py`: **new rule from a real defect** — a stray `</tt>` shipped in M24 p2
+  and nothing caught it; the checker now runs `html.parser` with a tag stack and reports a
+  closing tag that does not match the innermost open element, and any element left open. Verified
+  by injection on a scratch copy (stray `</tt>`, unclosed `<div>`) alongside five existing rules
+  (hub link, Apply checklist, duplicate deck id, escaping link) — 6/6 caught. **56 pages, 587
+  internal links, clean.**
+- `objectives/build_objectives.py`: 14 pages for M19–M24 (51 pages across 24 objectives).
+- Self-checks: 40 questions on 14 pages; **35 flagged** on the first option-form scan (all
+  "longest"; two also "only-code"), rebalanced in four passes to **0 flagged**; letters
+  12/10/7/11.
+- Render: extension not connected; headless Chrome (`--headless=new --virtual-time-budget`)
+  from a same-origin iframe harness at 1200 and 400 px: 13 decks / 104 cards run to "Deck
+  complete" with the list hidden and a `localStorage` record, 40/40 self-checks wrong-then-right
+  with first-try tally 0/N, no Mermaid on this week, **no overflow at either width**, zero
+  `CONSOLE` lines on the stderr channel (a probe page confirmed the channel catches
+  `console.error` and an uncaught `ReferenceError`). One page screenshotted at 1200 px and read.
+  Harness deleted before commit.
+
+**Left over for the instructor:** `flashcards-w3probe` now also holds #12–#18, PRs #13 (merged)
+and #15 (open, `CHANGES_REQUESTED`, five resolved threads), the `review-bot.yml` workflow, and
+branches `12-sm2-scheduler`, `14-simplify-scheduler`; `flashcards-w2probe` holds #10 and PR #11
+(open). Both still on the delete list (`delete_repo` scope). Nothing on the pages depends on
+either surviving. Not done: the Seed's ADR 0001 rounding-source sentence (w3probe#18 says what
+to change — suggest a one-line fix in the Seed before cohort 1); S1/S2; the
+`can_approve_pull_request_reviews` flip (not needed).
+
 ## Open questions
 
 - ~~Linear Free plan's Issues Sync availability~~ — **resolved 2026-09-13**, twice: the
@@ -954,9 +1122,21 @@ restored on w3probe (`probe-child` remains).
   `git-guardrails-claude-code`, and `claude-handoff`; its `ask-matt` gives the opposite
   advice about `/handoff` versus `/compact` and a different smart-zone figure. Decide whether
   the course pins a skill set or tracks the plugin (Weeks 1–3 audit, S1); until then the M18
-  pages quote both and A3's third situation was rewritten to hold under either.
-- **M24 names `/qa`, which upstream retired on 2026-08-05** into `/triage` and `/to-tickets`.
-  Week 4 is unbuilt; decide the skill before it is (Weeks 1–3 audit, S3).
+  pages quote both and A3's third situation was rewritten to hold under either. **Week 4
+  (2026-09-14) narrowed it:** `code-review` is in the plugin and differs from the installed copy
+  only in punctuation, so M21 holds under either; `qa` is vendored (above). What S1 still
+  decides is M18's two absent skills and `ask-matt`'s reversed advice.
+- ~~**M24 names `/qa`, which upstream retired on 2026-08-05** into `/triage` and `/to-tickets`.
+  Week 4 is unbuilt; decide the skill before it is (Weeks 1–3 audit, S3).~~ — **decided
+  2026-09-14, building Week 4: keep `/qa`, vendored** at `skills/qa/SKILL.md` (MIT, byte-identical
+  to the last upstream copy). The named replacements do other jobs: `/triage` moves existing
+  issues through states, `/to-tickets` decomposes a spec; neither files an issue from a
+  conversation, which is what M24 assesses. Re-check upstream before each cohort.
+- **The Seed's ADR 0001 misstates its source on rounding** (found 2026-09-14). It says the
+  SM-2 publication "does not settle" rounding; the cited page says "If interval is a fraction,
+  round it up to the nearest integer." The ADR's half-up rule stands; the sentence about the
+  source should say the course deliberately departs from it and why. Filed on the throwaway as
+  w3probe#18 by `/qa`; a one-line fix in `flashcards-seed` is owed before cohort 1.
 - Whether instructor's Pro subscription usage limits can absorb CI review volume for
   8–14 students, or whether Max is needed. Measure during the Week 5 dry run.
 
@@ -1280,3 +1460,41 @@ restored on w3probe (`probe-child` remains).
   `gh` minimum and scope lines. Nine suggestions recorded, three needing decisions (pin or
   track the plugin; swap `request-refactor-plan`; name M24's skill). Not done: deleting the
   throwaways (no `delete_repo`; ask first), the Linear live walk, the #18 retarget.
+
+- **2026-09-14** — **Week 4 built** (M19–M24): the hub, fourteen Learning Pages (two per
+  objective, three for M21), `assignments/a4.md` (paired) with its rubric, `checkers/check_a4.py`
+  (two handles), the planted-bug package `seed/planted/` + `seed/tools/plant_review_pr.py`, and
+  the vendored `skills/qa/`. Filed as **#21** (blocked by #17 and #19); branch `21-week4-pages`
+  from `19-audit-weeks-1-3` via `gh issue develop` — a **four-deep stack** (#16 ← #18 ← #20 ←
+  this PR), stacked on the audit rather than on `17-week3-pages` because the audit's checker rule
+  and NOTES/guide edits are what this unit extends. Every transcript is from one PR on the Week 3
+  throwaway (`flashcards-w3probe#15`): T03 landed correctly (#12/#13), then a "refactor" that
+  planted the three §7 bugs with a green suite; a Conversation comment; a batched review from
+  `gh api` with five inline comments and a suggestion (two 422s quoted); the author's own
+  `APPROVE`/`REQUEST_CHANGES` refused by both routes (quoted); a `workflow_dispatch` bot that
+  could request changes but was refused approval and cannot be a requested reviewer; the
+  installed `/code-review` with both sub-agent reports kept verbatim and every finding given a
+  verdict (all three planted bugs found; one false positive, one mislabelled smell, one wrong
+  count — "5" was 4); the fix through Claude Code with a reply per thread and five threads
+  resolved by GraphQL while `reviewDecision` stayed `CHANGES_REQUESTED`; `/qa` filing three
+  unlabelled, untyped issues with the PR untouched. Findings are in the "Week 4" section above;
+  the ones that changed what the pages teach:
+  - An author cannot review their own PR with a verdict, cannot request a review from
+    themself (silent no-op), and a bot cannot be requested at all — so the second identity is
+    the peer, A4 is paired, and the student opens the drill PR on their own Instance.
+  - A push, replies, and resolutions do not move `reviewDecision`; each reply is recorded as a
+    `COMMENTED` review; `latestReviews` omits the author; resolution leaves no timeline event.
+  - There are two `/code-review`s — Claude Code's built-in and the Pocock skill — and the
+    course's is the one with `## Standards` / `## Spec`.
+  - `/qa` applies no labels and no type; the checker notes them.
+  - The SuperMemo page says "round it up"; the Seed's ADR says the original leaves rounding
+    open — filed, not fixed.
+  - `seed/SPEC.md` §10 settled: prepared PR, opened by the student (planting script tested
+    live on `flashcards-w2probe`: issue #10, PR #11, CI green with the bugs in).
+  - `check_a4.py` fault-injected 16/16 by snapshot replay; `check_site.py` gained a
+    mismatched-tag rule from a real stray `</tt>` (6/6 injected faults caught); 56 pages, 587
+    links, clean; 40 self-check questions, 35 flagged on the first scan → 0; 14 pages
+    render-tested headless at 1200 and 400 px, no overflow, no console output.
+  - Left over: both throwaways (now with Week 4 artifacts; `delete_repo` scope still missing);
+    the Seed ADR sentence; S1/S2; three course-repo blob links on the pages that 404 until this
+    PR merges (`skills/qa/SKILL.md`, `skills/README.md`, `assignments/a4.md`).

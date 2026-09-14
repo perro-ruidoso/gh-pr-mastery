@@ -59,6 +59,8 @@ python checkers/check_site.py                      # links, assets, lesson struc
 python checkers/check_a1.py --org ORG --handle H   # one student's A1 repo state
 python checkers/check_a2.py --org ORG --handle H   # A2: labels, template, spec, ticket graph (needs gh 2.94.0+)
 python checkers/check_a3.py --org ORG --handle H   # A3: branch names, PR bodies, closing links, the retarget, the merge commit
+python checkers/check_a4.py --org ORG --handle H --peer P   # A4 (paired): the peer's verdict, inline comments + suggestion, a resolved thread, the re-request, /qa issues, scope unchanged
+python seed/tools/plant_review_pr.py --repo ORG/flashcards-H   # opens the Week 4 review-drill PR (three planted defects) on an Instance, as its owner
 ```
 
 ## Status
@@ -135,9 +137,29 @@ inherited (it is not). Checkers fault-injected 28/28, 16/16, and 22/22; 42 pages
 pin or track the plugin, what replaces `request-refactor-plan` in M18, and what M24 names instead
 of `/qa`.
 
-Not yet built: Weeks 4–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
-authored on an Instance where T03 has landed, not against the template), the
-merge-strategy simulator widget (Week 5), and the UI captures.
+**Week 4** (M19–M24) adds fourteen Learning Pages under `docs/week-04/`, `assignments/a4.md`
+(paired), `checkers/check_a4.py` (takes two handles), the planted-bug package `seed/planted/`
+with `seed/tools/plant_review_pr.py`, and a vendored `skills/qa/` (removed upstream, never in the
+plugin). Every transcript is from one pull request on the Week 3 throwaway
+(`flashcards-w3probe#15`, 2026-09-14): T03 landed correctly, then a "refactor" that quietly
+broke the three ADR rules and rewrote the tests that pinned them. On it: a Conversation
+comment, a batched review with five inline comments and a suggestion block submitted from
+`gh api` (two 422s on the way, both quoted), GitHub's refusal of the author's own `APPROVE` and
+`REQUEST_CHANGES` (quoted), the installed `/code-review` run with both sub-agent reports kept
+verbatim and every finding given a verdict (all three planted bugs found; one false positive,
+one mislabelled smell, one wrong count), the author's fix through Claude Code with a reply in
+every thread, five threads resolved by GraphQL, and `/qa` filing three issues with the PR
+untouched. Two things the throwaway could not show with one human identity — the re-request and
+the second review — are shown read-only on `cli/cli#14136` and are why A4 pairs students; a
+`workflow_dispatch` bot could request changes but was refused approval ("GitHub Actions is not
+permitted to approve pull requests") and cannot be a requested reviewer. `seed/SPEC.md` §10's
+open question is settled: a prepared PR, opened by the student from course-supplied files,
+because an author cannot review their own PR. `check_a4.py` was fault-injected 16/16 by snapshot
+replay; `check_site.py` gained a mismatched-tag rule (from a real defect) — 56 pages, clean.
+
+Not yet built: Weeks 5–6, the Upstream Repo, the merge-strategy simulator widget (Week 5), and
+the UI captures. Still owed: the S1 decision (pin or track the plugin) and the S2 swap for
+`request-refactor-plan` in M18; S3 (M24's skill) is settled by the vendored `qa`.
 
 ## Teaching it
 

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Out of Scope Means an Issue, Not a Commit — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M24 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Out of Scope Means an Issue, Not a Commit</h1>
+  <p class="lede">Review always turns up things that are true and not the PR's business. The reflex is to fix them "while you're in there" — and Week 3 spent a page on why that reflex produces unreviewable diffs. The alternative is a filed issue, and <span class="skill">/qa</span> turns a spoken complaint into one with a shape a developer can pick up cold. This page runs it on the two things PR #15's review uncovered outside the PR, and shows the PR untouched afterwards.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M24 · Bug capture</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Turn what review uncovers into filed issues with <span class="skill">/qa</span> rather than fixing out of scope in the open PR.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M24 pages</span>
+    <span class="here"><span class="num">1</span>Out of Scope Means an Issue, Not a Commit</span>
+    <a href="what-qa-writes.html"><span class="num">2</span>What /qa Writes, and What It Does Not</a>
+  </nav>
+
+  <h2>GitHub says it in one sentence</h2>
+  <p>The commenting page, under "Resolving conversations" (fetched 2026-09-14): "If the suggestion in a comment is out of your pull request's scope, you can open a new issue that tracks the feedback and links back to the original comment." The author's page repeats it as a heading of its own — "Opening an issue for an out-of-scope suggestion": "If someone suggests changes to your pull request and the changes are out of the pull request's scope, you can open a new issue to track the feedback." Both pages describe the web button; the course does it from Claude Code, because the hard part is not creating the issue but writing one that survives.</p>
+
+  <h2>What review uncovered that was not #15's business</h2>
+  <p>Ticket #14's out-of-scope line: "Any change to the scheduling rules themselves. Due-date filtering (T05). The <code>review</code> command (T04)." — and, implicitly, anything outside <code>scheduler.py</code> and its tests. Two things surfaced while reviewing against the ADR and its source:</p>
+  <ol>
+    <li>The Standards agent noted that <code>Card.__post_init__</code> rejects an ease factor below 1.3. Following that thread: what happens when a <em>deck file</em> already holds such a card? Probed on the throwaway: <code>flashcards list --deck bad.json</code> prints <code>card 1: Card.ease_factor must be at least 1.3</code>, exits 1, and shows none of the other cards. Storage and CLI — not the scheduler.</li>
+    <li>Reading ADR 0001's rounding section against the SuperMemo page it cites: the ADR says the original "does not settle" rounding; the source says "If interval is a fraction, round it up to the nearest integer." The ADR's decision stands; its claim about its source does not. Documentation — not the PR.</li>
+  </ol>
+  <p>Both would have been a two-line "while I'm here" in <code>0c5a18d</code>. Both would have widened a PR whose reviewer had just checked exactly two files, and turned "restore three rules" into "restore three rules, change how decks load, and rewrite an ADR". Neither went in.</p>
+
+  <h2>The skill, as installed — and where students get it</h2>
+  <p><code>~/.agents/skills/qa/SKILL.md</code>, description: "Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use when user wants to report bugs, do QA, file issues conversationally, or mentions 'QA session'." Its five steps: <strong>listen and lightly clarify</strong> ("Ask <strong>at most 2-3 short clarifying questions</strong> … Do NOT over-interview. If the description is clear enough to file, move on."); <strong>explore the codebase in the background</strong> ("The goal is NOT to find a fix — it's to: Learn the domain language … Understand what the feature is supposed to do … Identify the user-facing behavior boundary"); <strong>assess scope: single issue or breakdown</strong>; <strong>file the GitHub issue(s)</strong> ("Create issues with <code>gh issue create</code>. Do NOT ask the user to review first — just file and share URLs."); <strong>continue</strong> ("Each issue is independent — don't batch them.").</p>
+
+  <div class="callout warn">
+    <span class="label">Not in the plugin — vendored by the course</span>
+    <p>Upstream removed <code>qa</code> on 2026-08-05 (commit <code>c66bdee</code>, "chore: remove six unused skills and the personal bucket"; it had already been in the <code>deprecated</code> bucket), and the plugin students install never carried it. The changeset names <code>/triage</code> and <code>/to-tickets</code> as what absorbed it — but triage moves <em>existing</em> issues through states and to-tickets decomposes a <em>spec</em>; neither takes a complaint and files it. So the course vendors the last upstream copy (MIT) at <a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/skills/qa/SKILL.md"><code>skills/qa/SKILL.md</code></a>, byte-identical to the installed one, with a one-command install in <a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/skills/README.md"><code>skills/README.md</code></a>. Do that before Assignment A4 item 5.</p>
+  </div>
+
+  <h2>The run</h2>
+  <p>Invoked in Claude Code inside the clone of the throwaway, with the report given in one message (steps, expected versus actual, consistency — so step 1 had nothing to ask):</p>
+  <div class="transcript">
+    <div class="turn human">
+      <span class="who">Reporter → /qa</span>
+      <p>Reviewing PR #15 turned up two things that are not the PR's business. First: if a deck file contains one card whose ease factor is below 1.3 (say a deck written by an older or buggy version), <code>flashcards list --deck that.json</code> refuses to show the deck at all — I get "card 1: Card.ease_factor must be at least 1.3" and exit 1 — and it identifies the card by its position, not its id, so in a 200-card deck I would not know which card to fix. Second: <code>docs/adr/0001</code> says the original SM-2 publication "does not settle" rounding, but the SuperMemo page it cites says "If interval is a fraction, round it up to the nearest integer" — the ADR's decision (half-up) stands, but its claim about the source is wrong. File these as issues; do not touch PR #15.</p>
+    </div>
+    <div class="turn agent">
+      <span class="who">/qa</span>
+      <p>No clarifying questions — expected, actual, steps, and "consistent" were all in the report. An <code>Explore</code> sub-agent was launched (read-only, "medium" breadth) for the domain vocabulary and the <code>list</code> command's documented behaviour. Scope: the first report has two separable concerns — the whole deck refused, and the card named by position — so it becomes two thin issues; the ADR claim is one issue.</p>
+    </div>
+    <div class="turn agent">
+      <span class="who">Explore sub-agent (96 s, 13 tool uses) — returned</span>
+      <p><code>CONTEXT.md</code> vocabulary quoted (Card "Identified by <code>id</code>, unique within its Deck"; Ease Factor "never falls below 1.3"). The <code>list</code> command's help: "print every card in a deck"; documented exit codes: 0, and 1 "if the deck could not be read". One storage error type; per-card messages are shaped <code>&lt;path&gt;: card &lt;index&gt;</code> — "Note the index is 0-based, so 'card 1' is the second Card." No test covers a below-floor ease factor in a deck file. The ADR sentence, verbatim: "The original publication does not settle these, and both are places where a plausible implementation is silently wrong."</p>
+    </div>
+    <div class="turn agent">
+      <span class="who">/qa</span>
+      <p>Filed three issues with <code>gh issue create --body-file</code>, in dependency order (none blocks another):<br>#16 A deck with one invalid card cannot be listed at all<br>#17 Deck-file errors name a card by zero-based position, not by its id<br>#18 ADR 0001 says SM-2 leaves rounding open; the cited publication says to round up<br>"Next issue, or are we done?"</p>
+    </div>
+  </div>
+  <p>Two things the exploration changed in the issues before they were filed: "card 1" became "the <em>second</em> card" (the index is zero-based — worse than the report thought), and the documented exit-code contract went into #16's context so the fixer knows today's behaviour is within the letter of the docs and the issue is about whether it should be.</p>
+
+  <h2>The PR, untouched</h2>
+  <pre><code><span class="prompt">$</span> gh pr view 15 --json changedFiles,files,commits,closingIssuesReferences --jq '{changedFiles, files: [.files[].path], commits: [.commits[].oid[0:7]], closes: [.closingIssuesReferences[].number]}'
+{"changedFiles":2,"closes":[14],"commits":["b0fac63","0c5a18d"],"files":["src/flashcards/domain/scheduler.py","tests/domain/test_scheduler.py"]}
+<span class="prompt">$</span> gh issue list --state open --json number,title,createdAt --jq '.[] | "#\(.number)  \(.createdAt)  \(.title)"'
+#18  2026-09-14T13:48:44Z  ADR 0001 says SM-2 leaves rounding open; the cited publication says to round up
+#17  2026-09-14T13:48:40Z  Deck-file errors name a card by zero-based position, not by its id
+#16  2026-09-14T13:48:35Z  A deck with one invalid card cannot be listed at all
+#14  2026-09-14T13:28:51Z  Simplify the scheduler: one bounds check, one reset path, one rounding call</code></pre>
+  <p>Same two files, same two commits, still closing only #14. Three new issues, nine seconds apart, each filed after the PR was opened and none of them referenced by it. That pair of facts — the PR's file set unchanged, and issues with the skill's shape filed after it opened — is what <code>check_a4.py</code> reads for this objective.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 5 — on your own Instance, after your peer's review:</p>
+    <label class="check"><input type="checkbox"><span>Installed the vendored <code>qa</code> skill (one <code>curl</code>, <code>skills/README.md</code>) and confirmed <code>/qa</code> appears in Claude Code.</span></label>
+    <label class="check"><input type="checkbox"><span>Named at least one thing the review uncovered that the PR's ticket puts out of scope — and did <em>not</em> fix it on the branch.</span></label>
+    <label class="check"><input type="checkbox"><span>Reported it to <span class="skill">/qa</span> with expected, actual, steps, and whether it is consistent — so it had nothing to ask.</span></label>
+    <label class="check"><input type="checkbox"><span>Read the issue(s) it filed with <code>gh issue view N</code>; the steps reproduce; no file paths or line numbers in the body.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed with <code>gh pr view N --json files,closingIssuesReferences</code> that the PR's files and closing link are unchanged.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. While fixing the three review threads, the author notices the deck loader rejects a whole deck for one bad card. It is a two-line fix. Why not include it in <code>0c5a18d</code>?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because the reviewer's <code>CHANGES_REQUESTED</code> verdict locks the PR's file list until they approve</button></li>
+        <li><button data-opt="b">Because it widens a two-file PR into one that changes storage too — M14's drive-by — and the ticket excludes it</button></li>
+        <li><button data-opt="c">Because CI on the Instance is configured to fail any PR that touches more than the two files its ticket names in its Scope line</button></li>
+        <li><button data-opt="d">Because <code>/qa</code> must be run before any change outside <code>scheduler.py</code> is committed, and it had not been run yet</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Scope is the argument, and GitHub's own docs give the alternative: "open a new issue that tracks the feedback." A verdict locks nothing (A); no such CI rule exists (C); <code>/qa</code> is the tool for the alternative, not a gate (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Why does the course vendor <code>qa</code> rather than tell students to use <code>/triage</code> or <code>/to-tickets</code>, which upstream named as its replacements?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because the plugin's <code>/triage</code> requires the five triage labels, which Instances do not have until Week 6</button></li>
+        <li><button data-opt="b">Because <code>/to-tickets</code> files issues as sub-issues of a spec, and out-of-scope findings have no spec to hang from</button></li>
+        <li><button data-opt="c">Because vendoring lets the course pin the skill's text, and pinning every skill it teaches is the course's policy for all six weeks</button></li>
+        <li><button data-opt="d">Because neither does the job: triage moves existing issues through states, to-tickets decomposes a spec; <code>qa</code> files a complaint</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The fit to the objective is the reason recorded in <code>skills/README.md</code>. A is false (A1 creates the labels in Week 1); B is a half-truth about to-tickets but not the reason; C is not the policy (the S1 decision is still open).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. The report said "card 1". The filed issue says "the second card". Where did the correction come from?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">From step 2: the background exploration found the per-card index is zero-based</button></li>
+        <li><button data-opt="b">From the skill's step 1: a clarifying question to the reporter, who re-counted the cards in the deck file</button></li>
+        <li><button data-opt="c">From <code>gh issue create</code>, which renumbers positions in issue bodies from one</button></li>
+        <li><button data-opt="d">From the PR #15 review threads, one of which had already noted the off-by-one in its <code>nit</code></button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> "Note the index is 0-based, so 'card 1' is the second Card" is a sentence from the Explore sub-agent's report. No question was asked (B); <code>gh</code> edits nothing (C); no thread mentioned it (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m24-qa">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">GitHub's sentence on out-of-scope review feedback?</div><div class="fc-back">"If the suggestion in a comment is out of your pull request's scope, you can open a new issue that tracks the feedback and links back to the original comment."</div></div>
+      <div class="fc"><div class="fc-front">The two out-of-scope findings on PR #15?</div><div class="fc-back">A deck with one below-floor card cannot be listed (storage/CLI); ADR 0001 misstates what SuperMemo says about rounding (docs).</div></div>
+      <div class="fc"><div class="fc-front"><code>/qa</code>'s five steps?</div><div class="fc-back">Listen and lightly clarify (≤ 2–3 questions); explore the codebase in the background; single issue or breakdown; file with <code>gh issue create</code> and share URLs; continue until done.</div></div>
+      <div class="fc"><div class="fc-front">What is the exploration for, in the skill's words?</div><div class="fc-back">"NOT to find a fix" — to learn the domain language, what the feature should do, and the user-facing behaviour boundary.</div></div>
+      <div class="fc"><div class="fc-front">Why is <code>qa</code> vendored by the course?</div><div class="fc-back">Removed upstream 2026-08-05 (<code>c66bdee</code>), never in the plugin; <code>/triage</code> and <code>/to-tickets</code> do different jobs. MIT, byte-identical copy at <code>skills/qa/SKILL.md</code>.</div></div>
+      <div class="fc"><div class="fc-front">What did the exploration correct in the report?</div><div class="fc-back">The index is zero-based: "card 1" is the second card. Also: exit 1 "if the deck could not be read" is the documented contract.</div></div>
+      <div class="fc"><div class="fc-front">The three issues filed, and their timing?</div><div class="fc-back">#16, #17, #18 at 13:48:35–44Z, all after PR #15 opened (13:30:43Z), none blocking another.</div></div>
+      <div class="fc"><div class="fc-front">What does the checker read for M24?</div><div class="fc-back">Issues with <code>/qa</code>'s headings created after the PR opened; the PR's file set still the drill's two files; the PR not closing those issues.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>After your review, ask Claude Code: "list everything we noticed about this repository during the review that ticket N does not cover." Each item is either a <span class="skill">/qa</span> report or a thing you decide to forget — say which, out loud. Then run <span class="skill">/qa</span> on one and read the issue it files as if you were a stranger picking it up next month. Bring one you would not have understood to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback — "Opening an issue for an out-of-scope suggestion"</a><span class="why">The author's version of this page's first sentence, one heading long.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/skills/qa/SKILL.md">Course repo — vendored <code>skills/qa/SKILL.md</code></a><span class="why">The skill as it runs, with its two issue templates; <code>skills/README.md</code> beside it records origin, licence, and the install command.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills/commit/c66bdee">mattpocock/skills — commit <code>c66bdee</code></a><span class="why">The removal, and the changeset naming <code>/triage</code> + <code>/to-tickets</code> as replacements — read it and judge the fit yourself.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_view">GitHub CLI manual: <code>gh issue view</code></a><span class="why"><code>--json labels,issueType,body</code> — how page 2 reads back what the skill wrote and what it did not.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-03/m14-reviewable-diffs/splitting-a-drive-by.html">M14 — Splitting a Drive-by</a><span class="why">The Week 3 page on why the "while I'm here" commit is the enemy of review; this objective is its complement on the author's side.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a> and <a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">Incorporating feedback in your pull request</a> — the out-of-scope sentences (fetched 2026-09-14)</li>
+      <li><code>~/.agents/skills/qa/SKILL.md</code> — description and steps quoted (dated 2026-07-09, read 2026-09-14); identical to <code>skills/deprecated/qa/SKILL.md</code> at upstream <code>f958fa1</code>, checked with <code>gh api … ?ref=c66bdee^</code></li>
+      <li><a href="https://super-memory.com/english/ol/sm2.htm">SuperMemo: SM-2</a> — "If interval is a fraction, round it up to the nearest integer." (fetched 2026-09-14)</li>
+      <li>The <code>/qa</code> run on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14 13:46–13:49Z: the report, the Explore sub-agent's return, issues #16–#18, and the two read-backs</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m23-answering-review/re-requesting-review.html"><span class="dir">Previous · M23, page 2</span>Re-request Without Losing the Thread</a>
+    <a class="next" href="what-qa-writes.html"><span class="dir">Next · M24, page 2</span>What /qa Writes, and What It Does Not</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

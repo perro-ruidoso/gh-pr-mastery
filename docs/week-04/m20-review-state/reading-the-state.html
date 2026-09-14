@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading reviewDecision Correctly — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M20 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Reading reviewDecision Correctly</h1>
+  <p class="lede">One field summarises a PR's review state, and it is easy to read wrong: it ignores comment-only reviews, it does not reset when the author pushes, and <code>gh</code> prints it as an empty string where GraphQL says <code>null</code>. This page follows it through every transition on PR #15 with timestamps, then through a public PR on <code>cli/cli</code> that goes all the way to <code>APPROVED</code>.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M20 · Review mechanics</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Resolve conversations, re-request review, and read a PR's review state correctly.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M20 pages</span>
+    <a href="index.html"><span class="num">1</span>Threads, Resolution, Re-request</a>
+    <span class="here"><span class="num">2</span>Reading reviewDecision Correctly</span>
+  </nav>
+
+  <h2>The field and its three values</h2>
+  <p>GraphQL's <code>PullRequestReviewDecision</code> enum (fetched 2026-09-14): <code>APPROVED</code> "The pull request has received an approving review."; <code>CHANGES_REQUESTED</code> "Changes have been requested on the pull request."; <code>REVIEW_REQUIRED</code> "A review is required before the pull request can be merged." The field itself is "The current status of the pull request with respect to code review." There is no fourth value for "nobody has decided anything": that state is <code>null</code>, which <code>gh pr view --json</code> renders as <code>""</code>. <code>REVIEW_REQUIRED</code> only appears once a ruleset requires reviews — Week 1 saw it on <code>cli/cli</code>; you will see it on your Instance after M26.</p>
+
+  <h2>Four commands, four views</h2>
+  <p>Run after everything on page 1 had happened (13:45Z). Each shows a different slice of the same PR:</p>
+  <pre><code><span class="prompt">$</span> gh pr view 15 --json reviewDecision,reviews,reviewRequests --jq '{reviewDecision, reviewRequests, reviews: [.reviews[] | "\(.submittedAt)  \(.state)  \(.author.login)  at \(.commit.oid[0:7])"]}'
+{"reviewDecision":"CHANGES_REQUESTED","reviewRequests":[],"reviews":[
+ "2026-09-14T13:33:07Z  COMMENTED  acatlin  at b0fac63",
+ "2026-09-14T13:34:14Z  CHANGES_REQUESTED  github-actions  at b0fac63",
+ "2026-09-14T13:42:00Z  COMMENTED  acatlin  at 0c5a18d",
+ "2026-09-14T13:42:02Z  COMMENTED  acatlin  at 0c5a18d",
+ "2026-09-14T13:42:04Z  COMMENTED  acatlin  at 0c5a18d",
+ "2026-09-14T13:42:06Z  COMMENTED  acatlin  at 0c5a18d",
+ "2026-09-14T13:42:07Z  COMMENTED  acatlin  at 0c5a18d"]}
+<span class="prompt">$</span> gh pr view 15 --json latestReviews,reviewDecision --jq '{reviewDecision, latestReviews: [.latestReviews[] | "\(.author.login) \(.state) \(.submittedAt)"]}'
+{"latestReviews":["github-actions CHANGES_REQUESTED 2026-09-14T13:34:14Z"],"reviewDecision":"CHANGES_REQUESTED"}
+<span class="prompt">$</span> gh pr view 15 --comments
+author:	acatlin
+association:	member
+status:	none
+--
+Reading this against `docs/adr/0001` now. …
+--
+author:	acatlin
+status:	commented
+--
+Batched review, read against `docs/adr/0001-sm2-rounding-and-the-clock.md`. …
+--
+author:	github-actions
+association:	none
+status:	changes requested
+--
+Requesting changes as the bot identity: …</code></pre>
+  <p>Read the surprises. <strong>Seven reviews, five of which nobody wrote as reviews:</strong> the five <code>COMMENTED</code> entries at 13:42:00–07Z are the author's five thread <em>replies</em> (M23) — GitHub wraps each reply in a single-comment review record. <code>reviews</code> lists them all; <code>latestReviews</code> keeps one per reviewer and drops the author entirely, leaving the bot's verdict alone. <code>--comments</code> interleaves Conversation comments (<code>status: none</code>) with review summaries and labels each with its verdict in words. Which view you want depends on the question: "what has been said" (<code>reviews</code>, <code>--comments</code>), "where does each reviewer stand" (<code>latestReviews</code>), "can this merge as far as review is concerned" (<code>reviewDecision</code>).</p>
+
+  <h2>Every transition on PR #15, with timestamps</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>When (UTC)</th><th>Event</th><th><code>reviewDecision</code> after</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>13:30:43</td><td>PR opened at <code>b0fac63</code></td><td><code>""</code> / <code>null</code></td><td>No review yet, no ruleset requiring one.</td></tr>
+        <tr><td>13:31:29</td><td>Conversation comment by the author</td><td><code>""</code></td><td>An issue comment is not a review.</td></tr>
+        <tr><td>13:33:07</td><td>Batched review, <code>COMMENTED</code>, five inline comments (author)</td><td><code>""</code></td><td>A comment-verdict review is a review but not a decision.</td></tr>
+        <tr><td>13:34:14</td><td><code>CHANGES_REQUESTED</code> by <code>github-actions[bot]</code></td><td><code>CHANGES_REQUESTED</code></td><td>The first verdict sets the field.</td></tr>
+        <tr><td>13:41:11</td><td>Author pushes <code>0c5a18d</code>; all threads <code>isOutdated</code></td><td><code>CHANGES_REQUESTED</code></td><td><strong>A push does not clear a verdict.</strong> The reviewer's decision stands until they review again (or a ruleset dismisses stale reviews — Week 5).</td></tr>
+        <tr><td>13:42:00–07</td><td>Five thread replies (author)</td><td><code>CHANGES_REQUESTED</code></td><td>Replies are <code>COMMENTED</code> pseudo-reviews; no decision.</td></tr>
+        <tr><td>13:42:07–13</td><td>Five threads resolved (author)</td><td><code>CHANGES_REQUESTED</code></td><td>Resolution is a thread fact, not a review fact.</td></tr>
+        <tr><td>13:42:40</td><td>Bot asked to approve</td><td><code>CHANGES_REQUESTED</code></td><td>Refused: "GitHub Actions is not permitted to approve pull requests." No second identity that can approve exists on the throwaway.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>So PR #15 ends this week still <code>CHANGES_REQUESTED</code> — correctly. The reviewer who requested changes has not said otherwise, and nothing the author did (push, reply, resolve) can say it for them. The last two transitions — a re-request, and the reviewer's <code>APPROVED</code> — need a second human. Here is what they look like when one exists.</p>
+
+  <h2>Read-only exhibit: <code>cli/cli#14136</code>, changes requested to approved</h2>
+  <p>"Add worktree checkout to <code>gh issue develop</code>" — the command from M13 — merged 2026-08-21. Its timeline, from the GraphQL <code>timelineItems</code> query with review, commit, and request item types (run 2026-09-14):</p>
+  <pre><code><span class="prompt">$</span> gh api graphql -F owner=cli -F name=cli -F number=14136 -f query="$(cat timeline.graphql)" --jq '…'
+{"author":"sergiou87","mergedAt":"2026-08-21T15:11:54Z","reviewDecision":"APPROVED"}
+2026-08-12T16:37:50Z  commit 2e9fedd by sergiou87
+2026-08-13T15:04:07Z  review_requested babakks by sergiou87
+2026-08-18T11:46:11Z  review CHANGES_REQUESTED by babakks
+2026-08-20T15:35:03Z  commit d5be33d by tidy-dev
+2026-08-20T15:35:03Z  commit 15cc350 by tidy-dev
+2026-08-20T17:31:39Z  review_requested babakks by tidy-dev
+2026-08-20T17:31:57Z  commit c25dff1 by tidy-dev
+2026-08-21T14:19:44Z  commit f5dce1a by tidy-dev
+2026-08-21T14:36:57Z  review APPROVED by babakks
+2026-08-21T15:11:54Z  MergedEvent</code></pre>
+  <p>(Abridged: Copilot's two comment-only reviews, and the three review requests whose reviewer is not a user — Copilot — are cut.) Read it as a state machine. Request → <code>CHANGES_REQUESTED</code> (five days later) → two commits addressing it → <strong><code>review_requested</code> for the same reviewer, two hours after the commits</strong> → two more commits → <code>APPROVED</code> the next day → merge. The field went <code>null</code> → <code>CHANGES_REQUESTED</code> → <code>APPROVED</code>, and the only thing that moved it each time was a review with a verdict. The re-request did not change it; it told <code>babakks</code> to look again. That <code>review_requested</code> event, placed <em>after</em> the new commits, is precisely what <code>check_a4.py</code> looks for on your PR.</p>
+
+  <div class="callout note">
+    <span class="label">Why the re-request comes after the push</span>
+    <p>A re-request before the fix is a request to re-read the same code. GitHub's own description of the move puts the order in the sentence: "After someone reviews your pull request and you make changes, you can request another review." Push first, then <code>gh pr edit N --add-reviewer &lt;peer&gt;</code>. The checker compares the <code>review_requested</code> timestamp with the last commit's; a request that predates the commit does not count, because it could not have been about it.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>On your own drill PR, at each step of Assignment A4 items 3–5:</p>
+    <label class="check"><input type="checkbox"><span>Read <code>reviewDecision</code> before and after my peer's review and can say which single event changed it.</span></label>
+    <label class="check"><input type="checkbox"><span>After pushing my fix, confirmed <code>reviewDecision</code> did <em>not</em> change — and know why.</span></label>
+    <label class="check"><input type="checkbox"><span>Compared <code>reviews</code> with <code>latestReviews</code> on my PR and can explain every entry present in one and absent from the other.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran the timeline query with <code>REVIEW_REQUESTED_EVENT</code> and saw my re-request timestamped after my last commit.</span></label>
+    <label class="check"><input type="checkbox"><span>After my peer's second review, read the field once more: <code>APPROVED</code>, or a fresh <code>CHANGES_REQUESTED</code> to answer.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. A reviewer requested changes; the author pushed a fix and resolved every thread. What does <code>reviewDecision</code> read now, on a repository with no ruleset?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>REVIEW_REQUIRED</code>, because the earlier verdict was made stale by the new commit and a fresh review is now owed</button></li>
+        <li><button data-opt="b"><code>CHANGES_REQUESTED</code>, until that reviewer submits another review with a different verdict</button></li>
+        <li><button data-opt="c"><code>""</code>, since resolving the last open thread clears the reviewer's decision along with it</button></li>
+        <li><button data-opt="d"><code>APPROVED</code>, because a resolved thread counts as the reviewer accepting the fix</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> PR #15 at 13:42:13Z. Pushes and resolutions do not touch the field; only a review with a verdict does (or a ruleset that dismisses stale approvals — not requests — in Week 5). A's value needs a required-review rule; C and D invent effects.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. <code>gh pr view --json reviews</code> on PR #15 lists seven reviews but <code>latestReviews</code> lists one. Why?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>latestReviews</code> only lists reviews submitted in the last hour; the six earlier entries had aged out of the window</button></li>
+        <li><button data-opt="b"><code>reviews</code> includes pending drafts the author has not yet submitted; <code>latestReviews</code> excludes anything pending</button></li>
+        <li><button data-opt="c"><code>latestReviews</code> lists one review per commit, and only the bot reviewed the current head</button></li>
+        <li><button data-opt="d"><code>latestReviews</code> keeps one entry per reviewer and omits the PR author, so the author's six entries vanish</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Six of the seven are the author's (one batched review, five thread replies recorded as comment reviews); <code>latestReviews</code> shows where each non-author reviewer stands, so only the bot remains. There is no time window (A), pending reviews are invisible to others (B), and the bot's review is at <code>b0fac63</code>, not the current head (C).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. On <code>cli/cli#14136</code>, what evidence shows the re-request was about the fix rather than the original code?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The <code>review_requested</code> event at 17:31:39Z comes after the two commits at 15:35:03Z that answered the review</button></li>
+        <li><button data-opt="b">The <code>reviewDecision</code> moved to <code>REVIEW_REQUIRED</code> at the moment of the re-request, marking it as a fresh round</button></li>
+        <li><button data-opt="c">The reviewer's <code>APPROVED</code> review carries a <code>commit</code> field equal to the merge commit's SHA, proving it followed the fix</button></li>
+        <li><button data-opt="d">The re-request was made by a different account from the author (<code>tidy-dev</code>), which GitHub only allows after new commits</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Ordering is the evidence — the same test <code>check_a4.py</code> applies. The field did not move on the re-request (B); a review records the head it reviewed, not the merge commit (C); anyone with write access may request at any time (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m20-state">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The three values of <code>reviewDecision</code>, and the fourth state?</div><div class="fc-back"><code>APPROVED</code>, <code>CHANGES_REQUESTED</code>, <code>REVIEW_REQUIRED</code>; no decision is <code>null</code> in GraphQL and <code>""</code> in <code>gh pr view --json</code>.</div></div>
+      <div class="fc"><div class="fc-front">Does a <code>COMMENTED</code> review change <code>reviewDecision</code>?</div><div class="fc-back">No. PR #15 read <code>""</code> after a five-comment batched review; the bot's <code>CHANGES_REQUESTED</code> was the first thing to set it.</div></div>
+      <div class="fc"><div class="fc-front">Does the author's push clear <code>CHANGES_REQUESTED</code>?</div><div class="fc-back">No — the verdict stands until that reviewer reviews again. Neither do replies or resolving threads.</div></div>
+      <div class="fc"><div class="fc-front">What are the five extra <code>COMMENTED</code> reviews on PR #15?</div><div class="fc-back">The author's five thread replies — GitHub records each reply as a single-comment review.</div></div>
+      <div class="fc"><div class="fc-front"><code>reviews</code> vs <code>latestReviews</code>?</div><div class="fc-back">All submitted reviews, versus one per non-author reviewer — where each stands now.</div></div>
+      <div class="fc"><div class="fc-front">When does <code>REVIEW_REQUIRED</code> appear?</div><div class="fc-back">Only when a ruleset or branch protection requires a review before merging (Week 5, M26).</div></div>
+      <div class="fc"><div class="fc-front"><code>cli/cli#14136</code>'s transitions?</div><div class="fc-back"><code>CHANGES_REQUESTED</code> 08-18 11:46 → commits 08-20 15:35 → <code>review_requested</code> 17:31 → <code>APPROVED</code> 08-21 14:36 → merged 15:11.</div></div>
+      <div class="fc"><div class="fc-front">What evidence does the checker read for "re-requested after the fix"?</div><div class="fc-back">A <code>ReviewRequestedEvent</code> for the peer whose <code>createdAt</code> is after the PR's last commit.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Pick any merged PR on a repository you follow and ask Claude Code to run the timeline query from this page on it, then "narrate <code>reviewDecision</code> through every event, and say which events could not have changed it." If its narration has the field changing on a push or a resolve, it is wrong, and this page says why. Bring a PR whose history you cannot narrate to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/graphql/reference/pulls">GraphQL reference: Pull requests — <code>PullRequestReviewDecision</code>, <code>ReviewRequestedEvent</code>, <code>PullRequestReview</code></a><span class="why">The enum's three values with their one-line meanings, and the timeline item types the query above uses.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a><span class="why"><code>--json</code> fields include <code>reviewDecision</code>, <code>reviews</code>, <code>latestReviews</code>, <code>reviewRequests</code>; <code>--comments</code> prints them in words.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request">GitHub Docs: Reviewing proposed changes — "Submitting your review"</a><span class="why">The tip about stale-review dismissal: "If both required reviews and stale review dismissal are enabled and a code-modifying commit is pushed to the branch of an approved pull request, the approval is dismissed." The Week 5 setting that makes a push matter.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/cli/cli/pull/14136">cli/cli#14136</a><span class="why">The public exhibit — read its Conversation tab against the timeline above and find each event.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/graphql/reference/pulls">GitHub GraphQL reference: Pull requests</a> — <code>PullRequestReviewDecision</code> values and <code>reviewDecision</code> description (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review">GitHub Docs: Requesting a pull request review</a> — the re-request sentence (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request">GitHub Docs: Reviewing proposed changes</a> — stale-review dismissal tip (fetched 2026-09-14)</li>
+      <li>PR #15 on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14, <code>gh</code> 2.100.0 — the four read-backs at 13:45–13:47Z and every timestamp in the transition table</li>
+      <li><code>cli/cli#14136</code> — GraphQL <code>timelineItems</code> query (<code>REVIEW_REQUESTED_EVENT</code>, <code>PULL_REQUEST_REVIEW</code>, <code>PULL_REQUEST_COMMIT</code>, <code>MERGED_EVENT</code>) run 2026-09-14; abridged as stated</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M20, page 1</span>Threads, Resolution, Re-request</a>
+    <a class="next" href="../m21-code-review/index.html"><span class="dir">Next · M21</span>Two /code-reviews, Two Axes</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

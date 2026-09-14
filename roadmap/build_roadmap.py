@@ -114,8 +114,23 @@ SECTIONS = [
              "showing --delete-branch closes a stacked child while the auto-delete "
              "setting retargets it. Checker fault-injected 13/13; 42 pages render-tested "
              "headless at 1200 and 400 px; 0 of 40 self-check questions flagged."),
-            ("NEXT", "Weeks 4 to 6 -- M19 to M36",
-             "Three more vertical slices, ~18 Learning Pages, assignments A4-A6, two "
+            ("DONE", "Week 4 -- M19 to M24",
+             "Week 4 hub plus fourteen Learning Pages (two per objective, three for "
+             "M21), assignment A4 (paired) with its rubric, check_a4.py (two handles), "
+             "the planted-bug package seed/planted/ with plant_review_pr.py, and a "
+             "vendored skills/qa/. Built on one PR on the Week 3 throwaway "
+             "(flashcards-w3probe#15, 2026-09-14): T03 landed correctly, then a refactor "
+             "that broke the three ADR rules with green tests; a Conversation comment, a "
+             "batched review with a suggestion from gh api, the author's own APPROVE and "
+             "REQUEST_CHANGES refused (quoted), /code-review's two reports kept verbatim "
+             "and every finding given a verdict, the fix through Claude Code with a reply "
+             "per thread, threads resolved by GraphQL, /qa filing three issues with the "
+             "PR untouched. Re-request and second review shown on cli/cli#14136 (one "
+             "identity cannot produce them). Checker fault-injected 16/16 by snapshot "
+             "replay; 56 pages render-tested headless at 1200 and 400 px; 0 of 40 "
+             "self-check questions flagged."),
+            ("NEXT", "Weeks 5 and 6 -- M25 to M36",
+             "Two more vertical slices, ~12 Learning Pages, assignments A5-A6, two "
              "graded concept quizzes, and the capstone."),
             ("TODO", "Upstream Repo: flashcards-upstream",
              "The shared repo students contribute to and take turns maintaining. Needed "
@@ -131,11 +146,18 @@ SECTIONS = [
              "Workflow plus a CLAUDE_CODE_OAUTH_TOKEN repository secret from "
              "`claude setup-token`. Tied to the instructor's personal subscription: a "
              "single point of failure to monitor."),
-            ("BLOCKED", "Week 4 planted-bug diff",
-             "The three SM-2 bugs live in scheduler.py, which is ticket T03's output. "
-             "The diff can only be authored on an Instance where T03 has landed, never "
-             "against the template. Also still open: whether it ships as a prepared PR "
-             "per Instance or as a patch."),
+            ("DONE", "Week 4 planted-bug package",
+             "seed/planted/ (a self-contained scheduler.py with the three SM-2 defects "
+             "and tests that pass anyway, a ticket, a PR body) and "
+             "seed/tools/plant_review_pr.py, which the student runs on their own "
+             "Instance so they are the PR's author. Decided 2026-09-14: prepared PR, not "
+             "patch -- GitHub refuses an author's own verdict, and a patch cannot apply "
+             "to Instances that never had T03. Tested live on flashcards-w2probe "
+             "(issue #10, PR #11, CI green with the bugs in)."),
+            ("TODO", "Flip can_approve_pull_request_reviews if a bot approver is ever wanted",
+             "The Week 4 review-bot workflow could request changes but GitHub refused "
+             "its approval (repo and org setting both false, read 2026-09-14). Not "
+             "needed for the course -- A4 pairs students -- recorded so nobody rediscovers it."),
             ("TODO", "Merge-strategy simulator widget",
              "The one bespoke widget, for Week 5. Vanilla JS, vendored, per adr/0001."),
             ("TODO", "UI captures",
@@ -149,7 +171,8 @@ SECTIONS = [
             ("TODO", "Part 7 live-demo scripts for Weeks 2 and 3",
              "Week 1 has scripted demos with real output; Weeks 2-3 have Part 10 bullets. "
              "The Week 3 pages already hold every command and output (the retarget, the "
-             "conflict); Week 2's is the M11 two-parent experiment. Two hours, with Week 4."),
+             "conflict); Week 2's is the M11 two-parent experiment. Week 4's would be the "
+             "author-approve refusal and the /code-review run. Two hours."),
             ("TODO", "Delete the throwaway Instances flashcards-w2probe and flashcards-w3probe",
              "Both private, in the org (still there 2026-09-14; w2probe now also carries the 2026-09-14 audit's fault-injection commits and a ninth closed issue). w2probe carried the M08/M11/M12 transcripts and "
              "the 2026-09-13 checker fault-injection; w3probe carried every Week 3 "
@@ -205,9 +228,12 @@ SECTIONS = [
              "Its upstream changeset names /to-spec + /improve-codebase-architecture as the "
              "replacement. Recommendation: improve-codebase-architecture (in the plugin, on "
              "ask-matt's map). Touches M18 p2, the objective row, A3 item 6, check_a3.py."),
-            ("DECIDE", "Name M24's skill before Week 4 is built",
-             "/qa was retired upstream 2026-08-05 into /triage and /to-tickets. One objective "
-             "row and one primary source now; a page rewrite if left until later."),
+            ("DONE", "M24's skill: vendor qa",
+             "Decided 2026-09-14 while building Week 4: /triage and /to-tickets do "
+             "different jobs (state machine over existing issues; spec decomposition), so "
+             "the last upstream qa/SKILL.md (MIT, byte-identical to the installed copy) is "
+             "vendored at skills/qa/ with a one-curl install in skills/README.md. "
+             "Re-check upstream before each cohort."),
             ("DECIDE", "Does a Pro subscription absorb the cohort's CI review volume?",
              "Or is Max needed? Measure during the Week 5 dry run, before it matters."),
         ],

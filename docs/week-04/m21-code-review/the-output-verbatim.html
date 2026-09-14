@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Output, Unedited — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M21 · Page 2 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>The Output, Unedited</h1>
+  <p class="lede">What the two sub-agents returned on PR #15, pasted as Markdown source so that not a word, a mark, or an ordering was changed — including one HTML entity the Standards agent emitted by accident. Read it once as a reviewer would, before page 3 tells you what to make of it.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M21 · Agentic review</span>
+      <span class="chip bloom">Bloom: Analyze</span>
+      <span class="chip assessed">Assessed by: A4 (written)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Run <span class="skill">/code-review</span> on a branch and separate verified findings from noise across its Standards and Spec axes.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M21 pages</span>
+    <a href="index.html"><span class="num">1</span>Two /code-reviews, Two Axes</a>
+    <span class="here"><span class="num">2</span>The Output, Unedited</span>
+    <a href="findings-to-verdicts.html"><span class="num">3</span>From Findings to Verdicts</a>
+  </nav>
+
+  <p>Run 2026-09-14 ~13:37Z in Claude Code (Opus 5) on <code>perro-ruidoso/flashcards-w3probe</code>, branch <code>14-simplify-scheduler</code> at <code>b0fac63</code>, fixed point <code>main</code> (<code>bba30dd</code>). Standards sub-agent: 64 s, 3 tool uses. Spec sub-agent: 56 s, 3 tool uses. The skill's step 5 says "verbatim or lightly cleaned"; the course chose verbatim, so what follows is the raw Markdown each agent returned, under the two headings the skill prescribes.</p>
+
+  <h2>## Standards</h2>
+  <div class="exhibit">
+    <span class="label">Standards sub-agent — returned text, unedited</span>
+<pre><code># Standards review — `b0fac63` (scheduler simplification)
+
+## (a) Documented-standard violations — **hard**
+
+**`scheduler.py`, failure branch** — `reps, ef, interval = 0, STARTING_EASE, 1`
+Resets the Ease Factor to 2.5 on a failing Grade. Contradicts ADR 0001 *Failure* ("start repetitions from the beginning **without changing the E-Factor**") and CONTEXT.md *Repetition* ("does **not** reset the Ease Factor"). The new comment misquotes SM-2 — "as if memorized anew" is not the published wording the ADR reproduces. Tests `test_failure_restarts_the_card_from_scratch` / `test_fail_then_recover_starts_over` were rewritten to pin the wrong behaviour.
+
+**`scheduler.py`, floor ordering** — `ef = max(MIN_EASE, card.ease_factor)` then `ef = ef + (...)`
+ADR 0001: "the update is applied *first* and the 1.3 floor is applied *after*, never before." Here the floor precedes the update, so no floor is applied to the result at all. Worse: the pre-check is a no-op (`Card.__post_init__` already rejects `ease_factor &amp;lt; 1.3`), and a 1.3 card graded 3 now yields 1.16, which `replace()` raises on. The replacement test dodges this by using grade 5.
+
+**`scheduler.py`, interval** — `max(1, round(card.interval * ef))`
+ADR 0001 *Rounding*: "Do not reach for the built-in `round()`, which uses banker's rounding." The ADR gives the exact required expression (`math.floor(raw + 0.5)`). `test_exact_half_interval_rounds_up_not_to_even` — the test that pins this trap — was deleted.
+
+**Module docstring** now states three rules the body contradicts (floor after update, EF untouched on failure, "not `round()`"). Stale documentation of a caller-facing function (CLAUDE.md *Conventions*, docstrings).
+
+**CLAUDE.md *Working here*** — "A pull request that changes scheduling arithmetic must say which rule in ADR 0001 it implements." The commit message names none; if the PR body matches, that's a breach. `docs/agents/domain.md` also requires ADR conflicts to be surfaced explicitly, not silently overridden.
+
+**CLAUDE.md *Conventions*** — "Name tests after the behaviour they pin." `test_ease_factor_never_drops_below_the_floor` asserts 1.3 → 1.4 and never exercises the floor.
+
+## (b) Baseline smells — judgement calls
+
+- **Mysterious Name** — `ef`, `reps`; CONTEXT.md says `ease_factor` is the code form and `docs/agents/domain.md` says use glossary vocabulary. Replacing `PASSING_GRADE`, `FIRST_INTERVAL`, `SECOND_INTERVAL` with bare `3`, `1`, `6` loses the names the ADR gives them.
+- **Primitive Obsession (magic literals)** — `1 if reps == 1 else 6 if reps == 2 else …`: a nested conditional expression that the reader must decode against the ADR table. CLAUDE.md rule 2's rationale ("one small, pure, **well-named** place… a reviewer can check by reading") cuts against inlining `next_interval`/`round_half_up`.
+- **Speculative Generality (inverse)** — the up-front `max(MIN_EASE, …)` guards an impossible state and is overwritten in one branch; delete it and restore the post-update floor.
+
+Ruff/mypy-enforced items (unused `math` import etc.) skipped.</code></pre>
+  </div>
+  <p>One artefact to notice: <code>&amp;lt;</code> in the floor-ordering paragraph. The agent wrote the HTML entity for <code>&lt;</code> instead of the character. It is left as returned; it is the kind of thing a reader corrects in their head and a copy-paster ships.</p>
+
+  <h2>## Spec</h2>
+  <div class="exhibit">
+    <span class="label">Spec sub-agent — returned text, unedited</span>
+<pre><code># Spec review — commit b0fac63 vs. issue #14 / ADR 0001
+
+The refactor's shape matches the issue, but it changes the scheduling rules in three places. The new test suite passes (48/48) only because the tests were rewritten to pin the new, wrong behaviour. Running the pre-change `main` tests against the new code fails 5 of them.
+
+## (c) Requirements that look implemented but are wrong
+
+**1. Ease-factor floor moved before the update — inverts the ADR ordering.**
+Spec: *"`review()` behaviour is unchanged for every grade and every starting state; ... nothing in the diff contradicts [ADR 0001]"*. ADR: *"the update is applied first and the 1.3 floor is applied after, never before."*
+New code does `ef = max(MIN_EASE, card.ease_factor)` and then adds the delta with no floor afterward. A card at EF 1.3 graded 3 now lands at **1.16**; on `main` it stayed at 1.3. The "exactly one place" criterion is met, but in the wrong place. The old test `test_ease_factor_floor_is_applied_after_the_update_not_before` was deleted and replaced with one that grades 5 (delta +0.1) so the floor is never exercised.
+
+**2. Failure now resets EF to 2.5 — contradicts the ADR's quoted SM-2 wording.**
+ADR: *"start repetitions for the item from the beginning **without changing the E-Factor**"* ... *"leaves the Ease Factor untouched."*
+New code: `reps, ef, interval = 0, STARTING_EASE, 1`. The code comment quotes "as if the item was memorized anew" — text that appears nowhere in the ADR. A card at EF 2.36 failed now returns EF 2.5 (was 2.36). Two tests were rewritten to assert the new value (`test_failure_restarts_the_card_from_scratch`, `test_fail_then_recover_starts_over`).
+
+**3. `round()` replaces half-up rounding — the exact trap the ADR names.**
+Spec: *"Interval rounding is one expression"*. ADR: *"Do not reach for the built-in `round()`, which uses banker's rounding ... `interval = max(1, math.floor(raw + 0.5))`."*
+New code: `max(1, round(card.interval * ef))`. Interval 5 × EF 2.5 = 12.5 now gives **12** (was 13). The `math` import and `round_half_up` were removed; `test_exact_half_interval_rounds_up_not_to_even` was deleted.
+
+## (a) Missing / partial requirements
+
+**Tests no longer pin every ADR rule.**
+Spec: *"`tests/domain/test_scheduler.py` still pins every ADR rule by name; tests may be renamed or reorganised but must assert the same behaviour."*
+Three rules lost their tests: floor-after-update, exact-half rounds up, interval floor of 1 day (`test_interval_never_drops_below_one_day` deleted; the replacement `test_later_intervals_are_whole_days` checks 35.4→35, which `round()` and half-up agree on). Two others now assert the opposite of the ADR.
+
+## (b) Scope creep
+
+All three behaviour changes above fall under the issue's *"Out of scope: Any change to the scheduling rules themselves."* Also, `PASSING_GRADE`, `FIRST_INTERVAL`, `SECOND_INTERVAL` were deleted (not just inlined) — acceptable under "fold the helpers back in", but the module docstring still promises "Ease Factor update first, then the 1.3 floor" and "leaves the Ease Factor untouched", which the code below it no longer does.
+
+`Card`, storage, and CLI are untouched — that criterion is met.
+
+**Verdict:** does not satisfy #14. Recommend restoring the three rules (floor after update, EF unchanged on failure, `math.floor(x + 0.5)`) and reinstating the deleted tests.</code></pre>
+  </div>
+
+  <h2>Summary (step 5)</h2>
+  <p>As aggregated in the session, one line per axis, no winner across them: <strong>Standards</strong> — 6 hard documented-standard findings + 3 judgement-call smells; worst within the axis: the failure branch resets the Ease Factor (ADR 0001 <em>Failure</em>, <code>CONTEXT.md</code> <em>Repetition</em>). <strong>Spec</strong> — 3 wrong-implementation findings + 1 missing requirement + 1 scope-creep finding; worst within the axis: <code>review()</code> behaviour changed in three places against "behaviour is unchanged… nothing in the diff contradicts [ADR 0001]".</p>
+
+  <div class="callout note">
+    <span class="label">Before you turn the page</span>
+    <p>Two facts about this output that page 3 will use. First, it is not the ground truth: it is two agents' reading of a diff against documents, in under 400 words each, and it contains at least one number and one claim that a reviewer should check before repeating. Second, the same three defects appear on both axes — once as breaches of the ADR (Standards), once as departures from the ticket's "behaviour is unchanged" (Spec). That is the separation working: two independent routes to the same three lines is stronger evidence than one.</p>
+  </div>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">1. Both reports name the failure-branch reset. Where does each say it looked to establish that it is wrong?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Standards ran the old test suite in <code>tests/domain/</code> and counted failures; Spec compared the two commits' line counts</button></li>
+        <li><button data-opt="b">Both cite only the SuperMemo publication, which the repository does not vendor</button></li>
+        <li><button data-opt="c">Standards cites the smell baseline's Mysterious Name entry; Spec cites the PR body's <code>## Risk</code> section and the commit list</button></li>
+        <li><button data-opt="d">Standards cites ADR 0001 <em>Failure</em> and <code>CONTEXT.md</code> <em>Repetition</em>; Spec cites the ticket and the same ADR sentence</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Read the two paragraphs: each names its source in the text. The routes differ (a documented standard versus the originating issue) and converge on one line — which is the point of two axes. A describes what Spec did elsewhere (it ran the old tests), not for this finding; B and C misattribute.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. The Spec report says "Running the pre-change <code>main</code> tests against the new code fails 5 of them." What should a reviewer do with that sentence?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Quote it in the review as the headline finding, since a concrete number from <code>pytest</code> is the strongest evidence available</button></li>
+        <li><button data-opt="b">Reproduce it — check out the branch, run <code>main</code>'s test file against it — and report the number that comes out</button></li>
+        <li><button data-opt="c">Discard it, because the Spec axis is only allowed to compare the diff with the issue, not run code</button></li>
+        <li><button data-opt="d">Ask the Standards agent to confirm it, since cross-checking between axes is what step 5 is for</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> A number an agent reports is a claim, and this one is cheap to check. Page 3 does, and gets 4 (plus an import failure). A repeats an unverified claim; C invents a restriction the brief does not have; D asks the agents to agree with each other, which is not verification.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Why does the page show the reports as Markdown source in <code>&lt;pre&gt;</code> blocks instead of rendering them?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">So that nothing is reformatted or tidied — the exhibit is the agents' text, artefacts included</button></li>
+        <li><button data-opt="b">Because the skill's step 5 forbids rendering sub-agent output in any form other than plain Markdown source</button></li>
+        <li><button data-opt="c">Because the course stylesheet cannot render nested Markdown headings inside a section</button></li>
+        <li><button data-opt="d">Because GitHub's review API requires Markdown source when the findings are posted as comments</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> <code>seed/SPEC.md</code>'s rule for this drill: "Do not curate the agent's output — run it and use what it says." Rendering is a kind of curation. B, C, and D are not true.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m21-verbatim">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">How many findings did each axis report on PR #15?</div><div class="fc-back">Standards: 6 hard + 3 judgement-call smells. Spec: 3 wrong, 1 missing, 1 scope creep.</div></div>
+      <div class="fc"><div class="fc-front">The three defects both axes found?</div><div class="fc-back">Floor before the update; failure resets the ease factor to 2.5; <code>round()</code> for the interval — the three from <code>seed/SPEC.md</code> §7.</div></div>
+      <div class="fc"><div class="fc-front">What did Standards cite for the failure reset?</div><div class="fc-back">ADR 0001 <em>Failure</em> ("without changing the E-Factor") and <code>CONTEXT.md</code> <em>Repetition</em> ("does not reset the Ease Factor").</div></div>
+      <div class="fc"><div class="fc-front">What did Spec quote for "behaviour changed"?</div><div class="fc-back">The ticket: "review() behaviour is unchanged for every grade and every starting state; … nothing in the diff contradicts [ADR 0001]".</div></div>
+      <div class="fc"><div class="fc-front">Which Standards finding is about the PR's paperwork, not its code?</div><div class="fc-back">"A pull request that changes scheduling arithmetic must say which rule in ADR 0001 it implements. The commit message names none; if the PR body matches, that's a breach."</div></div>
+      <div class="fc"><div class="fc-front">The Spec report's one checkable number?</div><div class="fc-back">"Running the pre-change main tests against the new code fails 5 of them." Page 3 reproduces it.</div></div>
+      <div class="fc"><div class="fc-front">The artefact left in the Standards text?</div><div class="fc-back"><code>&amp;lt;</code> where <code>&lt;</code> was meant — an HTML entity the agent emitted; kept because the exhibit is verbatim.</div></div>
+      <div class="fc"><div class="fc-front">Which smell did Standards apply to a nested conditional expression?</div><div class="fc-back">"Primitive Obsession (magic literals)" — a label page 3 disputes: magic literals are not what that smell names.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Run the skill on your peer's PR, save both reports unedited into <code>a4-writeup.md</code>, and only then ask Claude Code: "which sentences in these two reports state something I could check in under two minutes, and how?" Check them. Anything that does not survive is your first false positive — bring it to the weekly meeting with the check you ran.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md">mattpocock/skills — <code>code-review/SKILL.md</code></a><span class="why">The briefs the two sub-agents were given: "(a) every place the diff violates a documented standard … (b) any baseline smell" and "(a) missing or partial; (b) scope creep; (c) implemented but wrong". Map each paragraph above to its clause.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/docs/adr/0001-sm2-rounding-and-the-clock.md">Seed Repo — <code>docs/adr/0001-sm2-rounding-and-the-clock.md</code></a><span class="why">The document both axes kept quoting. Read it before page 3 and mark the three sentences the findings rest on.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/code-review">Claude Code docs: Code Review — "Severity levels"</a><span class="why">How the <em>other</em> reviewer tags findings (Important / Nit / Pre-existing); the course's verdict vocabulary on page 3 is deliberately close to it.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li>The two sub-agent reports, returned in Claude Code 2026-09-14 and saved to the session's <code>code-review-output.md</code> unedited; reproduced above byte for byte apart from HTML escaping of <code>&lt;</code>, <code>&gt;</code>, and <code>&amp;</code></li>
+      <li><code>~/.agents/skills/code-review/SKILL.md</code> — the step 5 rule "verbatim or lightly cleaned" (read 2026-09-14)</li>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/seed/SPEC.md">Course repo — <code>seed/SPEC.md</code> §7</a> — "Do not curate the agent's output — run it and use what it says."</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M21, page 1</span>Two /code-reviews, Two Axes</a>
+    <a class="next" href="findings-to-verdicts.html"><span class="dir">Next · M21, page 3</span>From Findings to Verdicts</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

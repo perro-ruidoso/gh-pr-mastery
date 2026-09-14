@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Severity Words and the Comments That Force a Question — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M22 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Severity Words and the Comments That Force a Question</h1>
+  <p class="lede">The course uses three severity words and one honest fourth. This page fixes their meanings, maps them onto the verdict that ends a review, and catalogues the five comment shapes that make an author reply with a question instead of a commit — with the rewrite for each. It closes with the one-paragraph template Assignment A4's rubric grades against.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M22 · Communication</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A4 paired (rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Write review comments a peer can act on without asking a clarifying question: located, specific, and severity-marked.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M22 pages</span>
+    <a href="index.html"><span class="num">1</span>Located, Specific, Severity-Marked</a>
+    <span class="here"><span class="num">2</span>Severity Words and the Comments That Force a Question</span>
+  </nav>
+
+  <h2>Three words, one honest fourth</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>First word</th><th>Meaning</th><th>What the author owes</th><th>Effect on your verdict</th></tr></thead>
+      <tbody>
+        <tr><td><strong>must-fix</strong></td><td>The PR should not merge as it stands. A rule is broken (quote it) or behaviour is wrong (show the value).</td><td>A fix, or an argument that the rule does not apply — in the thread, before resolving it.</td><td>At least one open must-fix → <code>REQUEST_CHANGES</code>.</td></tr>
+        <tr><td><strong>nit</strong></td><td>Real, worth doing, not blocking. Naming, a stale comment, a clearer test name.</td><td>Fix it or decline it with a sentence; either is fine.</td><td>Nits alone → <code>APPROVE</code> (with the nits) or <code>COMMENT</code>.</td></tr>
+        <tr><td><strong>question</strong></td><td>You genuinely do not know, and the answer changes your verdict. Say what you would conclude each way.</td><td>An answer in the thread.</td><td>Hold the verdict at <code>COMMENT</code> until answered — or ask before you review.</td></tr>
+        <tr><td><strong>praise</strong></td><td>Something worth keeping doing. Located too — on the line.</td><td>Nothing.</td><td>None; but Google's guide is right that "people learn from reinforcement of what they are doing well and not just what they could do better."</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The first three are the course's verdict vocabulary from M21 (<code>CONTEXT.md</code>: "must-fix, nit, or false positive") applied at the comment level — a false positive never becomes a comment, because a finding you have rejected is not the author's problem. Google's labels are the same idea with different words: "Nit: This is a minor thing … Optional (or Consider): I think this may be a good idea, but it's not strictly required … FYI: I don't expect you to do this in this CL". Pick one vocabulary per team and use it as the first word, every time; the point is that the author can sort the threads without reading them.</p>
+
+  <div class="callout note">
+    <span class="label">A question is a comment, not a disguise</span>
+    <p>"Are you sure SM-2 resets EF here?" (page 1's anti-example) is not a question. The reviewer knows the answer and is making the author say it. A real question names what you would conclude either way: "<strong>question</strong> — does <code>Card.__post_init__</code> run when <code>replace()</code> builds the new card? If yes, this floor bug raises instead of storing 1.16 and the test should expect <code>ValueError</code>; if no, it stores a bad value and the store will reject it later." That is answerable in one word, and both answers lead somewhere.</p>
+  </div>
+
+  <h2>Five shapes that force a question</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Shape</th><th>Example</th><th>The question it forces</th><th>Rewrite</th></tr></thead>
+      <tbody>
+        <tr><td><strong>The floating verdict</strong> — a Conversation comment about code</td><td>"The ease factor logic doesn't match the ADR."</td><td>"Which line?"</td><td>Move it onto line 45 as an inline comment; quote the ADR sentence.</td></tr>
+        <tr><td><strong>The unsourced "wrong"</strong></td><td>"This rounding is wrong."</td><td>"According to what? What does it produce?"</td><td>"ADR 0001, <em>Rounding</em>: 'Do not reach for the built-in <code>round()</code>…' — interval 5 × ease 2.5 gives 12, the ADR gives 13."</td></tr>
+        <tr><td><strong>The hedge</strong> — "I think", "might", "maybe"</td><td>"I think the floor might be in the wrong place?"</td><td>"Is this blocking? Did you check?"</td><td>Check, then either "<strong>must-fix</strong> — …" or delete the comment. A hedge is a verdict you have not finished.</td></tr>
+        <tr><td><strong>The diagnosis without a prescription</strong></td><td>"This breaks the failure rule."</td><td>"So what should it be?"</td><td>Add the fix: the suggestion block on line 50, or "keep <code>card.ease_factor</code>" in words.</td></tr>
+        <tr><td><strong>The unmarked pile</strong> — five comments, no severities</td><td>Five paragraphs, one of them a typo, one a wrong value</td><td>"Which of these do I have to do before you'll approve?"</td><td>First word on each; and the summary body says how many are must-fix.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>A sixth shape belongs to the author, not the reviewer, and M23 covers it: the reply that says "done" without a commit SHA. The two are mirror images — a comment the author cannot act on, and a reply the reviewer cannot verify.</p>
+
+  <h2>Courtesy is a property of the sentence</h2>
+  <p>Google's guide: "be sure that you are always making comments about the code and never making comments about the developer." Its own pair — bad: "Why did you use threads here when there's obviously no benefit to be gained from concurrency?"; good: "The concurrency model here is adding complexity to the system without any actual performance benefit that I can see." — shows the mechanism: the subject of the good sentence is the code. Every comment on PR #15 has a rule or a value as its subject ("This clamps before the update", "this assertion was 2.36 before this PR"); the one place it addresses the author — "The SM-2 parenthetical you quote" — it is about what they quoted, not about them. Severity words help here too: <strong>nit</strong> in front of a naming complaint tells the author it is small before they can read it as a slight.</p>
+
+  <h2>The template</h2>
+  <div class="exhibit">
+    <span class="label">One inline comment — the shape A4's rubric grades</span>
+    <p><strong>&lt;must-fix | nit | question&gt;</strong> — <em>&lt;source&gt;</em>: "&lt;the sentence from the ADR, <code>CONTEXT.md</code>, or the ticket&gt;." &lt;What the code does instead, with a concrete value, exception, or failing test.&gt; &lt;The change: a <code>```suggestion</code> block if it is one contiguous edit; otherwise one imperative sentence naming the lines.&gt;</p>
+  </div>
+  <p>And the summary body that carries the verdict: how many must-fix, how many nits, and one sentence on what would change your verdict. PR #15's: "Three must-fix items, each a rule the ADR states in so many words, and one nit." The author read that line and knew the shape of their afternoon.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 3 — before you submit the batch on your peer's PR:</p>
+    <label class="check"><input type="checkbox"><span>Every comment's first word is one of the four; the summary body counts the must-fixes.</span></label>
+    <label class="check"><input type="checkbox"><span>Every "question" names what I would conclude for each answer — or I have deleted it and checked myself.</span></label>
+    <label class="check"><input type="checkbox"><span>No "I think", "might", or "maybe" survives in a must-fix.</span></label>
+    <label class="check"><input type="checkbox"><span>Each comment's grammatical subject is the code, a rule, or a value — not the author.</span></label>
+    <label class="check"><input type="checkbox"><span>The verdict matches the marks: any open must-fix means <code>REQUEST_CHANGES</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Something the author did well is on a line as <strong>praise</strong>, with the why.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. A review has four inline comments marked <strong>nit</strong> and none marked <strong>must-fix</strong>. Which verdict fits?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>REQUEST_CHANGES</code>, since four comments of any kind mean the PR is not ready</button></li>
+        <li><button data-opt="b"><code>COMMENT</code> only, because nits are not permitted to accompany an approval</button></li>
+        <li><button data-opt="c"><code>APPROVE</code> (with the nits), or <code>COMMENT</code> — nothing marked blocking means nothing blocks</button></li>
+        <li><button data-opt="d">No verdict at all; leave the review pending until the author has addressed the nits</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The marks and the verdict must agree: a nit is by definition not blocking. A contradicts the marks; B invents a rule; D leaves the author with no signal, which is the unmarked pile in another form.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. "I think the floor might be applied in the wrong place?" — which shape is this, and what is the fix?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The hedge: check the ADR and the value, then write "<strong>must-fix</strong> — …" or delete it</button></li>
+        <li><button data-opt="b">The floating verdict: move it from the Conversation tab onto the line it is about, then resubmit</button></li>
+        <li><button data-opt="c">A well-formed question: the author owes an answer before the verdict moves</button></li>
+        <li><button data-opt="d">Praise phrased tentatively: the reviewer approves of the placement</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> "I think … might … ?" is a verdict the reviewer has not finished; the author's only reply is "did you check?". It is not a real question (C) because it does not say what each answer would mean. Its location is not the problem (B); D misreads it.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Why does a finding you classified as a false positive in M21 never become a review comment?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because GitHub rejects review comments whose body begins with the words "false positive"</button></li>
+        <li><button data-opt="b">Because the author would be obliged to fix it anyway, and that would widen the PR's scope past what the ticket allows</button></li>
+        <li><button data-opt="c">Because false positives belong in the summary body, where they count toward the verdict</button></li>
+        <li><button data-opt="d">Because you have already judged that nothing is wrong there; a rejected finding is your note, not the author's task</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Verdicts filter findings; only must-fix and nit survive into comments. A false positive goes in your write-up (A4's written part), not on the PR. A is false; B and C invent obligations.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m22-severity">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The four first words, and which one is not a verdict?</div><div class="fc-back">must-fix, nit, question, praise — question and praise carry no verdict; a false positive never becomes a comment at all.</div></div>
+      <div class="fc"><div class="fc-front">Marks → verdict?</div><div class="fc-back">Any open must-fix → <code>REQUEST_CHANGES</code>; nits only → <code>APPROVE</code> or <code>COMMENT</code>; an unanswered real question → hold at <code>COMMENT</code>.</div></div>
+      <div class="fc"><div class="fc-front">What makes a question real rather than a disguised verdict?</div><div class="fc-back">You do not know the answer, and you say what you would conclude for each answer.</div></div>
+      <div class="fc"><div class="fc-front">The five shapes that force a question?</div><div class="fc-back">Floating verdict (not on a line), unsourced "wrong", the hedge, diagnosis without prescription, the unmarked pile.</div></div>
+      <div class="fc"><div class="fc-front">Google's severity labels?</div><div class="fc-back">"Nit", "Optional (or Consider)", "FYI" — "This makes review intent explicit and helps authors prioritize."</div></div>
+      <div class="fc"><div class="fc-front">Google's courtesy rule, in one sentence?</div><div class="fc-back">"Always making comments about the code and never making comments about the developer."</div></div>
+      <div class="fc"><div class="fc-front">The comment template?</div><div class="fc-back">First word — source: "quoted rule." What the code does instead (value/exception/test). The change (suggestion block or one imperative sentence).</div></div>
+      <div class="fc"><div class="fc-front">What does the summary body carry?</div><div class="fc-back">The counts (how many must-fix, how many nits) and what would change the verdict. PR #15: "Three must-fix items … and one nit."</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Take one comment you marked <strong>nit</strong> and one you marked <strong>must-fix</strong> and ask Claude Code to argue each should be the other. If it can move a must-fix to nit without a rule going unbroken, your source was weak; if it can promote a nit, you undercounted. Bring the pair whose severity you still cannot settle to the weekly meeting — that is a genuine question, and it belongs in the room, not on the PR.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/reviewer/comments.html">Google eng-practices: How to write code review comments</a><span class="why">"Label comment severity", "Courtesy", "Accepting Explanations" — the last says an explanation in the thread should usually become clearer code, which is the M23 half of this page.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/code-review">Claude Code docs: Code Review — severity levels</a><span class="why">A three-level vocabulary (Important / Nit / Pre-existing) an automated reviewer commits to; compare its "Important: a bug that should be fixed before merging" with must-fix.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/pull-request-reviews">GitHub Docs: Pull request reviews — decision types</a><span class="why">The three verdicts your marks must agree with.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://google.github.io/eng-practices/review/reviewer/comments.html">Google eng-practices: How to write code review comments</a> — "Courtesy" (the bad/good pair), "Giving Guidance" (the reinforcement sentence), "Label comment severity" (fetched 2026-09-14; ancillary)</li>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/CONTEXT.md">Course repo — <code>CONTEXT.md</code></a> — the Verdict entry</li>
+      <li>Review 5198312441 on <code>perro-ruidoso/flashcards-w3probe#15</code> — the summary body quoted (2026-09-14)</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M22, page 1</span>Located, Specific, Severity-Marked</a>
+    <a class="next" href="../m23-answering-review/index.html"><span class="dir">Next · M23</span>Direct Claude, Push, Reply</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

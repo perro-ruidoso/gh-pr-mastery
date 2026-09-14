@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direct Claude, Push, Reply — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M23 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Direct Claude, Push, Reply</h1>
+  <p class="lede">Review has landed on your PR: three must-fixes, a nit, and a verdict of <code>CHANGES_REQUESTED</code>. The author's job is not to defend the diff but to turn each thread into a commit — through Claude Code — and then to close the loop in the same threads so the reviewer can verify without re-reading the whole PR. This page is that sequence on PR #15, with the prompt, the commit, the five replies, and the thread state before and after.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M23 · Authoring</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 paired (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Respond to review as the author: direct Claude to address findings, push, and re-request review without losing the thread.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M23 pages</span>
+    <span class="here"><span class="num">1</span>Direct Claude, Push, Reply</span>
+    <a href="re-requesting-review.html"><span class="num">2</span>Re-request Without Losing the Thread</a>
+  </nav>
+
+  <h2>Before: what the author sees</h2>
+  <pre><code><span class="prompt">$</span> gh pr view 15 --json reviewDecision,latestReviews --jq '{reviewDecision, latestReviews: [.latestReviews[] | "\(.author.login) \(.state)"]}'
+{"latestReviews":["github-actions CHANGES_REQUESTED"],"reviewDecision":"CHANGES_REQUESTED"}
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/pulls/15/comments --jq '.[] | "\(.id)  \(.path):\(.line)  \(.body[0:60])"'
+4005702541  src/flashcards/domain/scheduler.py:45  **must-fix** — ADR 0001, *Ease Factor*: "the update is ap
+4005702548  src/flashcards/domain/scheduler.py:50  **must-fix** — ADR 0001, *Failure*: "leaves the Ease Fac
+4005702559  src/flashcards/domain/scheduler.py:55  **must-fix** — ADR 0001, *Rounding*: "Do not reach for t
+4005702565  src/flashcards/domain/scheduler.py:15  **nit** — anchored on the deleted `import math` because
+4005702571  tests/domain/test_scheduler.py:69  **must-fix** — this assertion was `2.36` before this PR</code></pre>
+  <p>Five threads, five ids. The ids matter: replies go to them, not to the PR. Everything the author is about to do is a function of this list.</p>
+
+  <h2>Direct Claude</h2>
+  <p>The prompt given to Claude Code, in a session inside the clone with the PR's branch checked out. It names the PR, says what to do with each thread, sets the boundary, and asks for the loop to be closed — nothing about <em>how</em> to fix the arithmetic, because the comments already say that:</p>
+  <div class="transcript">
+    <div class="turn human">
+      <span class="who">Author → Claude Code</span>
+      <p>Address the review on PR #15. Read every inline thread on it. For each one: fix the code the way the comment asks — the suggestion on the failure line can be applied as written — but keep the flatter one-function shape ticket #14 asked for. Restore the ADR 0001 rules and the tests on <code>main</code> that pinned them, under their original names. Run <code>pytest</code>, <code>ruff check .</code>, <code>ruff format --check .</code>, and <code>mypy</code>. Commit with a message that names which ADR rule each change restores, push, then reply in each thread with the commit that fixes it and one sentence on what changed. Do not touch anything outside <code>scheduler.py</code> and its tests, and do not resolve the threads yet — I will read the replies first.</p>
+    </div>
+  </div>
+  <p>Three things in that prompt do the work. "Read every inline thread" points the agent at the review comments, not the PR body, so nothing is addressed from memory. "Keep the flatter shape ticket #14 asked for" prevents the lazy fix — <code>git revert</code> — which would also throw away the ticket. And "do not resolve the threads yet" keeps the author in the loop: replies are the agent's, resolution is the author's judgement (page 2 explains why the order matters). On the throwaway the direction came from the build session rather than a typed prompt; the actions below are what it produced.</p>
+
+  <h2>The fix, and the checks</h2>
+  <pre><code><span class="prompt">$</span> pytest
+.................................................                        [100%]
+49 passed in 0.32s
+<span class="prompt">$</span> ruff check . &amp;&amp; ruff format --check .
+All checks passed!
+20 files already formatted
+<span class="prompt">$</span> mypy
+Success: no issues found in 8 source files
+<span class="prompt">$</span> git diff --stat
+ src/flashcards/domain/scheduler.py | 36 +++++++++++++++++++++-------------
+ tests/domain/test_scheduler.py     | 40 +++++++++++++++++++++++++-------------
+ 2 files changed, 48 insertions(+), 28 deletions(-)</code></pre>
+  <p>Forty-nine: <code>main</code>'s 34 non-scheduler tests plus the 15 scheduler tests that had pinned the rules on <code>main</code> — the two <code>round_half_up</code> unit tests became one test through <code>review()</code>, because the helper stays folded in. The scheduler still reads top to bottom in one function; the three rules read as the ADR states them, each with a comment naming its ADR section:</p>
+  <pre><code>    if grade &lt; PASSING_GRADE:
+        # ADR 0001, Failure: "start repetitions for the item from the beginning
+        # without changing the E-Factor" -- repetitions restart, the Ease Factor
+        # is the card's own.
+        repetitions, ease_factor, interval = 0, card.ease_factor, 1
+    else:
+        repetitions = card.repetitions + 1
+        # ADR 0001, Ease Factor: the update first, the 1.3 floor after.
+        ease_factor = max(
+            MIN_EASE,
+            card.ease_factor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)),
+        )
+        # ADR 0001, Rounding: I(1) = 1, I(2) = 6, then I(n-1) * EF rounded half-up
+        # with a floor of one day -- math.floor(x + 0.5), not round().
+        if repetitions == 1:
+            interval = 1
+        elif repetitions == 2:
+            interval = 6
+        else:
+            interval = max(1, math.floor(card.interval * ease_factor + 0.5))</code></pre>
+  <p>The commit message does what <code>CLAUDE.md</code>'s "Working here" rule asks of the PR — names the rules — and says which thread each change answers:</p>
+  <pre><code><span class="prompt">$</span> git log -1 --format=%B
+Restore the three ADR 0001 rules the simplification broke
+
+Addresses the batched review on #15. Keeps the flatter one-function shape
+ticket #14 asked for, but each rule now reads as the ADR states it:
+
+- Ease Factor: the update is applied first, then the 1.3 floor (the review's
+  thread on the early clamp). The clamp before the update is gone.
+- Failure: a grade below 3 restarts repetitions and keeps the card's own ease
+  factor (the suggestion on the reset line, applied as written).
+- Rounding: math.floor(x + 0.5) with a floor of one day, not round().
+
+The tests that pinned those rules on main are restored under their original
+names; the two round_half_up unit tests become one test through review().
+<span class="prompt">$</span> git push
+<span class="prompt">$</span> gh pr view 15 --json commits --jq '.commits[] | "\(.oid[0:7]) \(.committedDate) \(.messageHeadline)"'
+b0fac63 2026-09-14T13:30:16Z Simplify the scheduler: one bounds check, one reset path, one rounding call
+0c5a18d 2026-09-14T13:41:11Z Restore the three ADR 0001 rules the simplification broke</code></pre>
+
+  <h2>Reply in the thread, with the SHA</h2>
+  <p>A reply belongs <em>in</em> the thread — it is what the reviewer will read when they come back to their own comment. The REST route is the review comment's <code>replies</code> endpoint (GitHub's docs: "Create a reply for a review comment"). Each reply names the fixing commit and one concrete fact the reviewer can check:</p>
+  <pre><code><span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w3probe/pulls/15/comments/4005702541/replies -f body="Fixed in 0c5a18d: the early clamp is gone; the floor now wraps the updated value (\`max(MIN_EASE, card.ease_factor + …)\`). The nine-review test from main is restored and passes." --jq '{id, created_at, in_reply_to_id}'
+{"created_at":"2026-09-14T13:42:00Z","id":4005782137,"in_reply_to_id":4005702541}
+<span class="prompt">$</span> gh api -X POST …/comments/4005702548/replies -f body="Fixed in 0c5a18d, suggestion applied as written: \`repetitions, ease_factor, interval = 0, card.ease_factor, 1\`. Both failure tests restored to 2.36." --jq '{id, created_at, in_reply_to_id}'
+{"created_at":"2026-09-14T13:42:02Z","id":4005782362,"in_reply_to_id":4005702548}
+<span class="prompt">$</span> gh api -X POST …/comments/4005702559/replies -f body="Fixed in 0c5a18d: \`max(1, math.floor(card.interval * ease_factor + 0.5))\`, \`import math\` back. The 12.5 → 13 test is restored." …
+{"created_at":"2026-09-14T13:42:04Z","id":4005782602,"in_reply_to_id":4005702559}
+<span class="prompt">$</span> gh api -X POST …/comments/4005702565/replies -f body="Import restored in 0c5a18d; the docstring's three bullets are true of the code again." …
+{"created_at":"2026-09-14T13:42:06Z","id":4005782898,"in_reply_to_id":4005702565}
+<span class="prompt">$</span> gh api -X POST …/comments/4005702571/replies -f body="Restored in 0c5a18d under the original test names; the two round_half_up unit tests became one test through review() (1 × 1.3 → 1)." …
+{"created_at":"2026-09-14T13:42:07Z","id":4005783175,"in_reply_to_id":4005702571}</code></pre>
+  <p><code>in_reply_to_id</code> ties each reply to its comment — that is "without losing the thread" in the literal sense. A Conversation-tab comment saying "addressed all feedback, PTAL" loses all five: the reviewer has to rediscover which line each remark was about and check each fix by hand. One side effect worth knowing from M20 page 2: GitHub records each of these replies as a <code>COMMENTED</code> review in <code>gh pr view --json reviews</code>. They are not verdicts and change nothing about <code>reviewDecision</code>.</p>
+
+  <div class="callout warn">
+    <span class="label">"Done" is not a reply</span>
+    <p>The reviewer cannot verify "done". They can verify "<code>0c5a18d</code>, line 53 now wraps the updated value, the nine-review test passes" in thirty seconds, from the thread, without opening the diff. Every reply above has the SHA and one checkable fact; that is the whole standard. The mirror image is M22's unsourced "wrong" — a reply the reviewer cannot act on.</p>
+  </div>
+
+  <h2>After: the state, before anything is resolved</h2>
+  <pre><code><span class="prompt">$</span> gh api graphql … threads.graphql --jq '.data.repository.pullRequest | {reviewDecision, threads: [.reviewThreads.nodes[] | {isResolved, isOutdated, line, path}]}'
+{"reviewDecision":"CHANGES_REQUESTED","threads":[
+ {"isOutdated":true,"isResolved":false,"line":null,"path":"src/flashcards/domain/scheduler.py"},
+ {"isOutdated":true,"isResolved":false,"line":null,"path":"src/flashcards/domain/scheduler.py"},
+ {"isOutdated":true,"isResolved":false,"line":null,"path":"src/flashcards/domain/scheduler.py"},
+ {"isOutdated":true,"isResolved":false,"line":15,"path":"src/flashcards/domain/scheduler.py"},
+ {"isOutdated":true,"isResolved":false,"line":null,"path":"tests/domain/test_scheduler.py"}]}</code></pre>
+  <p>Pushed, replied, outdated, unresolved, still <code>CHANGES_REQUESTED</code>. That is the correct state to hand to page 2: the author has done everything that is theirs to do alone. Resolving and re-requesting are the two moves that involve the reviewer's judgement, and they have an order.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 4 — on your own drill PR, once your peer's review has landed:</p>
+    <label class="check"><input type="checkbox"><span>Listed the review comments with their ids (<code>/pulls/N/comments</code>) before doing anything.</span></label>
+    <label class="check"><input type="checkbox"><span>Wrote Claude Code a prompt that names the PR, says "read every inline thread", sets the file boundary, and asks for a commit message naming what each change answers.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran the project's checks (<code>pytest</code>, <code>ruff</code>, <code>mypy</code>) and read the test count against what <code>main</code> had.</span></label>
+    <label class="check"><input type="checkbox"><span>Pushed; confirmed the new commit in <code>gh pr view N --json commits</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Replied <em>in each thread</em> (<code>…/comments/{id}/replies</code>) with the SHA and one checkable fact — not "done", not a Conversation comment.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran the threads query and saw <code>isOutdated: true</code> with nothing resolved yet.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. The author's prompt says "keep the flatter one-function shape ticket #14 asked for." What would have gone wrong without that sentence?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Claude Code would have refused to edit a file under active review without a ticket reference in the prompt</button></li>
+        <li><button data-opt="b">The quickest fix — reverting to <code>main</code>'s scheduler — satisfies every comment and abandons the ticket</button></li>
+        <li><button data-opt="c"><code>mypy</code> would fail, because the restored helpers were typed against the old <code>Card</code></button></li>
+        <li><button data-opt="d">The suggestion block on line 50 could not be applied, since it names <code>reps</code> and <code>ef</code></button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> A review that says "the old behaviour was right" invites <code>git revert</code>; the prompt keeps the refactor's purpose while restoring its rules — which is what the ticket's criteria actually require. A, C, and D describe nothing that happens.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Why reply inside each review thread rather than post one Conversation comment saying the review is addressed?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because GitHub requires a reply on every open thread before the author is allowed to push again to the PR's head branch</button></li>
+        <li><button data-opt="b">Because a Conversation comment would count as a <code>COMMENTED</code> review and reset <code>reviewDecision</code> to empty</button></li>
+        <li><button data-opt="c">Because <code>check_a4.py</code> counts reply comments under <code>/pulls/N/comments</code>, and a Conversation comment is an issue comment under <code>/issues/N/comments</code> it never reads</button></li>
+        <li><button data-opt="d">Because the reviewer verifies from their own comment: the SHA and one fact sit where they will look, tied to the line by <code>in_reply_to_id</code></button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> "Without losing the thread" is literal. There is no such requirement (A); a Conversation comment changes no review state (B — and neither do replies); C mistakes a side effect for the reason, and the checker does not grade replies at all.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. After the push and the five replies, the threads read <code>isOutdated: true, isResolved: false</code>. Is anything wrong?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">No — that is the correct hand-off state: GitHub marked the lines changed, and resolving is the author's next decision</button></li>
+        <li><button data-opt="b">Yes — the replies should have resolved the threads automatically, so the <code>in_reply_to_id</code> values were wrong</button></li>
+        <li><button data-opt="c">Yes — outdated threads cannot be resolved any more, so the author should have resolved all five before pushing the fix</button></li>
+        <li><button data-opt="d">No — but only because <code>reviewDecision</code> is still <code>CHANGES_REQUESTED</code>, which blocks resolution until the reviewer approves</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Outdated is GitHub's fact about the diff; resolved is a person's judgement (M20 page 1). Replies never resolve (B); outdated threads resolve fine — page 2 resolves these five (C); the verdict has no bearing on resolution (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m23-author">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The author's first command after review lands?</div><div class="fc-back"><code>gh api repos/O/R/pulls/N/comments</code> — the review comments with their ids; replies go to those ids.</div></div>
+      <div class="fc"><div class="fc-front">Three load-bearing phrases in the prompt to Claude Code?</div><div class="fc-back">"Read every inline thread"; "keep the flatter shape ticket #14 asked for" (no revert); "do not resolve the threads yet".</div></div>
+      <div class="fc"><div class="fc-front">The route for replying in a thread?</div><div class="fc-back"><code>POST /repos/O/R/pulls/N/comments/{comment_id}/replies</code> with <code>body</code>; the reply carries <code>in_reply_to_id</code>.</div></div>
+      <div class="fc"><div class="fc-front">What must a reply contain?</div><div class="fc-back">The fixing commit's SHA and one fact the reviewer can check from the thread — never just "done".</div></div>
+      <div class="fc"><div class="fc-front">What did PR #15's fix commit restore, and what did it keep?</div><div class="fc-back">Restored the three ADR rules and <code>main</code>'s tests (49 passing); kept the one-function shape ticket #14 asked for.</div></div>
+      <div class="fc"><div class="fc-front">How do the replies appear in <code>--json reviews</code>?</div><div class="fc-back">As <code>COMMENTED</code> reviews, one each — not verdicts; <code>reviewDecision</code> stays <code>CHANGES_REQUESTED</code>.</div></div>
+      <div class="fc"><div class="fc-front">Thread state after push + replies, before resolving?</div><div class="fc-back"><code>isOutdated: true</code>, <code>isResolved: false</code>, <code>line: null</code> on changed lines. Correct hand-off state.</div></div>
+      <div class="fc"><div class="fc-front">Who resolves, and when?</div><div class="fc-back">The author, after reading the replies and deciding each concern is met — page 2. Not the agent, not the push.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Before you let Claude Code push, ask it: "list each review thread, the change you made for it, and the one sentence you will put in the reply — and tell me which comments you did <em>not</em> act on and why." A thread with no change and no reason is a thread you have to decide about yourself. Bring the ones where you disagreed with your peer to the weekly meeting; that disagreement is the thread's real content.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/pulls/comments">REST API: pull request review comments — "Create a reply for a review comment"</a><span class="why">The <code>replies</code> route used above; also <code>in_reply_to</code> on the create-comment endpoint, which does the same thing.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback in your pull request</a><span class="why">The author's page: applying suggestions (one commit, co-authored), "Delegating review comments to Copilot", re-requesting, and "Opening an issue for an out-of-scope suggestion" (M24).</span></li>
+      <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/reviewer/comments.html">Google eng-practices — "Accepting Explanations"</a><span class="why">"If you ask a developer to explain a piece of code that you don't understand, that should usually result in them rewriting the code more clearly." The author's side of a question thread.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/CLAUDE.md">Seed Repo — <code>CLAUDE.md</code>, "Working here"</a><span class="why">The rule the commit message satisfies: a change to scheduling arithmetic names the ADR rule it implements.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/rest/pulls/comments">REST API endpoints for pull request review comments</a> — the replies endpoint (fetched 2026-09-14)</li>
+      <li>PR #15 on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14: commit <code>0c5a18d</code> (13:41:11Z), the five replies (13:42:00–07Z), the two thread queries; <code>gh</code> 2.100.0, Python 3.14, the Seed's pinned ruff 0.16.7</li>
+      <li><code>seed/planted/</code> and <code>NOTES.md</code> (Week 4) in the course repo — the prompt above is the one recorded there for the drill</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m22-comments-a-peer-can-act-on/severity-and-anti-patterns.html"><span class="dir">Previous · M22, page 2</span>Severity Words and the Comments That Force a Question</a>
+    <a class="next" href="re-requesting-review.html"><span class="dir">Next · M23, page 2</span>Re-request Without Losing the Thread</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>
