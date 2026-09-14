@@ -7,7 +7,8 @@ page that does not exist, a page that uses a Mermaid diagram without loading Mer
 self-check whose data-answer names an option that is not there, a flashcard with no back,
 an objective folder whose pages do not all link each other, an Apply, Create, or Evaluate
 page with no hands-on checklist, two decks sharing a localStorage id, a Week Hub the Course Home does
-not link, a relative link that leaves docs/ and so 404s on the published site.
+not link, a relative link that leaves docs/ and so 404s on the published site, a closing tag
+that matches nothing (browsers swallow it silently).
 
 Layout it expects: docs/week-NN/index.html is the Week Hub; docs/week-NN/mNN-slug/ is one
 objective, holding index.html (the entry Learning Page) plus any supporting pages.
@@ -17,6 +18,7 @@ from __future__ import annotations
 
 import re
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urldefrag
 
@@ -61,6 +63,49 @@ def check_links(path: Path, html: str, problems: list[str]) -> int:
                 # assignments/, adr/, and CONTEXT.md). Link the GitHub blob URL instead.
                 problems.append(f"{rel}: link escapes docs/ (dead on the published site) -> {raw}")
     return checked
+
+
+VOID = {"meta", "link", "br", "img", "input", "hr", "source", "wbr"}
+
+
+class TagBalance(HTMLParser):
+    """Report a closing tag that does not match the innermost open element - the stray
+    `</tt>` that a Week 4 page shipped with, which browsers swallow and nothing else saw."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.stack: list[tuple[str, int]] = []
+        self.problems: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in VOID:
+            self.stack.append((tag, self.getpos()[0]))
+
+    def handle_endtag(self, tag):
+        if tag in VOID:
+            return
+        if not self.stack or self.stack[-1][0] != tag:
+            opened = self.stack[-1][0] if self.stack else "nothing"
+            self.problems.append(f"line {self.getpos()[0]}: </{tag}> closes {opened}")
+            # Recover so one slip does not cascade into a hundred reports.
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i][0] == tag:
+                    del self.stack[i:]
+                    break
+            return
+        self.stack.pop()
+
+
+def check_markup(path: Path, html: str, problems: list[str]) -> None:
+    parser = TagBalance()
+    parser.feed(html)
+    parser.close()
+    rel = path.relative_to(ROOT)
+    for msg in parser.problems[:5]:
+        problems.append(f"{rel}: mismatched tag, {msg}")
+    for tag, line in parser.stack:
+        if tag not in ("html", "body"):
+            problems.append(f"{rel}: <{tag}> opened at line {line} is never closed")
 
 
 def is_lesson_page(path: Path) -> bool:
@@ -188,6 +233,7 @@ def main() -> int:
         html = path.read_text(encoding="utf-8")
         links += check_links(path, html, problems)
         check_structure(path, html, problems)
+        check_markup(path, html, problems)
 
     check_objective_coverage(problems)
     check_site_wiring(found, problems)

@@ -1048,12 +1048,13 @@ Consolidated. Each is written up in `NOTES.md` with its source and date.
 
 **Not built yet**
 
-10. Weeks 4–6 and assignments A4–A6; the two graded concept quizzes; the capstone.
-    (Weeks 2 and 3 are built and audited — Part 10.)
+10. Weeks 5–6 and assignments A5–A6; the two graded concept quizzes; the capstone.
+    (Weeks 2, 3, and 4 are built — Part 10; Weeks 1–3 audited.)
 11. `flashcards-upstream`, needed by Week 5.
-12. The Week 4 planted-bug diff. Blocked for a structural reason worth knowing: the three
-    SM-2 bugs live in `scheduler.py`, which is ticket T03's output, so the diff can only be
-    authored on an Instance where T03 has landed — never against the template.
+12. ~~The Week 4 planted-bug diff.~~ Built 2026-09-14 as `seed/planted/` plus
+    `seed/tools/plant_review_pr.py`; the structural reason it was blocked (the bugs live in
+    T03's module) was dissolved by giving the planted module its own `ReviewState` so it
+    depends only on the template's ADR. Part 10 item 7 says how to use it.
 13. The merge-strategy simulator widget (Week 5), and the UI captures for rulesets, merge
     queue, and Linear settings.
 
@@ -1063,7 +1064,7 @@ and every Linear UI step (5.2).
 
 ---
 
-## Part 10 — Before you teach Weeks 2 and 3
+## Part 10 — Before you teach Weeks 2, 3, and 4
 
 1. **Do the live Issues Sync check** left from decision 0.3(c) — Settings → Integrations →
    GitHub in your Free workspace, five minutes — and date it in `NOTES.md`.
@@ -1133,6 +1134,86 @@ and every Linear UI step (5.2).
    - **M13 page 2's Linear half is documentary**, like M12: the branch-name linking rule is
      quoted from Linear's docs and has not been observed in a live workspace. Fold it into
      the Issues Sync live check in item 1.
+7. **Week 4 is built** (M19–M24, fourteen Learning Pages under `docs/week-04/`,
+   `assignments/a4.md`, `checkers/check_a4.py`, `seed/planted/`, `seed/tools/plant_review_pr.py`,
+   `skills/qa/`; 2026-09-14, issue #21). Every transcript is from one pull request on the
+   Week 3 throwaway, `perro-ruidoso/flashcards-w3probe#15`; the planting script was tested
+   on `flashcards-w2probe` (issue #10, PR #11 — leave both open or delete the repos, nothing
+   depends on them). Week 4 needs three things from you that no other week has needed:
+
+   - **A pairing roster.** A4 is paired: each student is the *author* of the drill PR on
+     their own Instance and the *reviewer* of their peer's. Publish pairs before the Week 4
+     meeting (an odd cohort gets one triple, where C reviews A and A reviews B and B reviews
+     C — the checker takes `--handle X --peer Y` per direction, so a triple is three runs).
+     Put the pairs in a file, one `student peer` pair per line, and grade with
+     `python checkers/check_a4.py --org perro-ruidoso --pairs pairs.txt` — it runs both
+     directions of every line. Pair students whose Instances both lack
+     `src/flashcards/domain/scheduler.py`; if one already built T03 in A3, see the variant
+     below. Tell pairs to agree a hand-off time: the assignment has three round-trips
+     (review → fix → re-review) and the checker reads timestamps in that order.
+
+   - **The second-identity question, answered.** The pages could not show a re-request or
+     an `APPROVED` transition on the throwaway, because the course account was the only human
+     there. Verified 2026-09-14, each quoted on the M19/M20 pages: an author's own
+     `--approve` and `--request-changes` are refused ("Review Can not approve your own pull
+     request"); requesting a review from yourself is a silent no-op (exit 0, nothing
+     recorded); a `workflow_dispatch` bot (`github-actions[bot]`, workflow left on the
+     throwaway as `.github/workflows/review-bot.yml`) *can* `--request-changes` but is refused
+     `--approve` ("GitHub Actions is not permitted to approve pull requests" —
+     `can_approve_pull_request_reviews` is `false` at repository and org level; flipping it is
+     a permission grant this build did not make) and cannot be a requested reviewer ("Could
+     not resolve user with login 'github-actions[bot]'"). **So the second identity is the
+     peer, and only the peer.** Do not stand in for a missing peer with your own account
+     unless you also accept that the student then cannot be graded on M23's re-request to a
+     reviewer who will come back; if you must, re-review promptly and say so in the grade.
+     The full changes-requested → re-requested → approved transition is shown read-only on
+     `cli/cli#14136` (M20 page 2) — a good live-demo target, since anyone can run the
+     timeline query on it.
+
+   - **The `qa` skill, installed.** M24 runs `/qa`, which upstream deleted on 2026-08-05 and
+     the plugin never carried. The course vendors the last upstream copy (MIT) at
+     `skills/qa/SKILL.md`; `skills/README.md` has the one-`curl` install students run into
+     `~/.claude/skills/qa/`. Check before the meeting that upstream has not reintroduced an
+     equivalent (`gh api repos/mattpocock/skills/contents/skills/engineering`) — if it has,
+     prefer the plugin's copy.
+
+   Before teaching, also:
+   - **Live demo the refusal.** Open any PR on your own Instance and run
+     `gh pr review N --approve`; read the error aloud. Then `gh pr edit N --add-reviewer
+     <yourself>` and `gh pr view N --json reviewRequests` — nothing. Two minutes, and it
+     settles "why is this paired" for the room.
+   - **Live demo the two `/code-review`s.** In Claude Code, type `/code-review` and read the
+     first line of what runs: the Pocock skill asks for a fixed point and ends with
+     `## Standards` / `## Spec`; the built-in produces a severity-tagged findings list.
+     Students with the plugin may see the skill namespaced. M21 page 1 has both descriptions.
+   - **Plant the drill PR yourself first**, on a scratch Instance, with
+     `python seed/tools/plant_review_pr.py --repo perro-ruidoso/flashcards-<scratch>`, so
+     you have seen the refusal path (`already has src/flashcards/domain/scheduler.py`) and the
+     success path (ticket, branch `<N>-sm2-scheduler`, PR, CI green with the bugs in).
+   - **The variant for an Instance that already has T03.** The planting script refuses,
+     because the module would be overwritten. Two options, in order of preference: pair that
+     student as *reviewer only* on a peer's PR and have them author a different drill — the
+     `flashcards-w3probe#15` variant, a "refactor" of their own correct scheduler that plants
+     the same three bugs (the diff is on the M19–M23 pages; author it by hand in ten minutes,
+     tests included, and open it with `Closes` on a ticket like the throwaway's #14); or let
+     the script's files overwrite theirs on a branch (`cp seed/planted/scheduler.py …`,
+     commit, PR) and accept a larger, noisier diff for the reviewer. Record which you chose in
+     the grade.
+   - **`check_a4.py` grades evidence only.** Against the throwaway with `--peer
+     github-actions` it passes the verdict, resolved-thread, follow-up, `/qa`, and scope rules
+     and fails inline comments, suggestion, re-request, and the write-up; with `--peer
+     acatlin` it passes inline comments and the suggestion and fails the verdict (the author
+     can only `COMMENT`). That split is the proof the assignment needs two people, not a bug.
+     Fault-injected 16/16 by snapshot replay (`NOTES.md`, Week 4). It notes `/qa`'s issues'
+     labels and type rather than grading them — the skill applies none.
+   - **A4's rubric leans on the write-up.** The M21 written part is the two `/code-review`
+     reports pasted unedited plus a verdict per finding with its source sentence. Grade the
+     "verify first" habit above all: did the student reproduce at least one claim and report
+     the number that came out? On the throwaway the Spec agent's "fails 5 of them" was 4.
+   - **Expect `CHANGES_REQUESTED` to look stuck.** A push, replies, and resolving threads do
+     not move `reviewDecision`; only the peer's next review does. Students will ask why
+     their PR still says changes requested after they fixed everything; M20 page 2's
+     transition table is the answer.
 
 ---
 
@@ -1184,6 +1265,7 @@ gh api repos/perro-ruidoso/gh-pr-mastery/issues/2/dependencies/blocked_by \
 | Why a design decision was made | `adr/` |
 | Student-facing lessons | `docs/` (live at perro-ruidoso.github.io/gh-pr-mastery) |
 | The A1 brief and rubric students read | `assignments/a1.md` |
+| The A4 brief (paired), its checker, and the drill package | `assignments/a4.md`, `checkers/check_a4.py`, `seed/planted/`, `seed/tools/plant_review_pr.py`, `skills/qa/` |
 | What is built, what is not, what you must decide | `roadmap/roadmap.docx` |
 | How the Seed Repo is specified | `seed/SPEC.md` |
 | What to send students before Week 1 | `instructors/student-setup.md` |

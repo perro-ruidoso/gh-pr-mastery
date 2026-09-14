@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threads, Resolution, Re-request — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M20 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Threads, Resolution, Re-request</h1>
+  <p class="lede">Every inline comment starts a <em>thread</em>. A thread can be resolved, and it becomes outdated when the lines it sits on change. When the author has pushed, they re-request review. None of these three moves has a <code>gh pr</code> subcommand; two are one GraphQL call each, and the third is <code>gh pr edit --add-reviewer</code>. This page does all three on PR #15 and shows what GitHub refuses along the way.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M20 · Review mechanics</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Resolve conversations, re-request review, and read a PR's review state correctly.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M20 pages</span>
+    <span class="here"><span class="num">1</span>Threads, Resolution, Re-request</span>
+    <a href="reading-the-state.html"><span class="num">2</span>Reading reviewDecision Correctly</a>
+  </nav>
+
+  <h2>Threads are a GraphQL object</h2>
+  <p>REST gives you review comments (page 2 of M19 read them). The thread that groups a comment with its replies — and carries the resolved flag — exists only in GraphQL, as <code>PullRequestReviewThread</code>. Its fields, from the reference (fetched 2026-09-14): <code>isResolved</code> "Whether this thread has been resolved."; <code>isOutdated</code> "Indicates whether this thread was outdated by newer changes."; <code>isCollapsed</code> "Whether or not the thread has been collapsed (resolved)."; <code>resolvedBy</code> "The user who resolved this thread."; plus <code>path</code>, <code>line</code>, <code>diffSide</code>, and <code>comments</code>. The query the course uses, saved as <code>threads.graphql</code>:</p>
+  <pre><code>query($owner:String!, $name:String!, $number:Int!) {
+  repository(owner:$owner, name:$name) {
+    pullRequest(number:$number) {
+      reviewDecision
+      reviewThreads(first: 20) {
+        nodes {
+          id isResolved isOutdated path line diffSide
+          resolvedBy { login }
+          comments(first: 1) { nodes { author { login } createdAt body } }
+        }
+      }
+    }
+  }
+}</code></pre>
+  <p>Run right after the batched review landed (13:33:29Z):</p>
+  <pre><code><span class="prompt">$</span> gh api graphql -F owner=perro-ruidoso -F name=flashcards-w3probe -F number=15 -f query="$(cat threads.graphql)" --jq '.data.repository.pullRequest | {reviewDecision, threads: [.reviewThreads.nodes[] | {id, isResolved, isOutdated, path, line, diffSide}]}'
+{"reviewDecision":null,"threads":[
+ {"diffSide":"RIGHT","id":"PRRT_kwDOUZOL3M6iIMwu","isOutdated":false,"isResolved":false,"line":45,"path":"src/flashcards/domain/scheduler.py"},
+ {"diffSide":"RIGHT","id":"PRRT_kwDOUZOL3M6iIMwy","isOutdated":false,"isResolved":false,"line":50,"path":"src/flashcards/domain/scheduler.py"},
+ {"diffSide":"RIGHT","id":"PRRT_kwDOUZOL3M6iIMw6","isOutdated":false,"isResolved":false,"line":55,"path":"src/flashcards/domain/scheduler.py"},
+ {"diffSide":"LEFT","id":"PRRT_kwDOUZOL3M6iIMw_","isOutdated":false,"isResolved":false,"line":15,"path":"src/flashcards/domain/scheduler.py"},
+ {"diffSide":"RIGHT","id":"PRRT_kwDOUZOL3M6iIMxD","isOutdated":false,"isResolved":false,"line":69,"path":"tests/domain/test_scheduler.py"}]}</code></pre>
+  <p>Five comments, five threads, each with a node id beginning <code>PRRT_</code> — that id is what resolution takes. Note <code>reviewDecision: null</code> here where <code>gh pr view --json</code> printed <code>""</code> a moment earlier: same fact, two renderings.</p>
+
+  <h2>Outdated: what a push does to a thread</h2>
+  <p>The author's fix (M23) was pushed at 13:41:11Z as commit <code>0c5a18d</code>. The same query, 23 seconds later:</p>
+  <pre><code>{"reviewDecision":"CHANGES_REQUESTED","threads":[
+ {"first":"**must-fix** — ADR 0001, *Ease","id":"PRRT_kwDOUZOL3M6iIMwu","isOutdated":true,"isResolved":false,"line":null,"path":"src/flashcards/domain/scheduler.py"},
+ {"first":"**must-fix** — ADR 0001, *Fail","id":"PRRT_kwDOUZOL3M6iIMwy","isOutdated":true,"isResolved":false,"line":null,"path":"src/flashcards/domain/scheduler.py"},
+ {"first":"**must-fix** — ADR 0001, *Roun","id":"PRRT_kwDOUZOL3M6iIMw6","isOutdated":true,"isResolved":false,"line":null,"path":"src/flashcards/domain/scheduler.py"},
+ {"first":"**nit** — anchored on the dele","id":"PRRT_kwDOUZOL3M6iIMw_","isOutdated":true,"isResolved":false,"line":15,"path":"src/flashcards/domain/scheduler.py"},
+ {"first":"**must-fix** — this assertion ","id":"PRRT_kwDOUZOL3M6iIMxD","isOutdated":true,"isResolved":false,"line":null,"path":"tests/domain/test_scheduler.py"}]}</code></pre>
+  <p>Every thread flipped to <code>isOutdated: true</code>, and <code>line</code> went to <code>null</code> on the four RIGHT-side threads — the lines they pointed at no longer exist in the new head. The LEFT-side nit kept <code>line: 15</code>, because a deleted line is a fact about the base, and the base did not move. <strong>Outdated is not resolved.</strong> GitHub marked the code as changed; nobody has yet said the concern is addressed. That is the author's next move, not GitHub's.</p>
+
+  <h2>Resolving a thread</h2>
+  <p>Who may: "You can resolve a conversation in a pull request if you opened the pull request or if you have write access to the repository where the pull request was opened." The mutation, from the reference: <code>resolveReviewThread</code> — "Marks a review thread as resolved." — with one required input, <code>threadId (ID!)</code>. (There is a <code>resolutionReason</code> too, described as "The reason a Copilot code review thread was resolved"; not for us.) On the nit thread first:</p>
+  <pre><code><span class="prompt">$</span> gh api graphql -f query='mutation { resolveReviewThread(input:{threadId:"PRRT_kwDOUZOL3M6iIMw_"}) { thread { id isResolved resolvedBy { login } } } }'
+{"data":{"resolveReviewThread":{"thread":{"id":"PRRT_kwDOUZOL3M6iIMw_","isResolved":true,"resolvedBy":{"login":"acatlin"}}}}}
+PRRT_kwDOUZOL3M6iIMwu resolved=true
+PRRT_kwDOUZOL3M6iIMwy resolved=true
+PRRT_kwDOUZOL3M6iIMw6 resolved=true
+PRRT_kwDOUZOL3M6iIMxD resolved=true</code></pre>
+  <p>The other four followed the same way, 13:42:13Z. <code>unresolveReviewThread</code> reverses it. The docs describe the effect in the UI: "The entire conversation will collapse and be marked as resolved. This makes it easier to find conversations that still need to be addressed." — and, one paragraph on, the sentence that is M24's whole premise: "If the suggestion in a comment is out of your pull request's scope, you can open a new issue that tracks the feedback and links back to the original comment."</p>
+
+  <div class="callout warn">
+    <span class="label">Resolution leaves no timeline event</span>
+    <p>The REST issue timeline of PR #15 shows <code>commented</code>, <code>reviewed</code>, <code>committed</code> — and nothing for the five resolutions. The only record that a thread was resolved, and by whom, is <code>isResolved</code>/<code>resolvedBy</code> on the GraphQL thread. <code>check_a4.py</code> reads exactly that. A student who says "I resolved everything" and a student who did are told apart by one query, not by the Conversation tab's scroll.</p>
+  </div>
+
+  <h2>Re-requesting review</h2>
+  <p>GitHub's requesting page: "After someone reviews your pull request and you make changes, you can request another review from the same reviewer." The <code>gh</code> manual gives the flag its full name — <code>--add-reviewer &lt;login&gt;</code>: "Add or re-request reviewers by their login." — so the same command serves first request and re-request. What it cannot do, verified on PR #15:</p>
+  <pre><code><span class="prompt">$</span> gh pr edit 15 --add-reviewer acatlin          <span class="dim"># the author, asking for a review from themself</span>
+https://github.com/perro-ruidoso/flashcards-w3probe/pull/15
+<span class="prompt">$</span> gh pr view 15 --json reviewRequests
+{"reviewRequests":[]}
+<span class="prompt">$</span> gh pr edit 15 --add-reviewer "github-actions[bot]"   <span class="dim"># the bot identity that reviewed it</span>
+GraphQL: Could not resolve user with login 'github-actions[bot]'. (requestReviewsByLogin)
+<span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w3probe/pulls/15/requested_reviewers -f "reviewers[]=github-actions[bot]" --jq '.requested_reviewers'
+[]</code></pre>
+  <p>Requesting the author: exit 0, URL printed, nothing recorded — a silent no-op. Requesting a bot by <code>gh</code>: refused; by REST: accepted with a 201 and an empty <code>requested_reviewers</code> — also nothing. A review request needs a human (or a team) with read access, and the author is not a candidate. <strong>PR #15 therefore has no re-request on record</strong>, and cannot: the course account is the author and its only other identity is a bot. This is the second-identity problem, and it is why the assignment pairs you and why the pages show the full transition on a public repository instead — page 2.</p>
+
+  <div class="callout note">
+    <span class="label">The bot identity, and what it could not do</span>
+    <p>To have <em>any</em> verdict other than the author's, a <code>workflow_dispatch</code> workflow on the throwaway ran <code>gh pr review</code> as <code>github-actions[bot]</code>. It could <code>--request-changes</code> (13:34:14Z, and <code>reviewDecision</code> became <code>CHANGES_REQUESTED</code>). It could <em>not</em> approve: "failed to create review: GraphQL: GitHub Actions is not permitted to approve pull requests." — a setting, <code>can_approve_pull_request_reviews: false</code>, read back at both repository and organization level and left as it was. And it cannot be a requested reviewer at all, above. A bot is a reviewer of last resort for a demonstration; it is not a peer, and the pages do not pretend otherwise.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 4 (as the author of your drill PR) and item 3 (as your peer's reviewer).</p>
+    <label class="check"><input type="checkbox"><span>Ran the <code>reviewThreads</code> query on my drill PR after my peer's review and can name every thread's <code>id</code>, <code>path</code>, and <code>line</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>After pushing my fix, ran it again and saw <code>isOutdated</code> flip and <code>line</code> go <code>null</code> on the changed lines — and did <em>not</em> mistake that for resolved.</span></label>
+    <label class="check"><input type="checkbox"><span>Resolved each thread I addressed with <code>resolveReviewThread</code>, after replying in it (M23) — and left unresolved any I did not address.</span></label>
+    <label class="check"><input type="checkbox"><span>Re-requested review from my peer with <code>gh pr edit N --add-reviewer &lt;peer&gt;</code> <em>after</em> the push, and saw them in <code>--json reviewRequests</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>As the reviewer of my peer's PR: did not resolve their threads for them; that is the author's move.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. After the author pushed <code>0c5a18d</code>, every thread on PR #15 read <code>isOutdated: true</code>. What does that tell a reviewer?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The author resolved the threads; GitHub uses <code>isOutdated</code> as the API name for the collapsed state</button></li>
+        <li><button data-opt="b">The comments were deleted along with the lines they sat on and are no longer visible on the Conversation tab or in <code>--json reviews</code></button></li>
+        <li><button data-opt="c">The lines the threads pointed at changed in the new head; whether the concerns are addressed is still open</button></li>
+        <li><button data-opt="d">The push was a force-push, since only a rewritten history marks review threads as outdated; an ordinary commit leaves them untouched</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> "Outdated by newer changes" is a fact about the diff, not a judgement. Resolved is a separate flag (A) that a person sets. The comments persist (B). Any commit that touches the lines does it (D) — <code>0c5a18d</code> was an ordinary push.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Where is the record that a thread on a PR was resolved, and by whom?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">A <code>resolved</code> event on the REST issue timeline, next to <code>reviewed</code> and <code>commented</code>, with the resolver as its <code>actor</code>, with the resolver as its <code>actor</code></button></li>
+        <li><button data-opt="b">On the GraphQL <code>PullRequestReviewThread</code>: <code>isResolved</code> and <code>resolvedBy</code>; nowhere on the REST timeline</button></li>
+        <li><button data-opt="c">In <code>gh pr view --json reviews</code>, where a resolved thread's review changes state to <code>DISMISSED</code></button></li>
+        <li><button data-opt="d">In the review comment's REST record, whose <code>resolved_at</code> and <code>resolved_by</code> fields are set when the thread collapses</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The page ran the REST timeline after five resolutions and it showed none of them. There is no such event (A), no state change on the review (C), and no such field on the comment (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. The author of a PR runs <code>gh pr edit N --add-reviewer &lt;their own login&gt;</code>. What does GitHub record?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">A review request for the author, which they must then dismiss before anyone else can be requested</button></li>
+        <li><button data-opt="b">A GraphQL error naming <code>requestReviewsByLogin</code>, exactly as it does for a bot login</button></li>
+        <li><button data-opt="c">A <code>review_requested</code> event with no reviewer, which counts as a re-request for the checker</button></li>
+        <li><button data-opt="d">Nothing: the command exits 0 and prints the PR URL, and <code>reviewRequests</code> stays empty</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The transcript above: a silent no-op. The bot case (B) is what produced the GraphQL error; the author case did not. No event is written (C), and no request exists to dismiss (A).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m20-threads">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Where do review threads live in the API?</div><div class="fc-back">GraphQL only: <code>pullRequest.reviewThreads</code>, objects of type <code>PullRequestReviewThread</code> with ids beginning <code>PRRT_</code>.</div></div>
+      <div class="fc"><div class="fc-front">The three thread flags?</div><div class="fc-back"><code>isResolved</code> (a person marked it), <code>isOutdated</code> ("outdated by newer changes"), <code>isCollapsed</code> ("collapsed (resolved)").</div></div>
+      <div class="fc"><div class="fc-front">What does a push do to a thread on a changed line?</div><div class="fc-back"><code>isOutdated: true</code>, <code>line: null</code>. Not resolved — that is still the author's move.</div></div>
+      <div class="fc"><div class="fc-front">The mutation that resolves a thread, and its input?</div><div class="fc-back"><code>resolveReviewThread(input:{threadId:"PRRT_…"})</code> — "Marks a review thread as resolved." Undo: <code>unresolveReviewThread</code>.</div></div>
+      <div class="fc"><div class="fc-front">Who may resolve a conversation?</div><div class="fc-back">"If you opened the pull request or if you have write access to the repository where the pull request was opened."</div></div>
+      <div class="fc"><div class="fc-front">Does resolving leave a timeline event?</div><div class="fc-back">No. The REST timeline shows <code>commented</code>, <code>reviewed</code>, <code>committed</code> — resolution is visible only on the GraphQL thread.</div></div>
+      <div class="fc"><div class="fc-front">The command that re-requests review, in the manual's words?</div><div class="fc-back"><code>gh pr edit N --add-reviewer &lt;login&gt;</code> — "Add or re-request reviewers by their login."</div></div>
+      <div class="fc"><div class="fc-front">What happens when the author requests review from themself? From a bot?</div><div class="fc-back">Self: exit 0, nothing recorded. Bot: "Could not resolve user with login 'github-actions[bot]'" (REST: 201, empty list). A request needs a human or team with read access.</div></div>
+      <div class="fc"><div class="fc-front">Can GitHub Actions approve a PR?</div><div class="fc-back">Not by default: "GitHub Actions is not permitted to approve pull requests." (<code>can_approve_pull_request_reviews: false</code>). It could request changes.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>After your peer's review lands, ask Claude Code: "run the <code>reviewThreads</code> query on my PR and tell me which threads are outdated, which are resolved, and which are neither — and for each unresolved one, quote the first comment." If it answers from the Conversation tab instead of the query, ask it for the query. Anything it cannot explain about the difference between outdated and resolved is a question for the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request — "Resolving conversations"</a><span class="why">Who may resolve, what collapsing does, and the out-of-scope sentence M24 is built on.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/graphql/reference/pulls">GraphQL reference: Pull requests</a><span class="why">The <code>PullRequestReviewThread</code> object, <code>resolveReviewThread</code>, <code>unresolveReviewThread</code>, and <code>ResolveReviewThreadInput</code>. The old per-type pages (<code>/reference/mutations</code>, <code>/reference/objects</code>) now redirect to this domain-grouped one.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review">GitHub Docs: Requesting a pull request review</a><span class="why">"After someone reviews your pull request and you make changes, you can request another review from the same reviewer" — and the write-access rule.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_edit">GitHub CLI manual: <code>gh pr edit</code></a><span class="why"><code>--add-reviewer</code> "Add or re-request reviewers by their login"; the <code>@copilot</code> special value is the only non-human it knows.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/issues/timeline">REST API: timeline events</a><span class="why">What the timeline does record — useful precisely to see that resolution is absent from it.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/graphql/reference/pulls">GitHub GraphQL reference: Pull requests</a> — field descriptions of <code>PullRequestReviewThread</code>, the <code>resolveReviewThread</code> mutation and its input (fetched 2026-09-14; the recorded <code>/reference/mutations</code> and <code>/reference/objects</code> URLs redirected to <code>/reference</code>)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a> — "Resolving conversations" (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review">GitHub Docs: Requesting a pull request review</a> — the re-request sentence (fetched 2026-09-14; redirected once from <code>proposing-changes-to-your-work-with-pull-requests/</code>)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_edit">gh pr edit</a> — <code>--add-reviewer</code> (fetched 2026-09-14)</li>
+      <li>PR #15 on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14, <code>gh</code> 2.100.0: the two thread queries (13:33:29Z, 13:41:34Z), five resolutions (13:42:07–13Z), the three request attempts (13:35:00Z), the bot's runs (13:34:14Z request-changes; 13:42:40Z approve refused), and <code>gh api repos/…/actions/permissions/workflow</code> at repository and org level</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m19-comments-reviews-suggestions/batching-from-the-terminal.html"><span class="dir">Previous · M19, page 2</span>A Batched Review from gh</a>
+    <a class="next" href="reading-the-state.html"><span class="dir">Next · M20, page 2</span>Reading reviewDecision Correctly</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

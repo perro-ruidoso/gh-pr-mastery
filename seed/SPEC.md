@@ -266,6 +266,10 @@ Each bug should also have a **decoy**: at least one `/code-review` finding that 
 genuine nit or a false positive, so M21's "separate verified findings from noise" has
 something to separate. Do not curate the agent's output — run it and use what it says.
 
+**Built 2026-09-14** as `seed/planted/` (`scheduler.py`, `test_scheduler.py`, `ticket.md`,
+`pr-body.md`) and `seed/tools/plant_review_pr.py`; see §10 for the distribution decision and
+`NOTES.md` (Week 4) for the run, including what the installed `/code-review` found.
+
 ---
 
 ## 8. Repository settings
@@ -305,8 +309,21 @@ something to separate. Do not curate the agent's output — run it and use what 
 - ~~Whether `freezegun` is worth the dependency~~ — **settled: no.** `today` is passed
   explicitly, and the seed repo's `docs/adr/0001` records that decision alongside the
   SM-2 rounding rule. The seed ships with **zero** runtime dependencies.
-- Whether the planted bugs ship as a prepared PR on each Instance or as a patch students
-  apply. A PR is more realistic; a patch is less work to distribute. Decide before Week 4.
-  Note that §7's bugs live in `scheduler.py`, which is **T03's** output — so the
-  planted-bug diff can only be built on top of an Instance where T03 has landed, not
-  against the template.
+- ~~Whether the planted bugs ship as a prepared PR on each Instance or as a patch students
+  apply.~~ — **settled 2026-09-14: a prepared PR, opened by the student on their own
+  Instance from course-supplied files** (`seed/planted/`, driven by
+  `seed/tools/plant_review_pr.py`). Four reasons, each verified on the throwaways that day:
+  (1) everything M19–M24 acts on — inline threads, verdicts, resolution, re-request — is a
+  PR-side artifact, so a PR must exist whichever way the files arrive; (2) GitHub refuses an
+  author's own `APPROVE` and `REQUEST_CHANGES` ("Review Can not approve your own pull
+  request"), so the *student* must be the author for the peer to review with a verdict and
+  for the student to answer as the author (M23) — an instructor-opened PR would break both;
+  (3) a `git apply` patch cannot work, because students' Instances do not have T03 (Week 2
+  gave them their own backlog, not the Seed's), so the planted module has to be
+  self-contained — it carries its own `ReviewState` and depends only on the template's ADR;
+  (4) one script the student runs is less work to distribute than a patch *and* a set of
+  instructions. The earlier note that the diff "can only be built on top of an Instance
+  where T03 has landed" was wrong once the module stopped depending on `Card`. The Week 4
+  pages' exhibit (`flashcards-w3probe#15`) is the other variant — the same three bugs
+  planted as a "refactor" on top of a correct T03 — and the instructor guide says when each
+  applies.

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two /code-reviews, Two Axes — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M21 · Page 1 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>Two /code-reviews, Two Axes</h1>
+  <p class="lede">There are two things called <code>/code-review</code> on a course machine, and they produce differently shaped output. This objective is about the one that reports along two axes — Standards and Spec — because the separation is what makes its findings checkable. This page tells the two apart, walks the skill's five steps as written, and shows the run on PR #15 up to the moment the two sub-agents were launched.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M21 · Agentic review</span>
+      <span class="chip bloom">Bloom: Analyze</span>
+      <span class="chip assessed">Assessed by: A4 (written)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Run <span class="skill">/code-review</span> on a branch and separate verified findings from noise across its Standards and Spec axes.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M21 pages</span>
+    <span class="here"><span class="num">1</span>Two /code-reviews, Two Axes</span>
+    <a href="the-output-verbatim.html"><span class="num">2</span>The Output, Unedited</a>
+    <a href="findings-to-verdicts.html"><span class="num">3</span>From Findings to Verdicts</a>
+  </nav>
+
+  <h2>Which <code>/code-review</code>?</h2>
+  <p>Claude Code ships a built-in command of that name. Anthropic's Code Review page (fetched 2026-09-14) describes it under "Review a diff locally": "The <code>/code-review</code> command reviews a diff in your terminal without installing the GitHub App. It reports correctness bugs and reuse, simplification, and efficiency cleanups." It "runs as a background subagent with its own context window", takes an effort level ("At low and medium, the review reports only the findings it's most confident in … high through max broaden coverage and may include findings the review is less sure about"), and has flags: "<code>--fix</code>: applies the findings to your working tree after the review"; "<code>--comment</code>: posts the findings on a GitHub pull request as inline comments". <code>/code-review ultra</code> escalates to a cloud review. Its findings come back as a list with file, line, one-sentence summary, and a category tag.</p>
+  <p>The course's M21 skill is a different thing: the <strong><code>code-review</code> skill from <code>mattpocock/skills</code></strong>, installed under <code>~/.agents/skills/code-review/SKILL.md</code> and shipped in the plugin students install (<code>skills/engineering/code-review</code>, in the manifest's 25). Its description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side." On this machine the installed skill is what the Skill tool lists under the name; students with the plugin may see it namespaced. Tell them apart by the output: the course's skill ends with <code>## Standards</code> and <code>## Spec</code> headings and a one-line summary per axis; the built-in ends with a findings list carrying severities.</p>
+
+  <div class="callout note">
+    <span class="label">Why the course uses the two-axis one</span>
+    <p>The skill's own reason: "A change can pass one axis and fail the other: Code that follows every standard but implements the wrong thing → Standards pass, Spec fail. Code that does exactly what the issue asked but breaks the project's conventions → Spec pass, Standards fail. Reporting them separately stops one axis from masking the other." Each finding therefore comes tagged with what it was checked <em>against</em> — a documented standard, or a spec line — and that tag is what you verify on page 3. A finding with no source to check against is an opinion.</p>
+  </div>
+
+  <h2>The five steps, as installed</h2>
+  <p>From the installed <code>SKILL.md</code> (dated 2026-07-09, read 2026-09-14; upstream head <code>3cca18b</code> differs only in punctuation — em-dashes became colons, "issue/PRD" became "issue/spec", and the instruction to run <code>/setup-matt-pocock-skills</code> became "tell the user to run" it):</p>
+  <ol>
+    <li><strong>Pin the fixed point.</strong> "Whatever the user said is the fixed point — a commit SHA, branch name, tag, <code>main</code>, <code>HEAD~5</code>, etc. If they didn't specify one, ask for it." Then: "Capture the diff command once: <code>git diff &lt;fixed-point&gt;...HEAD</code> (three-dot, so the comparison is against the merge-base). Also note the list of commits via <code>git log &lt;fixed-point&gt;..HEAD --oneline</code>." And a guard: "confirm the fixed point resolves (<code>git rev-parse &lt;fixed-point&gt;</code>) and the diff is non-empty."</li>
+    <li><strong>Identify the spec source</strong>, in order: "Issue references in the commit messages (<code>#123</code>, <code>Closes #45</code>…) — fetch via the workflow in <code>docs/agents/issue-tracker.md</code>"; a path the user passed; a spec file under <code>docs/</code>, <code>specs/</code>, or <code>.scratch/</code>; else ask — "If they say there isn't one, the <strong>Spec</strong> sub-agent will skip and report 'no spec available'."</li>
+    <li><strong>Identify the standards sources</strong> — "Anything in the repo that documents how code should be written" — plus the skill's fixed <strong>smell baseline</strong>, twelve Fowler smells, bound by two rules: "<strong>The repo overrides.</strong> A documented repo standard always wins" and "<strong>Always a judgement call.</strong> Each smell is a labelled heuristic ('possible Feature Envy'), never a hard violation — and, like any standard here, skip anything tooling already enforces."</li>
+    <li><strong>Spawn both sub-agents in parallel</strong>, each with the diff command and commit list; the Standards one with the standards files and the baseline "pasted in full — the sub-agent has no other access to it"; the Spec one with the spec's contents. Each brief ends "Under 400 words."</li>
+    <li><strong>Aggregate</strong>: "Present the two reports under <code>## Standards</code> and <code>## Spec</code> headings, verbatim or lightly cleaned. Do <strong>not</strong> merge or rerank findings" and "End with a one-line summary: total findings per axis, and the worst issue <em>within each axis</em> (if any). Don't pick a single winner across axes."</li>
+  </ol>
+  <p>Notice that M03's three-dot diff is step 1's own rule, that step 2 reads the issue tracker configuration A1 had you write, and that step 5 forbids the thing a human reviewer does by instinct — ranking everything into one list. The skill hands you two lists and the job of judging them.</p>
+
+  <h2>The run on PR #15, up to launch</h2>
+  <p>Invoked in Claude Code from a clone of the throwaway with the planted branch checked out: "Review branch <code>14-simplify-scheduler</code> since <code>main</code>." Steps 1–3 as executed, 2026-09-14 ~13:37Z:</p>
+  <pre><code><span class="prompt">$</span> git branch --show-current; git rev-parse --short main; git rev-parse --short HEAD
+14-simplify-scheduler
+bba30dd
+b0fac63
+<span class="prompt">$</span> git log main..HEAD --oneline
+b0fac63 Simplify the scheduler: one bounds check, one reset path, one rounding call
+<span class="prompt">$</span> git diff main...HEAD --stat
+ src/flashcards/domain/scheduler.py | 59 +++++++++-----------------------------
+ tests/domain/test_scheduler.py     | 41 ++++++++++----------------
+ 2 files changed, 29 insertions(+), 71 deletions(-)
+<span class="prompt">$</span> git merge-base main HEAD | cut -c1-7
+309b051
+<span class="prompt">$</span> git log -1 --format=%B HEAD | grep -o "#[0-9]*"
+#14
+<span class="prompt">$</span> gh issue view 14 --json number,title,body,labels,comments --jq '"#\(.number) \(.title)\nlabels: \([.labels[].name])\ncomments: \(.comments | length)"'
+#14 Simplify the scheduler: one bounds check, one reset path, one rounding call
+labels: []
+comments: 0
+<span class="prompt">$</span> ls docs/adr docs/agents
+docs/adr:
+0001-sm2-rounding-and-the-clock.md
+
+docs/agents:
+domain.md  issue-tracker.md  triage-labels.md</code></pre>
+  <p>Fixed point resolves (<code>main</code> = <code>bba30dd</code>; the merge base is <code>309b051</code>, one commit behind, because <code>main</code> had moved since the branch was cut — the three-dot form handles that). Diff non-empty: two files. Spec source found at step 2's first rung — <code>Closes #14</code> in the commit — and fetched as <code>docs/agents/issue-tracker.md</code> says, with <code>gh issue view</code>. Standards sources: <code>CLAUDE.md</code>, <code>CONTEXT.md</code>, <code>docs/adr/0001-sm2-rounding-and-the-clock.md</code>, and <code>docs/agents/domain.md</code>. Then two <code>general-purpose</code> sub-agents were launched in one message, each with the diff command, the commit list, and its brief; the Standards one carried the four standards paths and the full smell baseline. They ran 64 s and 56 s, three tool calls each. Their reports are page 2, exactly as returned.</p>
+
+  <div class="callout warn">
+    <span class="label">What the skill needed from Weeks 1–3</span>
+    <p>Step 2 only works because <code>docs/agents/issue-tracker.md</code> exists (A1, M05) and because the commit says <code>Closes #14</code> (M15's keyword). Step 3 only bites because the repository has a written standard for this arithmetic — the Seed's ADR 0001 — and a binding vocabulary in <code>CONTEXT.md</code>. On a repository with none of that, the Spec sub-agent is skipped and the Standards one has only the smell baseline: twelve judgement calls and nothing hard. The skill is as good as the documents you gave it.</p>
+  </div>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. You run <code>/code-review</code> in Claude Code and the output ends with a severity-tagged findings list and no <code>## Standards</code> heading. What ran?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The Pocock skill, at low effort, which drops the Spec axis whenever no spec source is found</button></li>
+        <li><button data-opt="b">The Pocock skill, but the Standards sub-agent timed out and only the Spec one reported</button></li>
+        <li><button data-opt="c">Claude Code's built-in <code>/code-review</code>, which reports correctness and cleanup findings</button></li>
+        <li><button data-opt="d">The Pocock skill in <code>ultra</code> mode, whose cloud review reranks both axes into one list</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The built-in "reports correctness bugs and reuse, simplification, and efficiency cleanups" as a findings list. The Pocock skill has no effort levels (A), always prints both headings and notes a skipped Spec axis (B), and has no <code>ultra</code> (D) — that is the built-in's escalation.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. Why does the skill refuse to merge or rerank the Standards and Spec findings into one list?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because a change can pass one axis and fail the other, and one list would let a clean axis mask a failing one</button></li>
+        <li><button data-opt="b">Because the two sub-agents run in parallel and finish at different times, so their outputs cannot be ordered</button></li>
+        <li><button data-opt="c">Because GitHub's review API requires findings to be posted per file, and the axes map to different files</button></li>
+        <li><button data-opt="d">Because the smell baseline is copyrighted material and must be reported separately from the repository's rules</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The skill's "Why two axes" section, quoted on this page. B confuses a scheduling detail with the design reason; C and D are inventions.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">3. On PR #15 the skill found its spec source without asking. Which two Week 1–3 artifacts made that possible?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The PR's four-section body (M15) and the <code>reviewDecision</code> field read from the PR (M20)</button></li>
+        <li><button data-opt="b">The <code>Closes #14</code> keyword in the commit message (M15) and <code>docs/agents/issue-tracker.md</code> (M05)</button></li>
+        <li><button data-opt="c">The <code>gh issue develop</code> branch name (M13) and the issue's <code>blockedBy</code> relation to #12 (M11)</button></li>
+        <li><button data-opt="d">The ADR under <code>docs/adr/</code> (Seed) and the three-dot diff computed against the merge base (M03)</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Step 2's first rung is "issue references in the commit messages", fetched "via the workflow in <code>docs/agents/issue-tracker.md</code>". D names real inputs to step 1 and step 3, not step 2; A and C name artifacts the skill never reads for this purpose.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m21-two-axes">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The two <code>/code-review</code>s, and how to tell which ran?</div><div class="fc-back">Claude Code's built-in (correctness + cleanups, a severity-tagged findings list, <code>--fix</code>/<code>--comment</code>/<code>ultra</code>) versus the Pocock skill (<code>## Standards</code> and <code>## Spec</code> headings, one-line summary per axis).</div></div>
+      <div class="fc"><div class="fc-front">The skill's two axes, in its words?</div><div class="fc-back">"Standards — does the code conform to this repo's documented coding standards? Spec — does the code faithfully implement the originating issue / PRD / spec?"</div></div>
+      <div class="fc"><div class="fc-front">Step 1's diff command, and why that form?</div><div class="fc-back"><code>git diff &lt;fixed-point&gt;...HEAD</code> — "three-dot, so the comparison is against the merge-base" (M03).</div></div>
+      <div class="fc"><div class="fc-front">Where does step 2 look for the spec first?</div><div class="fc-back">Issue references in the commit messages, fetched via <code>docs/agents/issue-tracker.md</code>. On PR #15: <code>Closes #14</code> → <code>gh issue view 14</code>.</div></div>
+      <div class="fc"><div class="fc-front">The two rules that bind the smell baseline?</div><div class="fc-back">"The repo overrides" (a documented standard wins) and "Always a judgement call" (a smell is a labelled heuristic, never a hard violation; skip what tooling enforces).</div></div>
+      <div class="fc"><div class="fc-front">What does step 5 forbid?</div><div class="fc-back">Merging or reranking across axes: "Don't pick a single winner across axes — that's the reranking the separation exists to prevent."</div></div>
+      <div class="fc"><div class="fc-front">Standards sources found on the throwaway?</div><div class="fc-back"><code>CLAUDE.md</code>, <code>CONTEXT.md</code>, <code>docs/adr/0001-sm2-rounding-and-the-clock.md</code>, <code>docs/agents/domain.md</code> — plus the baseline.</div></div>
+      <div class="fc"><div class="fc-front">Installed vs upstream <code>code-review</code>?</div><div class="fc-back">Same process; upstream (head <code>3cca18b</code>) has colons for em-dashes, "issue/spec" for "issue/PRD", and "tell the user to run /setup-matt-pocock-skills". In the plugin.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Before running the skill on your peer's PR, ask Claude Code: "which <code>code-review</code> will the Skill tool run if I type <code>/code-review</code> here, and what headings will its output have?" Then run it and compare. If the answer and the output disagree, you have found the naming collision this page describes on your own machine — bring the transcript to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/code-review/SKILL.md">mattpocock/skills — <code>code-review/SKILL.md</code></a><span class="why">The upstream copy of the skill this page quotes; read the "Why two axes" section and the smell baseline in full.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/code-review">Claude Code docs: Code Review</a><span class="why">The other <code>/code-review</code> — the built-in command's flags and effort levels under "Review a diff locally", and the managed product the course rejected (Team/Enterprise only) above it.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-diff">git-diff</a><span class="why">The two-dot/three-dot forms step 1 relies on; M03 taught them, this is where to re-read them.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/setup-matt-pocock-skills/SKILL.md">mattpocock/skills — <code>setup-matt-pocock-skills</code></a><span class="why">What wrote <code>docs/agents/issue-tracker.md</code>, the file step 2 reads; re-run it if the skill cannot find your tracker.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><code>~/.agents/skills/code-review/SKILL.md</code> — description, steps 1–5, and "Why two axes" quoted verbatim (file dated 2026-07-09, read 2026-09-14); diffed against upstream <code>skills/engineering/code-review/SKILL.md</code> at <code>3cca18b</code> the same day</li>
+      <li><a href="https://code.claude.com/docs/en/code-review">Claude Code docs: Code Review</a> — "Review a diff locally", flags, effort levels (fetched 2026-09-14)</li>
+      <li><a href="https://github.com/mattpocock/skills/blob/main/.claude-plugin/plugin.json">mattpocock/skills plugin manifest</a> v1.2.3 — <code>skills/engineering/code-review</code> listed (fetched 2026-09-14)</li>
+      <li>The run on <code>perro-ruidoso/flashcards-w3probe</code>, branch <code>14-simplify-scheduler</code> at <code>b0fac63</code>, 2026-09-14 — the transcript above</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m20-review-state/reading-the-state.html"><span class="dir">Previous · M20, page 2</span>Reading reviewDecision Correctly</a>
+    <a class="next" href="the-output-verbatim.html"><span class="dir">Next · M21, page 2</span>The Output, Unedited</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Batched Review from gh — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M19 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>A Batched Review from gh</h1>
+  <p class="lede"><code>gh pr review</code> submits a verdict and a summary, but it has no flag for a file or a line. Inline comments — and the suggestion block that rides inside one — go through the REST create-review endpoint, which <code>gh api</code> calls. This page builds one review with five inline comments and one suggestion, submits it in a single call, and shows the two 422s GitHub returned on the way.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M19 · Review mechanics</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Distinguish a single comment, a review, and a suggested change; batch comments and submit a review with a verdict.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M19 pages</span>
+    <a href="index.html"><span class="num">1</span>Three Things That Look Alike</a>
+    <span class="here"><span class="num">2</span>A Batched Review from gh</span>
+  </nav>
+
+  <h2>Why batch</h2>
+  <p>GitHub's commenting page (fetched 2026-09-14): "If you want to add multiple comments, click <strong>Start a review</strong>, then continue adding comments. When you're finished, click <strong>Submit review</strong>, leave a summary of your review, and click <strong>Submit review</strong>." And the reason: "Anyone watching the pull request or repository will receive a notification of your comments. Batching your comments avoids sending multiple notifications." Until you submit, "your line comments are pending and only visible to you." From the terminal there is no pending state to manage — the whole batch is one request with the verdict in it.</p>
+
+  <h2>The endpoint</h2>
+  <p><code>POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews</code>. Its body takes <code>event</code> (<code>APPROVE</code>, <code>REQUEST_CHANGES</code>, <code>COMMENT</code>; "By leaving this blank, you set the review action state to PENDING"), <code>body</code> ("Required when using REQUEST_CHANGES or COMMENT"), and <code>comments</code>, "an array of objects" each with <code>path</code>, <code>body</code>, and a location: either <code>position</code> — "the number of lines down from the first '@@' hunk header in the file" — or <code>line</code> with <code>side</code> (<code>LEFT</code> for deletions, <code>RIGHT</code> for additions and context) and optionally <code>start_line</code>/<code>start_side</code> for a range. <code>line</code> is a line number in the file as shown on that side of the diff; <code>position</code> is a count into the diff text. Use <code>line</code>.</p>
+
+  <h2>The review, as a file</h2>
+  <p>Five comments: the three planted rules, one nit, one on the test file. The suggestion is on the failure line, where a one-line replacement is the whole fix. Severity is the first word of every comment — that convention is M22's subject; here it is just visible. Abridged to the fields that matter:</p>
+  <pre><code>{
+ "event": "COMMENT",
+ "body": "Batched review, read against `docs/adr/0001-sm2-rounding-and-the-clock.md`. Three must-fix items, each a rule the ADR states in so many words, and one nit. I can only submit this as a comment because I opened the PR; a reviewer who is not the author would submit it as **Request changes**.",
+ "comments": [
+  {"path": "src/flashcards/domain/scheduler.py", "line": 45, "side": "RIGHT",
+   "body": "**must-fix** — ADR 0001, *Ease Factor*: \"the update is applied *first* and the 1.3 floor is applied *after*, never before.\" This clamps before the update on line 53 … Move the `max(MIN_EASE, …)` to wrap the updated value on line 53 and delete this line."},
+  {"path": "src/flashcards/domain/scheduler.py", "line": 50, "side": "RIGHT",
+   "body": "**must-fix** — ADR 0001, *Failure*: \"leaves the Ease Factor untouched.\" … Keep the card's own ease factor:\n\n```suggestion\n        reps, ef, interval = 0, card.ease_factor, 1\n```"},
+  {"path": "src/flashcards/domain/scheduler.py", "line": 55, "side": "RIGHT",
+   "body": "**must-fix** — ADR 0001, *Rounding*: \"Do not reach for the built-in `round()` …\" A card with interval 5 and ease 2.5 is now due in 12 days, not 13. …"},
+  {"path": "src/flashcards/domain/scheduler.py", "line": 15, "side": "LEFT",
+   "body": "**nit** — anchored on the deleted `import math` because the module docstring (lines 1–12) is outside the diff: that docstring still promises all three rules … and the code below now breaks each one. …"},
+  {"path": "tests/domain/test_scheduler.py", "line": 69, "side": "RIGHT",
+   "body": "**must-fix** — this assertion was `2.36` before this PR and it was right … Restore `2.36` here and on line 80, and restore the exact-half case (`5 * 2.5 → 13`) that was deleted with `round_half_up`."}
+ ]
+}</code></pre>
+  <p>The suggestion block's content is the exact text that will replace line 50 if the author clicks <em>Commit suggestion</em> — indentation included, which is why it starts with eight spaces. GitHub's incorporating-feedback page says what that click produces: "Applying one suggested change or a batch of suggested changes creates a single commit on the compare branch of the pull request. Each person who suggested a change included in the commit will be a co-author of the commit."</p>
+
+  <h2>Two refusals before it landed</h2>
+  <p>The first attempt put the docstring nit on <code>line: 11</code>, in the module docstring. GitHub:</p>
+  <pre><code><span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w3probe/pulls/15/reviews --input review1.json
+{"message":"Unprocessable Entity","errors":["Line could not be resolved"],"documentation_url":"https://docs.github.com/rest/pulls/reviews#create-a-review-for-a-pull-request","status":"422"}
+gh: Unprocessable Entity (HTTP 422)</code></pre>
+  <p>Lines 1–12 are not in the diff — the first hunk starts at line 13 — and an inline comment can only anchor to a line the diff shows. The second attempt tried the review-comment endpoint's <code>subject_type: "file"</code> (a comment on the file rather than a line):</p>
+  <pre><code>{"message":"Unprocessable Entity","errors":["Variable $comments of type [DraftPullRequestReviewComment] was provided invalid value for 0.subjectType (Field is not defined on DraftPullRequestReviewComment), 0.position (Expected value to not be null)"], …}</code></pre>
+  <p>Two facts in one error: the <code>comments</code> array of a <em>review</em> does not accept <code>subject_type</code> (the docs list it only on the single-comment endpoint, <code>POST /pulls/N/comments</code>), and behind the REST route is a GraphQL type, <code>DraftPullRequestReviewComment</code>. The nit moved to the deleted <code>import math</code> line — <code>line: 15, side: "LEFT"</code>, a line that <em>is</em> in the diff — and said so in its first sentence. Third attempt:</p>
+  <pre><code><span class="prompt">$</span> gh api -X POST repos/perro-ruidoso/flashcards-w3probe/pulls/15/reviews --input review1.json --jq '{id, state, submitted_at, html_url}'
+{"html_url":"https://github.com/perro-ruidoso/flashcards-w3probe/pull/15#pullrequestreview-5198312441","id":5198312441,"state":"COMMENTED","submitted_at":"2026-09-14T13:33:07Z"}</code></pre>
+
+  <h2>Reading it back</h2>
+  <pre><code><span class="prompt">$</span> gh pr view 15 --json reviewDecision,reviews,reviewRequests --jq '{reviewDecision, reviewRequests, reviews: [.reviews[] | {author: .author.login, state, submittedAt, commit: .commit.oid[0:7]}]}'
+{"reviewDecision":"","reviewRequests":[],"reviews":[{"author":"acatlin","commit":"b0fac63","state":"COMMENTED","submittedAt":"2026-09-14T13:33:07Z"}]}
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/pulls/15/comments --jq '.[] | {id, path, line, side, created_at, pull_request_review_id}'
+{"created_at":"2026-09-14T13:33:07Z","id":4005702541,"line":45,"path":"src/flashcards/domain/scheduler.py","pull_request_review_id":5198312441,"side":"RIGHT"}
+{"created_at":"2026-09-14T13:33:07Z","id":4005702548,"line":50,"path":"src/flashcards/domain/scheduler.py","pull_request_review_id":5198312441,"side":"RIGHT"}
+{"created_at":"2026-09-14T13:33:07Z","id":4005702559,"line":55,"path":"src/flashcards/domain/scheduler.py","pull_request_review_id":5198312441,"side":"RIGHT"}
+{"created_at":"2026-09-14T13:33:07Z","id":4005702565,"line":15,"path":"src/flashcards/domain/scheduler.py","pull_request_review_id":5198312441,"side":"LEFT"}
+{"created_at":"2026-09-14T13:33:07Z","id":4005702571,"line":69,"path":"tests/domain/test_scheduler.py","pull_request_review_id":5198312441,"side":"RIGHT"}</code></pre>
+  <p>Three things to read off this. All five comments share one <code>created_at</code> — the batch is atomic, one submission, one notification. Each carries <code>pull_request_review_id</code> 5198312441, the review that groups them, which is how a later reader (or <code>check_a4.py</code>) knows they were a review and not five separate comments. And <code>reviewDecision</code> is still the empty string: a <code>COMMENTED</code> review is a review, but it is not a decision — M20 explains what moves that field.</p>
+
+  <div class="callout note">
+    <span class="label">One review, or many single comments?</span>
+    <p>The single-comment endpoint <code>POST /pulls/N/comments</code> exists too, and <code>in_reply_to</code> on it is how you answer inside a thread (M23 uses that). But five separate calls are five notifications, five timeline entries, and no verdict. The batched review is the unit GitHub designed for the job, and the one the checker looks for: comments grouped under a review whose <code>state</code> is a verdict.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 3 — your review of your peer's drill PR.</p>
+    <label class="check"><input type="checkbox"><span>Wrote the review as a JSON file: a summary <code>body</code>, an <code>event</code>, and a <code>comments</code> array with <code>path</code>, <code>line</code>, <code>side</code>, and <code>body</code> on each — no <code>position</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>At least one comment carries a <code>```suggestion</code> block whose text is exactly what should replace the commented line, indentation included.</span></label>
+    <label class="check"><input type="checkbox"><span>Every <code>line</code> is in the diff (<code>gh pr diff N</code>) on the side named — and if GitHub says "Line could not be resolved", moved the comment to a line that is, rather than dropping it.</span></label>
+    <label class="check"><input type="checkbox"><span>Submitted with <code>event: REQUEST_CHANGES</code> (you are not the author), then read back <code>/pulls/N/comments</code> and saw one <code>created_at</code> and one <code>pull_request_review_id</code> across all of them.</span></label>
+    <label class="check"><input type="checkbox"><span><code>gh pr view N --json reviewDecision</code> now reads <code>CHANGES_REQUESTED</code>.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Your create-review call returns 422 "Line could not be resolved". What is the most likely cause?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The <code>body</code> of that comment exceeds the 65,536-character limit GitHub imposes on review comments</button></li>
+        <li><button data-opt="b">The <code>side</code> value was given in lowercase, and GitHub only resolves <code>LEFT</code> and <code>RIGHT</code> exactly</button></li>
+        <li><button data-opt="c">The <code>line</code> you named is not part of the diff on that side — it is unchanged context outside every hunk</button></li>
+        <li><button data-opt="d">The <code>path</code> was written with a leading <code>./</code>, which the API does not normalise before it looks the file up</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> That is exactly what happened on PR #15 with <code>line: 11</code>: the module docstring is above the first hunk. Inline comments anchor to lines the diff shows. A, B, and D would each produce a different error, if any.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. After the batched review was submitted, why did all five review comments show the same <code>created_at</code>?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">They were created by one submission, as one review — the batch is the unit, and watchers got one notification</button></li>
+        <li><button data-opt="b">GitHub rounds review-comment timestamps to the nearest minute, so any comments created within the same minute always show the same value</button></li>
+        <li><button data-opt="c">The <code>--input</code> file carried a <code>created_at</code> field that the API accepted as given and copied onto every comment in the array</button></li>
+        <li><button data-opt="d">Because <code>event</code> was <code>COMMENT</code>, GitHub stamps every comment with the review's submission time instead of its own</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> One POST, one review (id 5198312441 on each), one moment. Timestamps are to the second (B); the input has no such field (C); the verdict has nothing to do with it (D) — a <code>REQUEST_CHANGES</code> batch would look the same.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which location fields does a comment inside the create-review <code>comments</code> array accept?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>path</code> and <code>subject_type</code>, with <code>line</code> and <code>side</code> required only when the subject is a line rather than a file</button></li>
+        <li><button data-opt="b"><code>path</code> and <code>position</code> only; <code>line</code>, <code>side</code>, and <code>start_line</code> belong to the single-comment endpoint</button></li>
+        <li><button data-opt="c"><code>path</code>, <code>commit_id</code>, and <code>in_reply_to</code>, so a review can also answer existing threads</button></li>
+        <li><button data-opt="d"><code>path</code> with either <code>position</code>, or <code>line</code> and <code>side</code> (plus <code>start_line</code>/<code>start_side</code> for a range)</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The documented properties of <code>comments</code>. <code>subject_type</code> (A) is on the single-comment endpoint only — GitHub said so: "Field is not defined on DraftPullRequestReviewComment". <code>line</code>/<code>side</code> work in a review (B) — the page used them. <code>in_reply_to</code> (C) is the single-comment endpoint's reply mechanism.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m19-batched">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The endpoint that submits a batched review with inline comments?</div><div class="fc-back"><code>POST /repos/O/R/pulls/N/reviews</code> with <code>event</code>, <code>body</code>, and a <code>comments</code> array — <code>gh api -X POST … --input review.json</code>.</div></div>
+      <div class="fc"><div class="fc-front"><code>line</code> versus <code>position</code>?</div><div class="fc-back"><code>line</code> is the file's line number on the given <code>side</code>; <code>position</code> counts lines down from the first <code>@@</code> hunk header. Use <code>line</code>.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>side: LEFT</code> anchor to?</div><div class="fc-back">A deleted line (red). <code>RIGHT</code> is additions and unchanged context. The nit on PR #15 sat on the deleted <code>import math</code>, LEFT line 15.</div></div>
+      <div class="fc"><div class="fc-front">"Line could not be resolved" means?</div><div class="fc-back">The line is not in the diff on that side — outside every hunk. Move the comment to a line that is.</div></div>
+      <div class="fc"><div class="fc-front">Can a review's <code>comments</code> array carry <code>subject_type: file</code>?</div><div class="fc-back">No — "Field is not defined on DraftPullRequestReviewComment". File-level comments exist only on the single-comment endpoint.</div></div>
+      <div class="fc"><div class="fc-front">What does applying a suggestion create?</div><div class="fc-back">"A single commit on the compare branch of the pull request"; the suggester is a co-author, the applier is co-author and committer.</div></div>
+      <div class="fc"><div class="fc-front">How do you tell a batched review from five single comments afterwards?</div><div class="fc-back">Same <code>created_at</code> and the same <code>pull_request_review_id</code> on each comment; a review record with a <code>state</code>.</div></div>
+      <div class="fc"><div class="fc-front">Why batch, in GitHub's words?</div><div class="fc-back">"Batching your comments avoids sending multiple notifications" — and pending comments are "only visible to you" until submitted.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Have Claude Code draft your review JSON from your notes, then ask it: "for each comment, which hunk of <code>gh pr diff</code> contains the line you chose, and which side is it on?" If it cannot point at the hunk, the line is a guess and GitHub will tell you so with a 422. Bring the JSON and the response to the weekly meeting if anything is refused.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/pulls/reviews">REST API: pull request reviews — "Create a review for a pull request"</a><span class="why">The body parameters table quoted above, including the <code>position</code> definition and the PENDING behaviour when <code>event</code> is blank.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/pulls/comments">REST API: pull request review comments</a><span class="why">The single-comment endpoint: <code>line</code>/<code>side</code>/<code>start_line</code>, <code>in_reply_to</code>, and the <code>subject_type</code> that reviews do not accept. "The position parameter is closing down."</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback in your pull request</a><span class="why">"Applying suggested changes" — one commit, batch or single, co-authorship.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_api">GitHub CLI manual: <code>gh api</code></a><span class="why"><code>--input</code> for a JSON body, <code>-f</code>/<code>-F</code> for fields, <code>--jq</code> to read the answer.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a><span class="why">The web-UI version of the same batch: Start a review → Add review comment → Submit review.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a> — the batching and notification sentences (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request">GitHub Docs: Reviewing proposed changes</a> — "pending and only visible to you" (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/rest/pulls/reviews">REST API endpoints for pull request reviews</a> — create-review parameters (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/rest/pulls/comments">REST API endpoints for pull request review comments</a> — <code>subject_type</code>, <code>in_reply_to</code>, <code>side</code> (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback in your pull request</a> — the suggested-changes commit sentences (fetched 2026-09-14)</li>
+      <li>PR #15 on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14, <code>gh</code> 2.100.0 — three <code>gh api</code> attempts (two 422s, one 200) and the read-backs, verbatim; the review JSON is abridged with <code>…</code> where a comment body is cut</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M19, page 1</span>Three Things That Look Alike</a>
+    <a class="next" href="../m20-review-state/index.html"><span class="dir">Next · M20</span>Threads, Resolution, Re-request</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

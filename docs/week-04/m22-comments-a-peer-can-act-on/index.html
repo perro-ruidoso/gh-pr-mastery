@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Located, Specific, Severity-Marked — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M22 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Located, Specific, Severity-Marked</h1>
+  <p class="lede">A review comment the author can act on without asking a question has three properties: it says <em>where</em>, it says <em>what</em> and <em>why</em> with the source, and it says <em>how much it matters</em>. This page takes the five comments actually submitted on PR #15 apart against those three properties, and rewrites two of the findings from M21 as comments that fail them — so you can see the difference in the same words.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M22 · Communication</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A4 paired (rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Write review comments a peer can act on without asking a clarifying question: located, specific, and severity-marked.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M22 pages</span>
+    <span class="here"><span class="num">1</span>Located, Specific, Severity-Marked</span>
+    <a href="severity-and-anti-patterns.html"><span class="num">2</span>Severity Words and the Comments That Force a Question</a>
+  </nav>
+
+  <h2>The test: could the author start typing?</h2>
+  <p>Read a comment as its recipient. If the first thing they would have to do is reply with a question — "which line?", "what should it be instead?", "is this blocking?" — the comment has failed, however correct it is. Each of the three properties closes one of those questions:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Property</th><th>Closes the question</th><th>What it looks like</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Located</strong></td><td>"Where?"</td><td>An inline comment on the line (or range) that has to change — not a Conversation comment that describes the line. If the line is not in the diff, anchor to the nearest one that is and say so.</td></tr>
+        <tr><td><strong>Specific</strong></td><td>"What, and why?"</td><td>The rule being broken, quoted or cited so the author can read it; the concrete consequence (a value, an exception, a wrong day); and the change that would fix it — as a suggestion block when it is one line.</td></tr>
+        <tr><td><strong>Severity-marked</strong></td><td>"Do I have to?"</td><td>The first word: <strong>must-fix</strong>, <strong>nit</strong>, or a question mark you own. The author can plan their afternoon from the first words of each thread.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Google's reviewer guide (practitioner material, fetched 2026-09-14) gives the same shape from the other side: "Explain your reasoning", "Balance giving explicit directions with just pointing out problems and letting the developer decide", and "Consider labeling the severity of your comments, differentiating required changes from guidelines or suggestions" — because "without comment labels, authors may interpret all comments as mandatory, even if some comments are merely intended to be informational or optional."</p>
+
+  <h2>The five comments on PR #15, dissected</h2>
+  <p>As submitted in the batched review (M19 page 2), each is checked against the three properties. Line numbers are those of the planted head <code>b0fac63</code>.</p>
+
+  <div class="exhibit">
+    <span class="label">scheduler.py line 45 (RIGHT) — the early clamp</span>
+    <p><strong>must-fix</strong> — ADR 0001, <em>Ease Factor</em>: "the update is applied <em>first</em> and the 1.3 floor is applied <em>after</em>, never before." This clamps before the update on line 53, so a grade of 3 from 1.3 yields 1.16 — which <code>Card.__post_init__</code> then rejects with <code>ValueError</code>. Nine consecutive grade-3 reviews from 2.5 reach that point. Move the <code>max(MIN_EASE, …)</code> to wrap the updated value on line 53 and delete this line.</p>
+  </div>
+  <p><em>Located:</em> the clamp line, and it names the second line involved (53). <em>Specific:</em> the ADR sentence quoted; a concrete consequence with numbers (1.16, nine reviews); the fix as two verbs. <em>Severity:</em> first word. The author can start typing.</p>
+
+  <div class="exhibit">
+    <span class="label">scheduler.py line 50 (RIGHT) — the failure reset, with a suggestion</span>
+    <p><strong>must-fix</strong> — ADR 0001, <em>Failure</em>: "leaves the Ease Factor untouched." The SM-2 parenthetical you quote is about <em>intervals</em> ("use intervals I(1), I(2) etc."), not the E-Factor; the sentence before it says "without changing the E-Factor." Keep the card's own ease factor:</p>
+    <pre><code>```suggestion
+        reps, ef, interval = 0, card.ease_factor, 1
+```</code></pre>
+  </div>
+  <p><em>Specific</em> in a second way worth copying: it answers the author's own justification (the code comment quoted "as if the item was memorized anew") by pointing at what that sentence is actually about. A comment that ignores the author's stated reason invites a reply that restates it. The suggestion block makes "how" a click — and in M23 the author applied it as written.</p>
+
+  <div class="exhibit">
+    <span class="label">scheduler.py line 55 (RIGHT) — round()</span>
+    <p><strong>must-fix</strong> — ADR 0001, <em>Rounding</em>: "Do not reach for the built-in <code>round()</code>, which uses banker's rounding — <code>round(2.5)</code> is <code>2</code>, not <code>3</code>." A card with interval 5 and ease 2.5 is now due in 12 days, not 13. Use <code>math.floor(card.interval * ef + 0.5)</code> (and <code>import math</code>), which is what <code>round_half_up</code> did before this PR removed it.</p>
+  </div>
+  <p>No suggestion block here, deliberately: the fix touches two places (the expression and an import), and a suggestion replaces only the commented lines. When the fix is not one contiguous edit, say it in words and let the author make it.</p>
+
+  <div class="exhibit">
+    <span class="label">scheduler.py line 15 (LEFT) — the nit</span>
+    <p><strong>nit</strong> — anchored on the deleted <code>import math</code> because the module docstring (lines 1–12) is outside the diff: that docstring still promises all three rules ("update first, then the 1.3 floor", "leaves the Ease Factor untouched", "not <code>round()</code>") and the code below now breaks each one. The fix for the rounding item needs this import back.</p>
+  </div>
+  <p><em>Located</em> honestly: the thing being discussed is not in the diff, so the comment says where it is anchored and why, instead of pretending line 15 is the problem. A reader who lands on it from the Files changed tab is not confused.</p>
+
+  <div class="exhibit">
+    <span class="label">tests/domain/test_scheduler.py line 69 (RIGHT) — the changed assertion</span>
+    <p><strong>must-fix</strong> — this assertion was <code>2.36</code> before this PR and it was right: it pinned the ADR's failure rule. Changing an expected value inside a "behaviour unchanged" refactor is the tell; ticket #14 says tests "must assert the same behaviour". Restore <code>2.36</code> here and on line 80, and restore the exact-half case (<code>5 * 2.5 → 13</code>) that was deleted with <code>round_half_up</code>.</p>
+  </div>
+  <p>One comment, three edits requested — but each is located (line 69, line 80, a named deleted test), and the source is the ticket's own criterion. A comment may ask for several things if each is findable.</p>
+
+  <h2>The same findings, written so the author has to ask</h2>
+  <p>Two of M21's must-fixes, rewritten as the comments a hurried reviewer leaves. Both are correct. Neither is actionable.</p>
+  <div class="compare">
+    <div class="side">
+      <h3>As a Conversation comment</h3>
+      <p>"The ease factor handling looks off compared to the ADR, and I think the rounding might be wrong too. Can you double-check?"</p>
+      <p><em>Not located</em> (which lines?). <em>Not specific</em> ("looks off" — which rule, what value?). <em>Not marked</em> ("I think… might" — is this blocking?). The author's only possible reply is a question, and the thread it starts costs both of you a day.</p>
+    </div>
+    <div class="side yes">
+      <h3>As submitted</h3>
+      <p>Line 45: "<strong>must-fix</strong> — ADR 0001, <em>Ease Factor</em>: 'the update is applied first and the 1.3 floor is applied after, never before.' … a grade of 3 from 1.3 yields 1.16 … Move the <code>max(MIN_EASE, …)</code> to wrap the updated value on line 53 and delete this line."</p>
+      <p>Line, rule, number, fix, weight. The author's reply, in M23, was a commit SHA.</p>
+    </div>
+  </div>
+  <div class="compare">
+    <div class="side">
+      <h3>Inline, but a question</h3>
+      <p>On line 50: "Are you sure SM-2 resets EF here?"</p>
+      <p>Located, and that is all. The author is sure — they wrote a comment saying why. This forces them to defend, not to fix; the reviewer has done half the reading and asked the author to do the other half.</p>
+    </div>
+    <div class="side yes">
+      <h3>Inline, answered</h3>
+      <p>On line 50: "<strong>must-fix</strong> — ADR 0001, <em>Failure</em>: 'leaves the Ease Factor untouched.' The SM-2 parenthetical you quote is about <em>intervals</em> … Keep the card's own ease factor:" + the suggestion block.</p>
+      <p>The reviewer read the author's justification, read the source it cites, and wrote down what it says. Nothing is left for the author to look up.</p>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <span class="label">Where the words come from</span>
+    <p>Every specific comment above quotes a document the repository already had — the ADR, <code>CONTEXT.md</code>, the ticket. That is not a coincidence: M21's Standards axis found the same sentences, because they are what makes a finding <em>hard</em> rather than a taste. A comment that can quote a rule is specific for free; one that cannot has to earn it with a reproduction (a value, a failing test) instead. If you have neither, you have an opinion, and page 2 says how to mark one.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 3: your review of your peer's drill PR. Before you submit the batch, for every comment:</p>
+    <label class="check"><input type="checkbox"><span>It is inline, on the line that has to change — or says which nearby line it is anchored to, and why.</span></label>
+    <label class="check"><input type="checkbox"><span>It quotes or cites the rule (ADR sentence, <code>CONTEXT.md</code> entry, ticket criterion) or gives a reproduction with a concrete value.</span></label>
+    <label class="check"><input type="checkbox"><span>It says what the fix is — as a <code>```suggestion</code> block when it is one contiguous edit, in words when it is not.</span></label>
+    <label class="check"><input type="checkbox"><span>Its first word is <strong>must-fix</strong> or <strong>nit</strong> (or a question you are asking as a question — page 2).</span></label>
+    <label class="check"><input type="checkbox"><span>Read it as the author: could they start typing without replying first? If not, rewrote it.</span></label>
+    <label class="check"><input type="checkbox"><span>Where the author left a justification in a code comment or the PR body, answered <em>that</em>, not only the code.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. A reviewer leaves, on the Conversation tab: "The rounding is wrong per the ADR." Which property does this comment lack <em>first</em>?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Severity: without a marker the author cannot tell whether the merge should wait for it or proceed</button></li>
+        <li><button data-opt="b">Location: it is not on the line, so the author's first move is to find which expression is meant</button></li>
+        <li><button data-opt="c">Specificity: it names the ADR but not the value the code produces or the change to make</button></li>
+        <li><button data-opt="d">Courtesy: it states a conclusion about the code without acknowledging the author's effort</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> All of A–C are missing, but the first question the author must ask is "where?" — a Conversation comment about a line is not located. C is the next failure; A the third. D is not one of the three properties (and the comment is not discourteous).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. Why did the <code>round()</code> comment on line 55 <em>not</em> carry a suggestion block, when the failure comment on line 50 did?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because a review may contain at most one <code>```suggestion</code> block per file, and the comment on line 50 had already used it</button></li>
+        <li><button data-opt="b">Because <code>round()</code> is a documented-standard breach, and suggestion blocks are reserved by convention for judgement calls and nits</button></li>
+        <li><button data-opt="c">Because the author had not quoted a justification on that line, so there was nothing to answer</button></li>
+        <li><button data-opt="d">Because the fix needs two non-adjacent edits — the expression and <code>import math</code> — and a suggestion replaces only its own lines</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> A suggestion is a replacement for the lines it sits on; a fix that also needs an import elsewhere is said in words. There is no per-file limit (A), no rule tying suggestions to smells (B), and C describes the comment's second sentence, not its form.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. The line-50 comment spends a sentence on the SM-2 parenthetical the author quoted ("as if the item was memorized anew"). What does that sentence buy?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It closes the reply the author would otherwise make — their stated reason is addressed, so no debate starts</button></li>
+        <li><button data-opt="b">It shows the reviewer has read the SuperMemo paper itself, which the rubric requires before any must-fix may be given</button></li>
+        <li><button data-opt="c">It converts the comment from a nit to a must-fix, since quoting the source raises the severity</button></li>
+        <li><button data-opt="d">It satisfies the ADR's requirement that a PR touching arithmetic name the rule it implements</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The author had a reason written in the code; a comment that ignores it gets that reason back as a reply. Answering it is what makes the comment actionable rather than merely correct. B, C, and D invent rules.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m22-actionable">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The three properties, and the question each closes?</div><div class="fc-back">Located ("where?"), specific ("what, and why?"), severity-marked ("do I have to?").</div></div>
+      <div class="fc"><div class="fc-front">The one-line test for an actionable comment?</div><div class="fc-back">Could the author start typing without replying with a question first?</div></div>
+      <div class="fc"><div class="fc-front">What makes a comment specific "for free"?</div><div class="fc-back">Quoting the rule it rests on — an ADR sentence, a <code>CONTEXT.md</code> entry, a ticket criterion. Otherwise, a reproduction with a concrete value.</div></div>
+      <div class="fc"><div class="fc-front">When to use a suggestion block, and when not?</div><div class="fc-back">When the fix is one contiguous edit to the commented lines (line 50). Not when it needs a second edit elsewhere (line 55: expression + <code>import math</code>).</div></div>
+      <div class="fc"><div class="fc-front">How was the nit on PR #15 located, given the docstring was outside the diff?</div><div class="fc-back">Anchored on the deleted <code>import math</code> (LEFT, line 15) with the first sentence saying so and why.</div></div>
+      <div class="fc"><div class="fc-front">Why answer the author's stated justification?</div><div class="fc-back">Otherwise it comes back as the reply. The line-50 comment answered "as if memorized anew" by saying what that sentence is about.</div></div>
+      <div class="fc"><div class="fc-front">Google's reason to label severity?</div><div class="fc-back">"Without comment labels, authors may interpret all comments as mandatory, even if some comments are merely intended to be informational or optional."</div></div>
+      <div class="fc"><div class="fc-front">What was the author's reply to each of the five comments, in M23?</div><div class="fc-back">A commit SHA (<code>0c5a18d</code>) and one sentence on what changed — the sign the comments were actionable.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Draft your five comments, then hand them to Claude Code with the peer's diff and ask it to play the author: "for each comment, either start the fix or tell me the question you would have to ask first." Every question it asks is a property your comment lacks. Rewrite until it asks none — then bring the before-and-after of one comment to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/reviewer/comments.html">Google eng-practices: How to write code review comments</a><span class="why">Practitioner material, marked as such: courtesy ("comments about the code and never … about the developer"), explaining why, and the severity labels quoted above. The only external source M22 has; the objective is a course exercise.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a><span class="why">Multi-line comments ("click the line number of the first line … then either drag down to the final line, or hold down Shift") — how to locate a range, not just a line.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback in your pull request</a><span class="why">What the author sees when your suggestion arrives, and the co-authored commit that applying it produces.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li>The five inline comments of review 5198312441 on <code>perro-ruidoso/flashcards-w3probe#15</code>, submitted 2026-09-14T13:33:07Z — quoted in full</li>
+      <li><a href="https://google.github.io/eng-practices/review/reviewer/comments.html">Google eng-practices: How to write code review comments</a> — "Summary" and "Label comment severity" (fetched 2026-09-14; ancillary)</li>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/docs/adr/0001-sm2-rounding-and-the-clock.md">Seed Repo — ADR 0001</a> — the sentences the comments quote (read 2026-09-14)</li>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/objectives/mastery-objectives.md">Objectives workbook</a> — M22's primary source is "Course exercise"; this page is that exercise</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m21-code-review/findings-to-verdicts.html"><span class="dir">Previous · M21, page 3</span>From Findings to Verdicts</a>
+    <a class="next" href="severity-and-anti-patterns.html"><span class="dir">Next · M22, page 2</span>Severity Words and the Comments That Force a Question</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

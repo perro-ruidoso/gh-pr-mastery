@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What /qa Writes, and What It Does Not — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M24 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>What /qa Writes, and What It Does Not</h1>
+  <p class="lede">Read one of the filed issues back with <code>gh issue view</code> and you learn three things: the body has a fixed shape, the shape has rules about what may not appear in it, and the skill applies no label and no type — because its text never mentions either. This page reads #17 field by field, shows the two templates the shape comes from, and says what that means for triage and for the checker.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M24 · Bug capture</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Turn what review uncovers into filed issues with <span class="skill">/qa</span> rather than fixing out of scope in the open PR.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M24 pages</span>
+    <a href="index.html"><span class="num">1</span>Out of Scope Means an Issue, Not a Commit</a>
+    <span class="here"><span class="num">2</span>What /qa Writes, and What It Does Not</span>
+  </nav>
+
+  <h2>One issue, read back</h2>
+  <pre><code><span class="prompt">$</span> gh issue view 17 --json number,title,labels,issueType,createdAt,author,body --jq '{number, title, labels: [.labels[].name], type: .issueType, createdAt, author: .author.login, headings: [.body | split("\n")[] | select(startswith("## ")) | rtrimstr("\r")]}'
+{"author":"acatlin","createdAt":"2026-09-14T13:48:40Z",
+ "headings":["## Parent issue","## What's wrong","## What I expected","## Steps to reproduce","## Blocked by","## Additional context"],
+ "labels":[],"number":17,"title":"Deck-file errors name a card by zero-based position, not by its id","type":null}</code></pre>
+  <p>And the body, as filed:</p>
+  <div class="exhibit">
+    <span class="label">#17 — body</span>
+    <p><strong>## Parent issue</strong><br>Reported during QA session (from review of PR #15).</p>
+    <p><strong>## What's wrong</strong><br>When a deck file is refused because one Card is invalid, the error names the Card by its position in the file (<code>card 1: …</code>) rather than by its <code>id</code> — and the position is zero-based, so <code>card 1</code> is the <em>second</em> Card in the file.</p>
+    <p><strong>## What I expected</strong><br>Cards are identified by <code>id</code>, unique within the Deck — that is how a person finds one in the file and how every other part of the tool refers to them. The error should say which Card by id, e.g. <code>card es-002: Card.ease_factor must be at least 1.3</code>, optionally with the position too.</p>
+    <p><strong>## Steps to reproduce</strong><br>1. Take a deck file with several cards and set the <code>ease_factor</code> of a card in the middle to <code>1.2</code>.<br>2. Run <code>flashcards list --deck &lt;that file&gt;</code>.<br>3. Observe the message: <code>card 1: Card.ease_factor must be at least 1.3</code> for the second card. Nothing in it says <code>es-002</code>, so in a large Deck the reader has to count entries in the file — from zero — to find the Card.</p>
+    <p><strong>## Blocked by</strong><br>None — can start immediately</p>
+    <p><strong>## Additional context</strong><br>The existing due-date error uses the same <code>card &lt;index&gt;</code> shape, so a fix should cover every per-card message, not only the Ease Factor one. Independent of whether the whole Deck should be refused (filed separately); even a per-card warning needs to name the Card. Consistent, not intermittent. Out of scope of PR #15.</p>
+  </div>
+
+  <h2>Where the shape comes from</h2>
+  <p>The skill carries two templates. For a single issue: <code>## What happened</code>, <code>## What I expected</code>, <code>## Steps to reproduce</code>, <code>## Additional context</code>. For one slice of a breakdown: <code>## Parent issue</code> ("or 'Reported during QA session'"), <code>## What's wrong</code>, <code>## What I expected</code>, <code>## Steps to reproduce</code>, <code>## Blocked by</code> ("Or 'None — can start immediately' if no blockers."), <code>## Additional context</code>. #16 and #17 are the breakdown shape — one report, two separable concerns — and #18 the single shape. Both share three headings, which is what makes the shape recognisable across a backlog and what <code>check_a4.py</code> looks for: <code>What happened</code> or <code>What's wrong</code>, then <code>What I expected</code>, then <code>Steps to reproduce</code>.</p>
+  <p>Then the rules the skill imposes on every body, quoted: "<strong>No file paths or line numbers</strong> — these go stale"; "<strong>Use the project's domain language</strong>"; "<strong>Describe behaviors, not code</strong> — 'the sync service fails to apply the patch' not 'applyPatch() throws on line 42'"; "<strong>Reproduction steps are mandatory</strong> — if you can't determine them, ask the user"; "<strong>Keep it concise</strong> — a developer should be able to read the issue in 30 seconds." Read #17 against them: Card, Deck, Ease Factor capitalised as <code>CONTEXT.md</code> spells them; no <code>json_store.py</code>, no line; the behaviour ("names the Card by its position") rather than the code that produces it; three numbered steps with a concrete input. The one internal detail that is in there — the zero-based index — is a fact about the <em>message</em> the user sees, so it stays.</p>
+
+  <div class="callout note">
+    <span class="label">Durable means "still true after the refactor"</span>
+    <p>The skill's word for the standard is "durable — they should still make sense after major refactors." A body that says "line 52 of <code>json_store.py</code>" is wrong the moment someone adds an import; a body that says "when a deck file is refused because one Card is invalid" is true until the behaviour changes, which is the moment the issue closes. The same logic sits behind Week 2's M07: an issue is a contract with whoever picks it up next, and a fresh agent session picks up what is written, not what was meant.</p>
+  </div>
+
+  <h2>What it does not write: labels and type</h2>
+  <pre><code><span class="prompt">$</span> gh issue list --state open --json number,title,labels,issueType,createdAt --jq '.[] | "#\(.number)  labels=\([.labels[].name])  type=\(.issueType.name // "none")  \(.title[0:50])"'
+#18  labels=[]  type=none  ADR 0001 says SM-2 leaves rounding open; the cited pu
+#17  labels=[]  type=none  Deck-file errors name a card by zero-based position, n
+#16  labels=[]  type=none  A deck with one invalid card cannot be listed at all
+#14  labels=[]  type=none  Simplify the scheduler: one bounds check, one reset pa</code></pre>
+  <p>Empty labels, no type — on a repository that has the five triage labels and belongs to an org with Task, Bug, and Feature types. This is not an omission of the run; it is the skill. Its text says <code>gh issue create</code> and nothing about <code>--label</code> or <code>--type</code>; <code>docs/agents/triage-labels.md</code> exists for <em>/triage</em>, which "moves issues … through a state machine" and applies the labels as it goes. A freshly filed <code>/qa</code> issue is, in that machine's terms, an <em>unlabeled</em> issue — the first bucket <code>/triage</code> shows: "<strong>Unlabeled</strong> — never triaged." The division of labour is deliberate: the reporter's skill writes what happened; the maintainer's skill decides what to do about it. That maintainer seat is Week 6.</p>
+  <p>So <code>check_a4.py</code> grades the body shape and <em>reports</em> the labels and type as a note — "labels none, type none — the installed /qa applies none; triage is Week 6" — rather than failing an issue for lacking what the skill was never going to add. If you want a <code>bug</code> label on your filed issues now, <code>gh issue edit N --add-label bug</code> is one line; it is your act, not the skill's, and the checker will note it either way.</p>
+
+  <div class="callout warn">
+    <span class="label">One thing the run did leave behind</span>
+    <p>The body files were written on Windows and the issues' bodies carry <code>\r\n</code> line endings — visible in the raw JSON, invisible on the web. GitHub renders them fine; but a <code>--jq</code> that splits the body on <code>\n</code> gets a trailing <code>\r</code> on every line, which is why the read-back above ends with <code>rtrimstr("\r")</code> — and why a first attempt with <code>scan("^## .*")</code> returned one heading swallowing the whole body. A small thing, recorded so the next person does not lose ten minutes to it.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 5, second half — after <span class="skill">/qa</span> has filed:</p>
+    <label class="check"><input type="checkbox"><span>Read each filed issue back with <code>gh issue view N --json labels,issueType,body</code> and named the template it used (single or breakdown slice).</span></label>
+    <label class="check"><input type="checkbox"><span>Checked the body against the five rules: no paths or line numbers, domain words, behaviour not code, steps present, readable in 30 seconds.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed labels are empty and type is none — and can say which skill's job those are.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed the PR does not reference the new issue(s): <code>gh pr view N --json closingIssuesReferences</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>python checkers/check_a4.py --org perro-ruidoso --handle &lt;me&gt; --peer &lt;peer&gt;</code> and read the M24 lines.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. #17's body mentions that the index is zero-based but not the name of the module that formats the message. Which rule is that obeying?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">"Keep it concise" — module names and their paths would push the body past thirty seconds' reading for a developer</button></li>
+        <li><button data-opt="b">"Reproduction steps are mandatory" — the zero-based index is part of a reproduction step, and the module name is not part of any step</button></li>
+        <li><button data-opt="c">"No file paths or line numbers — these go stale"; the index is part of the message the user sees, so it is behaviour and stays</button></li>
+        <li><button data-opt="d">"Create issues in dependency order" — the module belongs in the issue that fixes #16 first, which blocks this one</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Durability. A module name rots with the next refactor; the message the user sees is the behaviour under complaint. A and B pick real rules for the wrong reason; D is about ordering, not content.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. The three issues have no labels and no type. What is the correct reading?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Expected: the skill's text never applies labels or types; labelling is <code>/triage</code>'s job</button></li>
+        <li><button data-opt="b">A defect in the run: <code>docs/agents/triage-labels.md</code> tells every skill to apply <code>needs-triage</code> to any issue it creates</button></li>
+        <li><button data-opt="c">A repository problem: the throwaway lacks the five triage labels and the org's issue types, so there was nothing to apply</button></li>
+        <li><button data-opt="d">A permission problem: filing with a fine-grained token cannot set labels or types</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The skill says <code>gh issue create</code> and nothing more; the labels file maps roles for <code>/triage</code>. The labels exist on the throwaway (created before the run) (C); nothing in <code>triage-labels.md</code> addresses creation (B); D is invented.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">3. Which headings does <code>check_a4.py</code> require to count an issue as filed by <code>/qa</code>?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">All six of the breakdown template, in order, including <code>## Parent issue</code>, <code>## Blocked by</code>, and <code>## Additional context</code></button></li>
+        <li><button data-opt="b"><code>## What happened</code> or <code>## What's wrong</code>, plus <code>## What I expected</code> and <code>## Steps to reproduce</code></button></li>
+        <li><button data-opt="c">Only <code>## Steps to reproduce</code>, since reproduction steps are the one mandatory element</button></li>
+        <li><button data-opt="d">Any heading at all, provided the issue carries the <code>needs-triage</code> label and a type</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The intersection of the two templates. A would fail every single-shape issue like #18; C would accept any bug report; D requires what the skill never adds.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m24-writes">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The single-issue template's headings?</div><div class="fc-back">What happened · What I expected · Steps to reproduce · Additional context.</div></div>
+      <div class="fc"><div class="fc-front">The breakdown-slice template's headings?</div><div class="fc-back">Parent issue · What's wrong · What I expected · Steps to reproduce · Blocked by · Additional context.</div></div>
+      <div class="fc"><div class="fc-front">The five body rules?</div><div class="fc-back">No file paths or line numbers; domain language; behaviours not code; reproduction steps mandatory; readable in 30 seconds.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>/qa</code> put in <code>labels</code> and <code>issueType</code>?</div><div class="fc-back">Nothing. Its text says <code>gh issue create</code> only; labels are <code>/triage</code>'s job (Week 6). The checker notes them.</div></div>
+      <div class="fc"><div class="fc-front">"Durable", in the skill's words?</div><div class="fc-back">"They should still make sense after major refactors."</div></div>
+      <div class="fc"><div class="fc-front">Which template did #16, #17, #18 use?</div><div class="fc-back">#16 and #17 the breakdown slice (one report, two concerns); #18 the single issue.</div></div>
+      <div class="fc"><div class="fc-front">The three headings the checker requires?</div><div class="fc-back"><code>What happened</code> or <code>What's wrong</code>; <code>What I expected</code>; <code>Steps to reproduce</code>.</div></div>
+      <div class="fc"><div class="fc-front">Why does the heading read-back end with <code>rtrimstr("\r")</code>?</div><div class="fc-back">The bodies were filed from Windows and carry <code>\r\n</code>; splitting on <code>\n</code> leaves a carriage return on every line.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Give Claude Code one of your filed issues and ask it to "implement this in a fresh session with no other context — tell me first what you would have to ask." If it has a question, the body failed the skill's own standard somewhere; find the rule. Then ask it which triage label <em>it</em> would apply and why — and notice that answering is Week 6's job, not this week's. Bring an issue the fresh session could not start to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/skills/qa/SKILL.md">Course repo — vendored <code>skills/qa/SKILL.md</code></a><span class="why">Both templates and the five rules, as they run.</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills/blob/main/skills/engineering/triage/SKILL.md">mattpocock/skills — <code>triage/SKILL.md</code></a><span class="why">The skill that <em>does</em> apply labels: its roles, its state machine, and "Unlabeled — never triaged" as the first bucket. Week 6's maintainer seat.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_view">GitHub CLI manual: <code>gh issue view</code></a><span class="why"><code>--json</code> fields <code>labels</code>, <code>issueType</code>, <code>body</code>, <code>createdAt</code>; <code>--comments</code> and <code>--json</code> are mutually exclusive ("specify only one").</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-02/m07-issues-an-agent-can-execute/index.html">M07 — The Ticket as a Contract</a><span class="why">Week 2's version of "durable": context, acceptance criteria, explicit out-of-scope — the same standard from the author's side.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><code>~/.agents/skills/qa/SKILL.md</code> — templates and rules quoted verbatim (read 2026-09-14)</li>
+      <li><code>~/.agents/skills/triage/SKILL.md</code> — "Unlabeled — never triaged", the state-machine sentence (read 2026-09-14)</li>
+      <li><code>~/.agents/skills/setup-matt-pocock-skills/triage-labels.md</code> — the label mapping that <code>/triage</code> reads (read 2026-09-14)</li>
+      <li>Issues #16–#18 on <code>perro-ruidoso/flashcards-w3probe</code>, filed 2026-09-14 13:48:35–44Z; the two <code>gh</code> read-backs above, <code>gh</code> 2.100.0</li>
+      <li><code>checkers/check_a4.py</code> — <code>QA_HEADINGS</code> and the labels note, read against the code</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M24, page 1</span>Out of Scope Means an Issue, Not a Commit</a>
+    <a class="next" href="../index.html"><span class="dir">Finish</span>Back to the Week 4 hub</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

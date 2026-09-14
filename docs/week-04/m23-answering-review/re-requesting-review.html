@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re-request Without Losing the Thread — Week 4 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 4</a> · Objective M23 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Re-request Without Losing the Thread</h1>
+  <p class="lede">Two moves remain for the author, and their order is the point: resolve the threads you have answered, then re-request review from the person who requested changes. This page does the first on PR #15, shows the state it leaves, explains why the second could not be done there and what it looks like where it can — and gives the four-line sequence Assignment A4's checker reads back.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M23 · Authoring</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A4 paired (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Respond to review as the author: direct Claude to address findings, push, and re-request review without losing the thread.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M23 pages</span>
+    <a href="index.html"><span class="num">1</span>Direct Claude, Push, Reply</a>
+    <span class="here"><span class="num">2</span>Re-request Without Losing the Thread</span>
+  </nav>
+
+  <h2>Resolve what you answered — and only that</h2>
+  <p>You may resolve, as the author ("if you opened the pull request"). The question is <em>which</em> threads. The rule the course uses: resolve a thread when your reply in it names a commit that does what the comment asked, or when the thread is a question you have answered and the reviewer has said so. Do not resolve a thread you have declined — leave it open with your reason in it, so the reviewer sees the disagreement instead of a collapsed conversation. On PR #15 every thread had a fixing commit, so all five were resolved (13:42:07–13Z):</p>
+  <pre><code><span class="prompt">$</span> gh api graphql -f query='mutation { resolveReviewThread(input:{threadId:"PRRT_kwDOUZOL3M6iIMw_"}) { thread { id isResolved resolvedBy { login } } } }'
+{"data":{"resolveReviewThread":{"thread":{"id":"PRRT_kwDOUZOL3M6iIMw_","isResolved":true,"resolvedBy":{"login":"acatlin"}}}}}
+<span class="dim"># … and the four must-fix threads the same way</span>
+<span class="prompt">$</span> gh api graphql … threads.graphql --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | "\(.path):\(.line // "outdated")  resolved=\(.isResolved) by \(.resolvedBy.login)"]'
+["src/flashcards/domain/scheduler.py:outdated  resolved=true by acatlin",
+ "src/flashcards/domain/scheduler.py:outdated  resolved=true by acatlin",
+ "src/flashcards/domain/scheduler.py:outdated  resolved=true by acatlin",
+ "src/flashcards/domain/scheduler.py:15  resolved=true by acatlin",
+ "tests/domain/test_scheduler.py:outdated  resolved=true by acatlin"]</code></pre>
+  <p>Resolution is recorded on the thread with the resolver's login and nowhere else (M20 page 1). A reviewer who disagrees can unresolve — <code>unresolveReviewThread</code> — which is the honest way to say "not yet": the conversation reopens where it was, with the reply still in it.</p>
+
+  <div class="callout note">
+    <span class="label">Why reply, then resolve — not resolve, then reply</span>
+    <p>A resolved thread collapses. If you resolve first and reply after, the reviewer's notification points at a collapsed thread whose last visible line is their own comment; they expand it to find your reply. If you reply first, the notification carries your SHA and your fact, and the collapse that follows reads as "answered", not "dismissed". Same two actions, opposite impression. And the checker cannot tell the orders apart — this one is for the human on the other end.</p>
+  </div>
+
+  <h2>Re-request: the move PR #15 could not make</h2>
+  <p>GitHub's own sequence (fetched 2026-09-14): "After someone reviews your pull request and you make changes, you can request another review from the same reviewer." The command is the one that requested them in the first place — <code>gh pr edit N --add-reviewer &lt;login&gt;</code>, "Add or re-request reviewers by their login." The event it writes is <code>review_requested</code>, timestamped, naming the reviewer. On PR #15 the only identity that had requested changes was a bot, and M20 page 1 showed the result of asking for it: "Could not resolve user with login 'github-actions[bot]'." The author is not a candidate either. So the throwaway's PR has no <code>review_requested</code> event, its <code>reviewDecision</code> is still <code>CHANGES_REQUESTED</code>, and that is where it stays until a human reviewer exists — which, on your Instance, is your peer.</p>
+
+  <h2>What it looks like with a peer: <code>cli/cli#14136</code></h2>
+  <pre><code>2026-08-18T11:46:11Z  review CHANGES_REQUESTED by babakks
+2026-08-20T15:35:03Z  commit d5be33d by tidy-dev
+2026-08-20T15:35:03Z  commit 15cc350 by tidy-dev
+2026-08-20T17:31:39Z  review_requested babakks by tidy-dev
+2026-08-20T17:31:57Z  commit c25dff1 by tidy-dev
+2026-08-21T14:19:44Z  review APPROVED by babakks</code></pre>
+  <p>The author's side of that record is three moves in order: <strong>push</strong> (15:35), <strong>re-request</strong> (17:31:39), and — one more commit later — wait. The reviewer came back the next day and approved. Nothing the author did between 17:31 and 14:36 could have changed the field; only <code>babakks</code> could, and the re-request was the author's way of saying it was their turn.</p>
+
+  <h2>The four-line sequence, and what the checker reads</h2>
+  <pre><code><span class="prompt">$</span> git push                                            <span class="dim"># 1. the fix lands on the PR</span>
+<span class="prompt">$</span> gh api -X POST repos/O/R/pulls/N/comments/&lt;id&gt;/replies -f body="Fixed in &lt;sha&gt;: …"   <span class="dim"># 2. once per thread</span>
+<span class="prompt">$</span> gh api graphql -f query='mutation { resolveReviewThread(input:{threadId:"PRRT_…"}) { thread { isResolved } } }'   <span class="dim"># 3. once per answered thread</span>
+<span class="prompt">$</span> gh pr edit N --add-reviewer &lt;peer&gt;                  <span class="dim"># 4. after the push, never before</span>
+<span class="prompt">$</span> gh pr view N --json reviewRequests,reviewDecision   <span class="dim"># the peer is listed; the decision has not moved yet</span></code></pre>
+  <p><code>check_a4.py</code> reads three of those from your PR: a commit on the PR dated after your peer's verdict (step 1), at least one thread with <code>isResolved: true</code> (step 3), and a <code>ReviewRequestedEvent</code> for your peer dated after your last commit (step 4). It does not read the replies (step 2) — that is the part only your peer can grade, and the rubric asks them to.</p>
+
+  <div class="callout warn">
+    <span class="label">Order matters to the checker for one reason</span>
+    <p>A <code>review_requested</code> event before the commit could not have been about the commit. If you re-request and then remember one more fix, push it and re-request again; the second event is the one that counts. "Without losing the thread" applies here too: the reviewer should be summoned to the version they will review, and the SHA in your replies should be the head they find.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Assignment A4, item 4, second half — after the replies of page 1:</p>
+    <label class="check"><input type="checkbox"><span>Resolved every thread whose reply names a fixing commit; left open any I declined, with the reason in the thread.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran the threads query; each resolved thread shows my login in <code>resolvedBy</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh pr edit N --add-reviewer &lt;peer&gt;</code> <em>after</em> my last push; <code>--json reviewRequests</code> lists them.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed <code>reviewDecision</code> did not move — and did not expect it to.</span></label>
+    <label class="check"><input type="checkbox"><span>When my peer's second review arrived: if <code>APPROVED</code>, merged (squash) and watched the drill ticket close itself; if a new <code>CHANGES_REQUESTED</code>, back to page 1.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. You disagree with one of your peer's must-fix comments and have written why in the thread. What do you do with that thread?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Resolve it — a reply is a response, and unresolved threads make the PR look unfinished to the checker</button></li>
+        <li><button data-opt="b">Delete the peer's comment so the disagreement does not appear anywhere in the PR's history or its notifications</button></li>
+        <li><button data-opt="c">Leave it open with your reason in it, so the reviewer sees the disagreement rather than a collapsed thread</button></li>
+        <li><button data-opt="d">Re-request review from the instructor instead, since a disputed thread cannot be settled by the pair</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Resolve what you answered; leave what you declined visible. The checker needs <em>one</em> resolved thread, not all (A). Deleting is not an option anyone should take (B). The pair settles it in the thread or at the weekly meeting (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. Why does PR #15 have no <code>review_requested</code> event, even though its author did everything else on this page?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The only reviewer that requested changes was a bot, which cannot be requested; the author cannot request themself</button></li>
+        <li><button data-opt="b">Re-requesting is only possible through the web UI's sidebar icon, and the throwaway was driven entirely from <code>gh</code> and <code>gh api</code></button></li>
+        <li><button data-opt="c">GitHub records a re-request only after the reviewer accepts it, and the bot's workflow never ran again</button></li>
+        <li><button data-opt="d">The threads were resolved first, and GitHub suppresses <code>review_requested</code> events on a PR with no open threads</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> M20 page 1's two refusals. <code>gh pr edit --add-reviewer</code> is the terminal route (B); the event is written when the request is made (C); open threads have nothing to do with it (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which three things does <code>check_a4.py</code> read from the author's side of the drill PR?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The reply bodies (each must contain a SHA), the resolved threads, and the commit message naming the ADR rules it restores</button></li>
+        <li><button data-opt="b">The number of replies, the number of resolved threads, and whether <code>reviewDecision</code> reached <code>APPROVED</code></button></li>
+        <li><button data-opt="c">The commit count, the <code>isOutdated</code> flags, and a <code>review_request_removed</code> event for the peer</button></li>
+        <li><button data-opt="d">A commit after the peer's verdict, a resolved thread, and a <code>review_requested</code> event for the peer after the last commit</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Evidence only. Replies are not graded by script (A, B) — the peer grades them; <code>APPROVED</code> is noted, not required (B); outdated flags and request-removed events are not rules (C).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w4-m23-rerequest">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Which threads does the author resolve?</div><div class="fc-back">Those whose reply names a commit that does what was asked (or an answered question the reviewer accepted). Declined threads stay open with the reason.</div></div>
+      <div class="fc"><div class="fc-front">Reply then resolve, or resolve then reply?</div><div class="fc-back">Reply first: the notification carries the SHA and the fact; the collapse then reads as "answered".</div></div>
+      <div class="fc"><div class="fc-front">How does a reviewer undo a resolution they disagree with?</div><div class="fc-back"><code>unresolveReviewThread</code> — the thread reopens with the reply still in it.</div></div>
+      <div class="fc"><div class="fc-front">The re-request command, and its timing rule?</div><div class="fc-back"><code>gh pr edit N --add-reviewer &lt;peer&gt;</code>, after the push — the event's timestamp must follow the last commit's.</div></div>
+      <div class="fc"><div class="fc-front">Why does PR #15 have no re-request on record?</div><div class="fc-back">Its only verdict came from a bot, which cannot be a requested reviewer; the author cannot request themself. Needs a peer.</div></div>
+      <div class="fc"><div class="fc-front">The author's three moves on <code>cli/cli#14136</code>?</div><div class="fc-back">Push (08-20 15:35), re-request babakks (17:31:39), wait — approved 08-21 14:36.</div></div>
+      <div class="fc"><div class="fc-front">The three author-side facts <code>check_a4.py</code> reads?</div><div class="fc-back">A commit after the peer's verdict; ≥ 1 resolved thread; a <code>review_requested</code> for the peer after the last commit.</div></div>
+      <div class="fc"><div class="fc-front">What does the checker <em>not</em> read, and who does?</div><div class="fc-back">The replies' content — the peer grades them against the rubric (SHA + one checkable fact).</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>After you re-request, ask Claude Code to run the timeline query from M20 page 2 on your PR and "check that my <code>review_requested</code> event is later than my last commit, and tell me what my peer will see first when they open the PR." If the answer is "your resolved threads, collapsed", ask whether your replies are visible in the notification they received. Bring a PR where the order went wrong to the weekly meeting — it is a common one.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review">GitHub Docs: Requesting a pull request review</a><span class="why">The re-request sentence and the sidebar icon that is the web version of <code>--add-reviewer</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request">GitHub Docs: Incorporating feedback — "Re-requesting a review"</a><span class="why">"For example, you can re-request a review after you've made substantial changes to your pull request."</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/graphql/reference/pulls">GraphQL reference: Pull requests — <code>ReviewRequestedEvent</code>, <code>unresolveReviewThread</code></a><span class="why">The event the checker reads and the mutation a reviewer uses to reopen a thread.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_edit">GitHub CLI manual: <code>gh pr edit</code></a><span class="why"><code>--add-reviewer</code> / <code>--remove-reviewer</code>; the only special value is <code>@copilot</code>.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request">GitHub Docs: Commenting on a pull request</a> — who may resolve (fetched 2026-09-14)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review">GitHub Docs: Requesting a pull request review</a> (fetched 2026-09-14)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_edit">gh pr edit</a> — "Add or re-request reviewers by their login" (fetched 2026-09-14)</li>
+      <li>PR #15 on <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-14 — the five resolutions and the read-back; <code>cli/cli#14136</code> timeline, run the same day</li>
+      <li><code>checkers/check_a4.py</code> in the course repo — the three rules named above, read against the code</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M23, page 1</span>Direct Claude, Push, Reply</a>
+    <a class="next" href="../m24-filing-what-review-uncovers/index.html"><span class="dir">Next · M24</span>Out of Scope Means an Issue, Not a Commit</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 4 learning pages. Source links verified 2026-09-14.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

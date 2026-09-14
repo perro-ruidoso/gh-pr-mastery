@@ -100,7 +100,7 @@ OBJECTIVES = [
      "Apply", "A4 paired (checker)", "Course exercise"),
     ("M24", 4, "Bug capture",
      "Turn what review uncovers into filed issues with /qa rather than fixing out of scope in the open PR.",
-     "Apply", "A4 (checker)", "mattpocock/skills: qa"),
+     "Apply", "A4 (checker)", "mattpocock/skills: qa (vendored by the course - removed upstream 2026-08-05)"),
 
     # --- Week 5 ---
     ("M25", 5, "CI",
@@ -222,6 +222,31 @@ PAGES = {
     "M18": [
         ("week-03/m18-the-toolbelt/index.html", "Ask Matt First"),
         ("week-03/m18-the-toolbelt/six-skills-six-situations.html", "Six Skills, Six Situations"),
+    ],
+    "M19": [
+        ("week-04/m19-comments-reviews-suggestions/index.html", "Three Things That Look Alike"),
+        ("week-04/m19-comments-reviews-suggestions/batching-from-the-terminal.html", "A Batched Review from gh"),
+    ],
+    "M20": [
+        ("week-04/m20-review-state/index.html", "Threads, Resolution, Re-request"),
+        ("week-04/m20-review-state/reading-the-state.html", "Reading reviewDecision Correctly"),
+    ],
+    "M21": [
+        ("week-04/m21-code-review/index.html", "Two /code-reviews, Two Axes"),
+        ("week-04/m21-code-review/the-output-verbatim.html", "The Output, Unedited"),
+        ("week-04/m21-code-review/findings-to-verdicts.html", "From Findings to Verdicts"),
+    ],
+    "M22": [
+        ("week-04/m22-comments-a-peer-can-act-on/index.html", "Located, Specific, Severity-Marked"),
+        ("week-04/m22-comments-a-peer-can-act-on/severity-and-anti-patterns.html", "Severity Words and the Comments That Force a Question"),
+    ],
+    "M23": [
+        ("week-04/m23-answering-review/index.html", "Direct Claude, Push, Reply"),
+        ("week-04/m23-answering-review/re-requesting-review.html", "Re-request Without Losing the Thread"),
+    ],
+    "M24": [
+        ("week-04/m24-filing-what-review-uncovers/index.html", "Out of Scope Means an Issue, Not a Commit"),
+        ("week-04/m24-filing-what-review-uncovers/what-qa-writes.html", "What /qa Writes, and What It Does Not"),
     ],
 }
 

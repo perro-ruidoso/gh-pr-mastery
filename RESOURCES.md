@@ -19,7 +19,16 @@ every other row answered 200 with no redirect. Re-checked again 2026-09-13 befor
 rows below answered 200 with no redirect; five *new* URLs fetched for Week 3 (merge conflicts ×3,
 creating a PR, PR merges) redirected once each and are recorded at their canonical addresses.
 Re-checked again in the 2026-09-14 Weeks 1–3 audit: **all 105 external URLs** on the site and in
-this file answered 200 with no redirect. Re-check again before writing Weeks 4–6.
+this file answered 200 with no redirect. Re-checked 2026-09-14 before writing Week 4: the one
+existing Week 4 row (reviewing proposed changes) answered 200 with no redirect; of the URLs *new*
+to Week 4, seven redirected once each and are recorded at their canonical addresses below
+(commenting, incorporating feedback, requesting a review, approving, dismissing:
+`collaborating-with-pull-requests/…` → `how-tos/review-pull-requests/…` or
+`how-tos/create-pull-requests/…`; "About pull request reviews" →
+`pull-requests/reference/pull-request-reviews`; and the GraphQL reference's per-type pages
+`graphql/reference/mutations` and `/objects` → `graphql/reference`, which is now grouped by
+domain — the pull-request types live at `graphql/reference/pulls`). Re-check again before
+writing Weeks 5–6.
 
 | Resource | URL | Used in |
 |---|---|---|
@@ -47,7 +56,21 @@ this file answered 200 with no redirect. Re-check again before writing Weeks 4�
 | Resolving a merge conflict on GitHub — same move; redirects | https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/resolving-a-merge-conflict-on-github | M17 |
 | Issue event types (`connected`, `base_ref_changed`, `base_ref_deleted`, `automatic_base_change_succeeded`, `merged`) | https://docs.github.com/en/rest/using-the-rest-api/issue-event-types | M15, M16 |
 | REST API endpoints for timeline events | https://docs.github.com/en/rest/issues/timeline | M16 |
-| Reviewing proposed changes in a pull request — moved to `how-tos/review-pull-requests/` 2026-09-13 | https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request | M19, M20 |
+| Reviewing proposed changes in a pull request — moved to `how-tos/review-pull-requests/` 2026-09-13; the three verdicts, "purely informational", "authors cannot approve their own" | https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request | M19, M20 |
+| Commenting on a pull request — single comment vs review, batching, "Resolving conversations", the out-of-scope sentence (redirected once, 2026-09-14) | https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/commenting-on-a-pull-request | M19, M20, M24 |
+| Incorporating feedback in your pull request — applying suggested changes (one co-authored commit), re-requesting, opening an issue for an out-of-scope suggestion (redirected once) | https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request | M19, M22, M23, M24 |
+| Pull request reviews (reference) — formerly "About pull request reviews"; decision types, "Anyone with read access can review", write access to request (redirected once) | https://docs.github.com/en/pull-requests/reference/pull-request-reviews | M19, M22 |
+| Requesting a pull request review — "you can request another review from the same reviewer" (moved to `how-tos/create-pull-requests/`; redirected once) | https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/requesting-a-pull-request-review | M20, M23 |
+| Approving a pull request with required reviews; Dismissing a pull request review (both redirected once; Week 5 material, fetched with the set) | https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews | M26 (learn more) |
+| REST API endpoints for pull request reviews — create a review (`event`, `comments[]` with `path`/`line`/`side`), submit, dismiss | https://docs.github.com/en/rest/pulls/reviews | M19 |
+| REST API endpoints for pull request review comments — `line`/`side`/`start_line`, `in_reply_to`, `subject_type`, "position is closing down" | https://docs.github.com/en/rest/pulls/comments | M19, M23 |
+| REST API endpoints for issue comments — where a Conversation-tab comment lives | https://docs.github.com/en/rest/issues/comments | M19 |
+| GraphQL reference: Pull requests — `PullRequestReviewThread` (`isResolved`, `isOutdated`, `resolvedBy`), `resolveReviewThread` / `unresolveReviewThread`, `PullRequestReviewDecision`, `ReviewRequestedEvent` (the old `/reference/mutations` and `/reference/objects` redirect to the index) | https://docs.github.com/en/graphql/reference/pulls | M20, M23 |
+| GitHub CLI manual: `gh pr review` (`--approve`, `--comment`, `--request-changes`, `--body`) | https://cli.github.com/manual/gh_pr_review | M19 |
+| GitHub CLI manual: `gh pr comment` | https://cli.github.com/manual/gh_pr_comment | M19 |
+| GitHub CLI manual: `gh pr edit` (`--add-reviewer`: "Add or re-request reviewers by their login") | https://cli.github.com/manual/gh_pr_edit | M20, M23 |
+| GitHub CLI manual: `gh api` (`--input`, `-f`/`-F`, `graphql`) | https://cli.github.com/manual/gh_api | M19, M20 |
+| GitHub CLI manual: `gh issue view` (`--json labels,issueType,body`; `--comments` and `--json` are exclusive) | https://cli.github.com/manual/gh_issue_view | M24 |
 | Continuous integration (Actions "get started") — formerly "About continuous integration with GitHub Actions" | https://docs.github.com/en/actions/get-started/continuous-integration | M25 |
 | About rulesets | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets | M26 |
 | About protected branches | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches | M26 |
@@ -81,7 +104,7 @@ this file answered 200 with no redirect. Re-check again before writing Weeks 4�
 
 | Resource | URL | Used in |
 |---|---|---|
-| Code Review (`/code-review`) | https://code.claude.com/docs/en/code-review | M21 |
+| Code Review — the managed product (Team/Enterprise, rejected) *and* the built-in `/code-review` command under "Review a diff locally"; the course's M21 skill is Pocock's of the same name, and the page is cited to tell them apart | https://code.claude.com/docs/en/code-review | M21 |
 | Claude Code GitHub Actions | https://code.claude.com/docs/en/github-actions | M30 |
 | Memory / CLAUDE.md | https://code.claude.com/docs/en/memory | M05 |
 | Skills — `disable-model-invocation`, front-matter reference | https://code.claude.com/docs/en/skills | M05, M09, M17, M18 |
@@ -119,7 +142,10 @@ substantive upstream changes since the snapshot:
 | `tdd` (+ `tests.md`, `mocking.md`) | `engineering`; in the plugin; description unchanged | M18 |
 | `handoff` | `productivity`; in the plugin; description unchanged (one body line reworded 2026-08-15) | M18 |
 | `git-guardrails-claude-code` (+ `scripts/block-dangerous-git.sh`) | `misc` — "Tools I keep around but rarely use, not promoted in the plugin"; **not in the plugin**; description unchanged | M18 |
-| `qa` | **none — removed upstream 2026-08-05** with `request-refactor-plan` (replaced by `/triage` + `/to-tickets`); never in the plugin; still installed here | M05 (named), M24 (primary source) |
+| `qa` | **none — removed upstream 2026-08-05** with `request-refactor-plan` (the changeset names `/triage` + `/to-tickets`); never in the plugin; still installed here, and **vendored by the course at `skills/qa/SKILL.md`** (MIT; byte-identical to `skills/deprecated/qa/SKILL.md` at upstream `f958fa1`, checked 2026-09-14) because neither replacement files an issue from a conversation | M05 (named), M24 (primary source) |
+| `code-review` | `engineering`; in the plugin; installed and upstream (`3cca18b`) differ only in punctuation ("issue/PRD" → "issue/spec"; em-dashes → colons; "run /setup-matt-pocock-skills" → "tell the user to run") — same five steps, same smell baseline, same "Why two axes" | M21 |
+| `setup-matt-pocock-skills` (+ `issue-tracker-github.md`, `triage-labels.md`, `domain.md`) | `engineering`; in the plugin; the `docs/agents/` files it writes are what `code-review` step 2 and `domain.md`'s "Flag ADR conflicts" rule read | M21, M24 |
+| `triage` | `engineering`; in the plugin; the skill that *applies* the labels `qa` does not — "Unlabeled — never triaged" is its first bucket | M24 (contrast) |
 
 ## Tier 4 — Linear official
 
@@ -129,11 +155,12 @@ substantive upstream changes since the snapshot:
 | Pricing (plan gates) — Issue sync is a Core feature on every plan; parsed at cell level 2026-09-13, see `NOTES.md` | https://linear.app/pricing | M12 |
 | GitHub Issues Importer (historical issues; sync is forward-only) | https://linear.app/docs/github-to-linear | M12 (learn more) |
 
-## Non-GitHub references used on Week 1 and Week 3 pages
+## Non-GitHub references used on Week 1, Week 3, and Week 4 pages
 
 | Resource | URL | Used in |
 |---|---|---|
-| Git reference: `git merge-base`, `git diff`, `gitrevisions` | https://git-scm.com/docs/git-diff | M03 |
+| Git reference: `git merge-base`, `git diff`, `gitrevisions` | https://git-scm.com/docs/git-diff | M03, M21 |
+| SuperMemo: the SM-2 algorithm (1990) — the source behind `seed/SPEC.md` §5 and the Seed's ADR 0001; it says "If interval is a fraction, round it up to the nearest integer", which the ADR's "does not settle" claim contradicts (filed on the throwaway as an issue, M24) | https://super-memory.com/english/ol/sm2.htm | M21, M24 |
 | Pro Git, ch. 3.2 Basic Branching and Merging | https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging | M03, M17 (learn more) |
 | git-merge — "How conflicts are presented", "How to resolve conflicts" | https://git-scm.com/docs/git-merge | M16, M17 |
 | git-rerere | https://git-scm.com/docs/git-rerere | M17 (learn more) |
@@ -152,6 +179,11 @@ material on the page:
   The one practitioner source quoted, marked ancillary on the page:
   [Google eng-practices: Small CLs](https://google.github.io/eng-practices/review/developer/small-cls.html)
   (fetched 2026-09-13).
+- Review-comment writing — M22. The objective is a course exercise; the one practitioner source
+  quoted, marked ancillary on both M22 pages:
+  [Google eng-practices: How to write code review comments](https://google.github.io/eng-practices/review/reviewer/comments.html)
+  (fetched 2026-09-14) — courtesy ("about the code and never … about the developer"), "Explain
+  Why", and "Label comment severity" (Nit / Optional / FYI).
 
 ## Deliberately rejected
 
