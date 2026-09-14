@@ -1465,8 +1465,10 @@ to change — suggest a one-line fix in the Seed before cohort 1); S1/S2; the
   objective, three for M21), `assignments/a4.md` (paired) with its rubric, `checkers/check_a4.py`
   (two handles), the planted-bug package `seed/planted/` + `seed/tools/plant_review_pr.py`, and
   the vendored `skills/qa/`. Filed as **#21** (blocked by #17 and #19); branch `21-week4-pages`
-  from `19-audit-weeks-1-3` via `gh issue develop` — a **four-deep stack** (#16 ← #18 ← #20 ←
-  this PR), stacked on the audit rather than on `17-week3-pages` because the audit's checker rule
+  from `19-audit-weeks-1-3` via `gh issue develop`; **PR #22** opened 14:51:54Z with base
+  `19-audit-weeks-1-3` (picked by `gh pr create` from `gh-merge-base`) and
+  `closingIssuesReferences: []`, as M15 p2 predicts — a **four-deep stack** (#16 ← #18 ← #20 ←
+  #22), stacked on the audit rather than on `17-week3-pages` because the audit's checker rule
   and NOTES/guide edits are what this unit extends. Every transcript is from one PR on the Week 3
   throwaway (`flashcards-w3probe#15`): T03 landed correctly (#12/#13), then a "refactor" that
   planted the three §7 bugs with a green suite; a Conversation comment; a batched review from
