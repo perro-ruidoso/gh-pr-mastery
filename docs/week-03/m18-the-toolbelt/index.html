@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask Matt First — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M18 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Ask Matt First</h1>
+  <p class="lede">You have used six of the installed skills so far — <code>setup-matt-pocock-skills</code>, <code>to-spec</code>, <code>to-tickets</code>, <code>resolving-merge-conflicts</code>, and soon <code>code-review</code> and <code>qa</code>. There are thirty-eight. One of them exists to tell you which of the others fits, and its own text is the best map of the toolbelt there is.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M18 · Toolbelt</span>
+      <span class="chip bloom">Bloom: Understand</span>
+      <span class="chip assessed">Assessed by: Quiz 1; Self-Check</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Choose the right skill for a situation using <span class="skill">/ask-matt</span>, and say what wayfinder, request-refactor-plan, grill-me, tdd, handoff, and git-guardrails each do.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M18 pages</span>
+    <span class="here"><span class="num">1</span>Ask Matt First</span>
+    <a href="six-skills-six-situations.html"><span class="num">2</span>Six Skills, Six Situations</a>
+  </nav>
+
+  <h2>What a skill is, and who gets to start one</h2>
+  <p>Anthropic's documentation: "Skills extend what Claude can do. Create a <code>SKILL.md</code> file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with <code>/skill-name</code>." Every skill has "YAML frontmatter between <code>---</code> markers that tells Claude when to use the skill, and markdown content with the instructions Claude follows when the skill runs. The directory name becomes the command you type, and the description helps Claude decide when to load the skill automatically."</p>
+  <p>One front-matter field decides who can start a skill. From the same page: "To keep a personal or project skill but stop Claude from invoking it on its own, set <code>disable-model-invocation: true</code> in its frontmatter." The skills repository's README draws the same line in its own words: "User-invoked skills are reachable only when you type them (e.g. <code>/grill-me</code>); their job is to orchestrate. Model-invoked skills can be invoked by you or reached for automatically by the agent when the task fits; they hold the reusable discipline. A user-invoked skill may invoke model-invoked skills, but never another user-invoked one." That is why <span class="skill">/resolving-merge-conflicts</span> could have started on its own when M17's merge stopped, and <span class="skill">/ask-matt</span> never will.</p>
+
+  <h2>The router</h2>
+  <p>Installed at <code>~/.agents/skills/ask-matt/SKILL.md</code> (dated 2026-07-09, read 2026-09-13), front matter <code>description: Ask which skill or flow fits your situation. A router over the skills in this repo.</code> and <code>disable-model-invocation: true</code>. Its first line: "You don't remember every skill, so ask." Then a structure worth memorising, because it is how the toolbelt is organised:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Section of <code>ask-matt</code></th><th>What it holds</th><th>Skills named there</th></tr></thead>
+      <tbody>
+        <tr><td><strong>The main flow: idea → ship</strong></td><td>"The route most work travels." Sharpen, decide whether it needs a prototype, decide whether it is multi-session, build.</td><td><code>grill-with-docs</code> → (<code>handoff</code> ↔ <code>prototype</code>) → <code>to-spec</code> → <code>to-tickets</code> → <code>implement</code>, which drives <code>tdd</code> and closes with <code>code-review</code></td></tr>
+        <tr><td><strong>On-ramps</strong></td><td>"A starting situation that generates work, then merges onto the main flow."</td><td><code>triage</code> (issues you did not create), <code>diagnosing-bugs</code>, <code>wayfinder</code> ("a huge, foggy effort")</td></tr>
+        <tr><td><strong>Codebase health</strong></td><td>"Not feature work — upkeep."</td><td><code>improve-codebase-architecture</code></td></tr>
+        <tr><td><strong>Vocabulary underneath</strong></td><td>"Two model-invoked references that run <em>beneath</em> the other skills."</td><td><code>domain-modeling</code>, <code>codebase-design</code></td></tr>
+        <tr><td><strong>Crossing sessions</strong></td><td>How to leave a context window without losing it.</td><td><code>handoff</code> ("forks"), <code>/compact</code> ("continues" — built in, not a skill)</td></tr>
+        <tr><td><strong>Standalone</strong></td><td>"Off the main flow entirely."</td><td><code>grill-me</code>, <code>prototype</code>, <code>research</code>, <code>teach</code>, <code>writing-great-skills</code></td></tr>
+        <tr><td><strong>Precondition</strong></td><td>Run once per repo before the rest.</td><td><code>setup-matt-pocock-skills</code> — M05, Week 1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Two sentences in the file matter beyond routing. On context: "Keep steps 1–3 in <strong>one unbroken context window</strong> — don't compact or clear until after <code>/to-tickets</code> — so the grilling, spec, and tickets all build on the same thinking. Each <code>/implement</code> then starts fresh, working from the ticket." That is the Week 2 sequence you ran, with the reason. And on the limit: "the <strong>smart zone</strong>: the window (~120k tokens on state-of-the-art models) within which the model still reasons sharply. If a session approaches it before <code>/to-tickets</code>, don't push on degraded — <code>/handoff</code> and continue in a fresh thread."</p>
+
+  <div class="callout note">
+    <span class="label">Where the course's skills sit on the map</span>
+    <p>Week 1's <code>setup-matt-pocock-skills</code> is the precondition. Week 2's <code>to-spec</code> and <code>to-tickets</code> are main-flow step 3. This week's <code>resolving-merge-conflicts</code> is not on the map at all — it is a model-invoked discipline that any step may need. Week 4's <code>code-review</code> is the close of <code>implement</code>, and <code>qa</code> is an on-ramp (it files issues for <code>triage</code>). Week 6's <code>triage</code> is the first on-ramp. Page 2 places the six the objective names.</p>
+  </div>
+
+  <h2>Two things the installed copy does not match upstream</h2>
+  <p>The installed skills are a snapshot dated 2026-07-09. The upstream repository, read 2026-09-13, has moved. The differences that touch this objective:</p>
+  <ul>
+    <li><strong><code>request-refactor-plan</code> no longer exists upstream.</strong> The commit <code>c66bdee</code>, 2026-08-05, "chore: remove six unused skills and the personal bucket," deleted it; the repository's <code>deprecated/README.md</code> says "a retired skill is deleted, and the changeset that removes it names whatever replaced it." It is still installed on the course machine and still runs; page 2 quotes it from the installed file and says so.</li>
+    <li><strong>Descriptions were re-punctuated.</strong> A commit on 2026-08-19 removed every em-dash from the repository, so <code>wayfinder</code>'s upstream description reads "(more than one agent session can hold)" where the installed one reads "— more than one agent session can hold —". Same words. Page 2 quotes the installed text, because that is what runs.</li>
+    <li><strong><code>git-guardrails-claude-code</code> lives in <code>skills/misc/</code></strong>, whose README calls its contents "Tools I keep around but rarely use, not promoted in the plugin." It is not in <code>ask-matt</code>'s map either. Installed, working, off the route.</li>
+  </ul>
+  <p>The lesson is the one M05 gave for <code>CLAUDE.md</code>: read the installed file, not the README, when you want to know what will happen.</p>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. <span class="skill">/ask-matt</span> has <code>disable-model-invocation: true</code>; <span class="skill">/resolving-merge-conflicts</span> does not. What follows?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Only the second can be typed as a slash command; the first is reached by asking Claude a question in plain English</button></li>
+        <li><button data-opt="b">Claude may start the second on its own when a merge stops on conflicts; the first runs only when you type it</button></li>
+        <li><button data-opt="c">The first cannot call other skills; the second can, which is why it is allowed to run <code>pytest</code> and <code>ruff</code></button></li>
+        <li><button data-opt="d">The second is loaded into every subagent; the first is loaded only into the main session's context window</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The flag "stop[s] Claude from invoking it on its own"; both can be typed (A). Calling other skills is about user- versus model-invoked orchestration, not tool use (C). D confuses the flag's subagent effect with its main purpose.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. According to the router, where do <code>to-spec</code> and <code>to-tickets</code> sit, and what must be true of the context around them?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">They are on-ramps, and each should be run in a fresh session so the spec is not biased by the grilling that preceded it</button></li>
+        <li><button data-opt="b">They are standalone, and the router advises running <code>/compact</code> between them to keep the window under the smart zone</button></li>
+        <li><button data-opt="c">They are codebase-health tools, run whenever there is a spare moment, with <code>/handoff</code> before each to preserve context</button></li>
+        <li><button data-opt="d">They are main-flow step 3, kept in one unbroken window with the grilling before them; only <code>/implement</code> starts fresh</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> "Keep steps 1–3 in one unbroken context window — don't compact or clear until after <code>/to-tickets</code>." Fresh sessions are for each <code>/implement</code>, not for the spec (A). B and C place them in the wrong sections.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Why does this course quote the installed <code>SKILL.md</code> files rather than the repository README?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because the installed file is what runs, and the two have diverged — one skill is gone upstream, descriptions re-punctuated</button></li>
+        <li><button data-opt="b">Because the README is generated from the files and may lag behind by a release, so the files are the newer of the two sources</button></li>
+        <li><button data-opt="c">Because GitHub renders the README with the front matter stripped, so the descriptions cannot be read from it</button></li>
+        <li><button data-opt="d">Because the README lists only user-invoked skills, and four of the six on page 2 are model-invoked</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> <code>request-refactor-plan</code> was deleted upstream on 2026-08-05 and is still installed; the installed copies are <em>older</em>, not newer (B). The README does show descriptions (C) and lists both kinds (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m18-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Installed description of <code>ask-matt</code>?</div><div class="fc-back">"Ask which skill or flow fits your situation. A router over the skills in this repo." User-invoked only.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>disable-model-invocation: true</code> do?</div><div class="fc-back">Stops Claude from loading the skill on its own; it runs only when you type <code>/name</code>. Also keeps it out of subagents.</div></div>
+      <div class="fc"><div class="fc-front">The main flow, idea → ship?</div><div class="fc-back"><code>grill-with-docs</code> → (prototype detour via <code>handoff</code>) → <code>to-spec</code> → <code>to-tickets</code> → <code>implement</code> (drives <code>tdd</code>, closes with <code>code-review</code>).</div></div>
+      <div class="fc"><div class="fc-front">The three on-ramps?</div><div class="fc-back"><code>triage</code> (issues you did not create), <code>diagnosing-bugs</code> (something is broken), <code>wayfinder</code> (huge, foggy effort).</div></div>
+      <div class="fc"><div class="fc-front">Context rule around the spec and tickets?</div><div class="fc-back">"Keep steps 1–3 in one unbroken context window — don't compact or clear until after /to-tickets"; each /implement starts fresh.</div></div>
+      <div class="fc"><div class="fc-front">The smart zone?</div><div class="fc-back">"~120k tokens on state-of-the-art models" within which the model still reasons sharply; near it, <code>/handoff</code> rather than push on.</div></div>
+      <div class="fc"><div class="fc-front">User-invoked vs model-invoked, per the README?</div><div class="fc-back">User-invoked "orchestrate," reachable only by typing; model-invoked "hold the reusable discipline" and the agent may reach for them. User-invoked never call user-invoked.</div></div>
+      <div class="fc"><div class="fc-front">Which named skill is gone upstream, and since when?</div><div class="fc-back"><code>request-refactor-plan</code> — removed 2026-08-05 (commit c66bdee); still installed and quoted from the installed file.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Type <span class="skill">/ask-matt</span> in your Instance and describe, in one sentence, the state you are actually in right now on Assignment A3. Then ask it to justify the route it gives by quoting the section of its own file it used. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills</a><span class="why">The README's Reference section — user-invoked and model-invoked lists with one-line descriptions — and the <code>skills/engineering/ask-matt/SKILL.md</code> file itself.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/skills">Claude Code docs: Skills</a><span class="why">What a skill is, where they load from, the front-matter reference, and "Control who invokes a skill."</span></li>
+      <li><span class="tier t3">Tier 3</span><a href="https://www.aihero.dev/ai-coding-dictionary/smart-zone">AI Hero: smart zone</a><span class="why">The term <code>ask-matt</code> links for its ~120k-token limit.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-01/m05-configuring-the-skills/index.html">M05 page 1: Teaching Your Repo to the Skills</a><span class="why">The precondition skill, and the rule about reading installed files that this page repeats.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><code>~/.agents/skills/ask-matt/SKILL.md</code> — front matter and quoted sentences (read 2026-09-13; file dated 2026-07-09)</li>
+      <li><code>~/.agents/skills/resolving-merge-conflicts/SKILL.md</code> — absence of <code>disable-model-invocation</code> (read 2026-09-13)</li>
+      <li><a href="https://code.claude.com/docs/en/skills">Claude Code docs: Skills</a> — definition, front-matter description, <code>disable-model-invocation</code> (fetched 2026-09-13)</li>
+      <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — README "Reference" paragraph on invocation, <code>skills/misc/README.md</code>, <code>skills/deprecated/README.md</code>, the directory listing under <code>skills/</code>, and commits <code>c66bdee</code> (2026-08-05) and the em-dash removal (2026-08-19), all read via the GitHub API on 2026-09-13</li>
+      <li><code>ls ~/.agents/skills/</code> — 38 installed skills, counted 2026-09-13</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m17-resolving-conflicts/running-the-skill.html"><span class="dir">Previous · M17</span>Running /resolving-merge-conflicts</a>
+    <a class="next" href="six-skills-six-situations.html"><span class="dir">Next · M18, page 2</span>Six Skills, Six Situations</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

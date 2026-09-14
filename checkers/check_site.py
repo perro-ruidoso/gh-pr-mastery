@@ -5,8 +5,8 @@
 Catches the failures that are invisible until a student hits them - a lesson linking to a
 page that does not exist, a page that uses a Mermaid diagram without loading Mermaid, a
 self-check whose data-answer names an option that is not there, a flashcard with no back,
-an objective folder whose pages do not all link each other, an Apply or Create page with no
-hands-on checklist, two decks sharing a localStorage id, a Week Hub the Course Home does
+an objective folder whose pages do not all link each other, an Apply, Create, or Evaluate
+page with no hands-on checklist, two decks sharing a localStorage id, a Week Hub the Course Home does
 not link.
 
 Layout it expects: docs/week-NN/index.html is the Week Hub; docs/week-NN/mNN-slug/ is one
@@ -95,9 +95,10 @@ def check_structure(path: Path, html: str, problems: list[str]) -> None:
         ):
             if required not in html:
                 problems.append(f"{rel}: missing {label}")
-        # An objective a student *does* needs a checklist; a concept page does not.
+        # An objective a student *does* or *judges* needs a checklist; a concept page
+        # (Understand, Analyze) does not.
         bloom = BLOOM.search(html)
-        if bloom and bloom.group(1) in ("Apply", "Create") and 'class="handson"' not in html:
+        if bloom and bloom.group(1) in ("Apply", "Create", "Evaluate") and 'class="handson"' not in html:
             problems.append(f"{rel}: Bloom {bloom.group(1)} page has no hands-on checklist")
 
     # A page with a flashcard deck must load the component, and every card

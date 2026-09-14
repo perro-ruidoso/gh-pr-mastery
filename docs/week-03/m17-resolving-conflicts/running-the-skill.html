@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Running /resolving-merge-conflicts — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M17 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Running /resolving-merge-conflicts</h1>
+  <p class="lede">The installed skill is five numbered steps and 130 words. This page quotes each step as written and shows what Claude Code actually did for it on the conflict from page 1 — the commands, their output, and the resolution — through to the merge that closed issue #2.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M17 · Conflicts</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Resolve a merge conflict on a stacked branch with <span class="skill">/resolving-merge-conflicts</span> and explain what caused it.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M17 pages</span>
+    <a href="index.html"><span class="num">1</span>Where the Conflict Came From</a>
+    <span class="here"><span class="num">2</span>Running /resolving-merge-conflicts</span>
+  </nav>
+
+  <h2>The skill, as installed</h2>
+  <p>From <code>~/.agents/skills/resolving-merge-conflicts/SKILL.md</code>, read 2026-09-13. Its front matter: <code>description: "Use when you need to resolve an in-progress git merge/rebase conflict."</code> — no <code>disable-model-invocation</code>, so Claude Code may reach for it on its own when it sees a conflict, and you can type it. The body, verbatim:</p>
+
+  <div class="exhibit">
+    <span class="label">resolving-merge-conflicts/SKILL.md — body</span>
+    <ol>
+      <li><strong>See the current state</strong> of the merge/rebase. Check git history, and the conflicting files.</li>
+      <li><strong>Find the primary sources</strong> for each conflict. Understand deeply why each change was made, and what the original intent was. Read the commit messages, check the PRs, check original issues/tickets.</li>
+      <li><strong>Resolve each hunk.</strong> Preserve both intents where possible. Where incompatible, pick the one matching the merge's stated goal and note the trade-off. Do <strong>not</strong> invent new behaviour. Always resolve; never <code>--abort</code>.</li>
+      <li>Discover the project's <strong>automated checks</strong> and run them — typically typecheck, then tests, then format. Fix anything the merge broke.</li>
+      <li><strong>Finish the merge/rebase.</strong> Stage everything and commit. If rebasing, continue the rebase process until all commits are rebased.</li>
+    </ol>
+  </div>
+
+  <p>Two things to notice before the run. Step 2 is the one a human skips: it sends the agent to the commits, PRs, and tickets <em>behind</em> each side before it touches a line, which is what makes step 3's "preserve both intents" possible. And step 3's last sentence — "Always resolve; never <code>--abort</code>" — is a policy: the skill is invoked to finish the merge, not to decide whether to.</p>
+
+  <h2>Step 1 — see the current state</h2>
+  <pre><code><span class="prompt">$</span> git status
+<span class="dim">On branch 2-persist-review-state
+Your branch is up to date with 'origin/2-persist-review-state'.
+
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	modified:   CONTEXT.md
+
+Unmerged paths:
+  (use "git add &lt;file&gt;..." to mark resolution)
+	both modified:   src/flashcards/domain/models.py
+	both modified:   tests/domain/test_models.py</span>
+
+<span class="prompt">$</span> git log --oneline --graph HEAD MERGE_HEAD -6
+* 78e17a7 Tag field on Card (#7)
+| * 3b9501a Reject a datetime in Card.due
+| * 37d4731 Persist review state in the deck file
+|/
+* 0b9a901 Add review state to Card (#4)
+* e474711 Initial commit
+
+<span class="prompt">$</span> git diff --name-only --diff-filter=U
+src/flashcards/domain/models.py
+tests/domain/test_models.py</code></pre>
+  <p>The graph shows the shape from page 1 in git's own drawing: <code>MERGE_HEAD</code> is #7's squash commit, <code>HEAD</code> is two commits up the stacked branch, both from <code>0b9a901</code>. <code>--diff-filter=U</code> lists the unmerged files without the noise. The hunks themselves were read with <code>git diff</code> — page 1 prints them.</p>
+
+  <h2>Step 2 — find the primary sources</h2>
+  <pre><code><span class="prompt">$</span> git log -1 --format="%h %s%n%n%b" 3b9501a
+3b9501a Reject a datetime in Card.due
+
+A datetime passes the date annotation at runtime (it is a subclass) and
+isoformat() would then write a timestamp the loader rejects. Guard it at
+the model so the file format stays YYYY-MM-DD.
+
+<span class="prompt">$</span> git log -1 --format="%h %s" 78e17a7
+78e17a7 Tag field on Card (#7)
+<span class="prompt">$</span> gh pr view 7 --json title,body --jq '"#7 \(.title)", .body' | head -12
+#7 Tag field on Card
+## Intent
+Add a `tags` field to `Card` so review sessions (T10) and stats (T13) can be narrowed by topic. Replaces #6, which carried three unrelated changes; this PR is the ticket and nothing else.
+
+## Scope
+- `src/flashcards/domain/models.py`: `tags: tuple[str, ...] = ()`, rejection of empty and duplicate tags, `has_tag`.
+- `tests/domain/test_models.py`: default, exact-match `has_tag`, both rejections.
+- `CONTEXT.md`: a **Tag** entry (CLAUDE.md: a new domain term lands with the PR that introduces it).
+
+<span class="prompt">$</span> gh issue view 3 --json body --jq .body | sed -n '/Acceptance/,/Out of scope/p'
+## Acceptance criteria
+- [ ] `Card` has `tags: tuple[str, ...] = ()`; a tuple, not a list, because `Card` is frozen and must stay hashable.
+- [ ] `Card.__post_init__` rejects an empty-string tag and a duplicate tag with `ValueError`.
+- [ ] `Card.has_tag(tag)` returns whether the card carries `tag`, exact match, case-sensitive.
+…</code></pre>
+  <p>Now each side has a stated intent that is not a guess. HEAD's docstring clause exists to document the <code>YYYY-MM-DD</code> file format the guard protects (commit body); main's <code>tags</code> docstring line exists because criterion 1 of #3 adds the field (ticket). Neither side's change is about the other's. That is the finding step 3 needs: the two intents are <strong>independent</strong>, so both survive.</p>
+
+  <h2>Step 3 — resolve each hunk</h2>
+  <p>Resolution: keep HEAD's two-line clause, then main's <code>tags</code> line — the docstring reads in field order. In the test file, keep HEAD's test, a blank pair, then main's three; either order would be correct and this one keeps each side's tests contiguous. Confirmed with the combined diff, which now has no markers:</p>
+  <pre><code><span class="prompt">$</span> grep -c "&lt;&lt;&lt;&lt;&lt;&lt;&lt;\|&gt;&gt;&gt;&gt;&gt;&gt;&gt;" src/flashcards/domain/models.py tests/domain/test_models.py
+src/flashcards/domain/models.py:0
+tests/domain/test_models.py:0
+<span class="prompt">$</span> git diff
+diff --cc src/flashcards/domain/models.py
+@@@ -24,8 -24,9 +24,10 @@@ class Card
+          due: The date the card is next due, or ``None`` if it has never been
+ -            reviewed.
+ +            reviewed. A calendar date, never a datetime: the deck file stores it
+ +            as ``YYYY-MM-DD``.
++         tags: Topic labels used to filter a review session; a tuple because a
++             frozen Card must stay hashable.
+      """
+…
+diff --cc tests/domain/test_models.py
+@@@ -90,6 -90,21 +90,26 @@@ def test_card_rejects_impossible_review
+ +def test_card_rejects_a_datetime_due_because_the_file_stores_a_date() -> None:
+ +    with pytest.raises(ValueError, match="not a datetime"):
+ +        Card(id="x", front="f", back="b", due=datetime(2026, 9, 19, 8, 30))
+++
+++
++ def test_a_card_has_no_tags_by_default() -> None:
++     assert Card(id="x", front="f", back="b").tags == ()
+…</code></pre>
+  <p>Nothing was invented: every kept line existed on one side or the other, and the only new content is the two blank lines that Python's formatter requires between top-level functions (the <code>++</code> column — present on neither side). No trade-off to note, because nothing was dropped.</p>
+
+  <h2>Step 4 — the project's checks</h2>
+  <p>The Seed's <code>CLAUDE.md</code> names them: "<code>pytest</code>; <code>ruff check . &amp;&amp; ruff format --check .</code> — exactly what CI runs; <code>mypy</code>."</p>
+  <pre><code><span class="prompt">$</span> pytest
+<span class="dim">..................................                                       [100%]
+34 passed in 0.17s</span>
+<span class="prompt">$</span> ruff check . &amp;&amp; ruff format --check .
+<span class="dim">All checks passed!
+15 files already formatted</span>
+<span class="prompt">$</span> mypy
+<span class="dim">Success: no issues found in 7 source files</span></code></pre>
+  <p>Thirty-four: the branch's 30 before the merge plus #7's four (three tag tests and the parametrized pair count as four cases). A resolution that kept only one side would have run fewer.</p>
+
+  <h2>Step 5 — finish the merge</h2>
+  <pre><code><span class="prompt">$</span> git add src/flashcards/domain/models.py tests/domain/test_models.py
+<span class="prompt">$</span> git status --short
+M  CONTEXT.md
+M  src/flashcards/domain/models.py
+M  tests/domain/test_models.py
+<span class="prompt">$</span> git commit --no-edit
+<span class="dim">[2-persist-review-state dd3293d] Merge remote-tracking branch 'origin/main' into 2-persist-review-state</span>
+<span class="prompt">$</span> git log --oneline --graph -5
+*   dd3293d Merge remote-tracking branch 'origin/main' into 2-persist-review-state
+|\
+| * 78e17a7 Tag field on Card (#7)
+* | 3b9501a Reject a datetime in Card.due
+* | 37d4731 Persist review state in the deck file
+|/
+* 0b9a901 Add review state to Card (#4)
+<span class="prompt">$</span> git push
+<span class="dim">   3b9501a..dd3293d  2-persist-review-state -> 2-persist-review-state</span></code></pre>
+  <p><code>--no-edit</code> keeps git's default merge message. The commit <code>dd3293d</code> has two parents — <code>3b9501a</code> and <code>78e17a7</code> — and that two-parent commit is the artifact <code>check_a3.py</code> looks for: <code>GET /repos/O/R/pulls/5/commits</code> lists it with <code>parents</code> of length 2. A rebase-based resolution would leave no such commit, which is why the assignment asks for the merge route (or an explanation in the write-up).</p>
+
+  <h2>After: GitHub agrees, and the issue closes</h2>
+  <pre><code><span class="prompt">$</span> gh pr view 5 --json mergeable,mergeStateStatus,changedFiles,commits --jq '{mergeable, mergeStateStatus, changedFiles, commits: [.commits[].oid[0:7]]}'
+{"changedFiles":5,"commits":["37d4731","3b9501a","dd3293d"],"mergeStateStatus":"CLEAN","mergeable":"MERGEABLE"}
+<span class="prompt">$</span> gh pr merge 5 --squash
+<span class="prompt">$</span> gh pr view 5 --json mergedAt --jq .mergedAt ; gh issue view 2 --json state,stateReason,closedAt
+2026-09-13T17:12:47Z
+{"closedAt":"2026-09-13T17:12:48Z","state":"CLOSED","stateReason":"COMPLETED"}
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/issues/5/timeline --jq '.[] | select(.event | IN("base_ref_changed","head_ref_force_pushed","merged","closed")) | "\(.created_at)  \(.event)"'
+2026-09-13T17:03:12Z  base_ref_changed
+2026-09-13T17:03:50Z  head_ref_force_pushed
+2026-09-13T17:12:47Z  merged
+2026-09-13T17:12:47Z  closed</code></pre>
+  <p>Five changed files now — the three from #2 plus the two the merge brought from #7's side, which is correct: relative to <code>main</code>, #5's diff contains only #2's lines in those files, because #7's lines are on both sides. Merged 17:12:47; issue #2 closed 17:12:48, <code>COMPLETED</code>. The PR's timeline is the whole week in four lines: retargeted, rebased, merged, closed.</p>
+
+  <div class="callout note">
+    <span class="label">Merge or rebase to resolve?</span>
+    <p>The skill handles both ("If rebasing, continue the rebase process"). The course asks for <code>git merge origin/main</code> on the stacked branch for two reasons: the resolution is one commit that the reviewer can read on its own, and it leaves the two-parent commit as evidence. A rebase re-applies each of the branch's commits onto <code>main</code> and may ask you to resolve the same hunk more than once — the merge-methods page's warning about squash-merged long-running branches, in practice. Either way, once the branch is squash-merged into <code>main</code>, the resolution commit disappears into the squash; only the PR's commit list remembers it.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Item 5 of Assignment A3, from the conflict on page 1 to the merge.</p>
+    <label class="check"><input type="checkbox"><span>With the merge stopped on conflicts, ran <span class="skill">/resolving-merge-conflicts</span> in Claude Code and watched it do step 1 before touching a file.</span></label>
+    <label class="check"><input type="checkbox"><span>At step 2, saw it read the commit messages, PRs, or tickets behind both sides — and if it did not, stopped it and asked it to.</span></label>
+    <label class="check"><input type="checkbox"><span>At step 3, checked that every kept line came from one side or the other and that no behaviour was invented; <code>grep -c</code> for markers is 0.</span></label>
+    <label class="check"><input type="checkbox"><span>At step 4, the test count equals both sides' counts combined; lint and <code>mypy</code> clean.</span></label>
+    <label class="check"><input type="checkbox"><span>At step 5, a two-parent commit exists (<code>git log --graph</code>); pushed; B's PR reads <code>MERGEABLE</code>; merged it; B's issue closed itself within seconds.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Why does the skill's step 2 send the agent to commit messages, PRs, and tickets before resolving anything?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because git needs the original commit SHAs recorded in the merge commit message to link the resolution to both branches</button></li>
+        <li><button data-opt="b">Because GitHub will reject a pushed resolution whose commit does not reference the pull request numbers of both sides</button></li>
+        <li><button data-opt="c">Because "preserve both intents" requires knowing each side's intent, and the markers show only the lines, not the reasons</button></li>
+        <li><button data-opt="d">Because the tickets contain the correct final text, and the resolution is supposed to copy it rather than merge the two sides</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The run showed it: the commit body explained the docstring clause, the ticket explained the <code>tags</code> line, and only then was "independent intents, keep both" a finding rather than a guess. A, B, and D invent mechanisms.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. After the resolution, <code>pytest</code> reported 34 passed. What is that number evidence of?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">That both sides' tests survived: the branch's 30 plus #7's four, so no side of the test-file conflict was dropped</button></li>
+        <li><button data-opt="b">That the resolution introduced four new tests to cover the merged docstring, as step 4 requires for any resolved conflict</button></li>
+        <li><button data-opt="c">That the merge was fast-forwarded, since a true merge commit would have run each side's suite separately</button></li>
+        <li><button data-opt="d">That the parametrized test was duplicated by the merge, which is why the count went up by exactly four</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Counting is a cheap check on "preserve both intents." Step 4 runs checks; it does not write tests (B). There was a two-parent merge commit (C). Nothing was duplicated (D) — the four are #7's tests.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which artifact tells <code>check_a3.py</code> that a conflict was resolved on the stacked branch?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">A <code>conflict_resolved</code> event on the PR's timeline, which GitHub records when mergeability returns to <code>MERGEABLE</code></button></li>
+        <li><button data-opt="b">The merge commit's message, which must begin with "Merge remote-tracking branch" for the checker to count it</button></li>
+        <li><button data-opt="c">The change in <code>changedFiles</code> from 3 to 5, which only a merge from <code>main</code> produces on a retargeted PR</button></li>
+        <li><button data-opt="d">A commit in the PR's commit list with two parents — the merge of <code>main</code> — read from <code>/pulls/N/commits</code></button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Two parents is structural and survives any message. There is no such event (A); the message is not parsed (B); file counts change for other reasons too (C — page 2 of M16 showed 3 → 5 → 3 with no conflict at all).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m17-skill">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The installed description of <code>resolving-merge-conflicts</code>?</div><div class="fc-back">"Use when you need to resolve an in-progress git merge/rebase conflict." Model-invocable (no <code>disable-model-invocation</code>).</div></div>
+      <div class="fc"><div class="fc-front">Its five steps, in order?</div><div class="fc-back">See the state; find the primary sources; resolve each hunk (preserve both intents, never <code>--abort</code>); run the project's checks; finish the merge/rebase.</div></div>
+      <div class="fc"><div class="fc-front">What step 2 read on the throwaway?</div><div class="fc-back">Commit <code>3b9501a</code>'s body (the datetime guard's reason), PR #7's body, and issue #3's acceptance criteria.</div></div>
+      <div class="fc"><div class="fc-front">What was the step-3 finding, and the resolution?</div><div class="fc-back">Independent intents — keep both: HEAD's docstring clause then main's <code>tags</code> line; HEAD's test then main's three. Nothing invented.</div></div>
+      <div class="fc"><div class="fc-front">Step 4's result?</div><div class="fc-back"><code>pytest</code> 34 passed (30 + 4), <code>ruff check</code>/<code>format --check</code> clean, <code>mypy</code> clean.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>git commit --no-edit</code> produce here?</div><div class="fc-back">A two-parent merge commit (<code>dd3293d</code>) with git's default message — the artifact the checker reads.</div></div>
+      <div class="fc"><div class="fc-front">Timestamps for PR #5's end?</div><div class="fc-back">Merged 17:12:47; issue #2 closed 17:12:48, <code>COMPLETED</code>.</div></div>
+      <div class="fc"><div class="fc-front">Why merge rather than rebase to resolve, in this course?</div><div class="fc-back">One readable resolution commit, no repeated conflicts, and a two-parent commit as evidence.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Run the skill on your own conflict and, when it finishes, ask Claude Code: "for each hunk you resolved, which side's line did you keep and which primary source told you why?" An answer that names commit messages and tickets is the skill working; an answer that says "the more complete version" is the skill skipped. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t3">Tier 3</span><a href="https://github.com/mattpocock/skills">mattpocock/skills — <code>resolving-merge-conflicts</code></a><span class="why">The upstream copy, under <code>skills/engineering/</code>; its README describes the skill as resolving "by intent traced to each side's primary source," a good gloss on step 2. Read the installed file — it is what runs.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/resolving-a-merge-conflict-using-the-command-line">GitHub Docs: Resolving a merge conflict using the command line</a><span class="why">The manual version of steps 1, 3, and 5, including the "both modified" status and the marker walk-through.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-merge">git-merge</a><span class="why">"How to resolve conflicts" — the tools git offers (<code>git diff</code> variants, <code>git log --merge</code>, <code>git mergetool</code>) beyond what this page used.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-rerere">git-rerere</a><span class="why">"Reuse recorded resolution" — for the case the merge-methods page warns about, resolving the same conflict twice on a long-running branch.</span></li>
+      <li><span class="tier t2">Tier 2</span><a href="https://code.claude.com/docs/en/skills">Claude Code docs: Skills</a><span class="why">What <code>disable-model-invocation</code> does — why this skill can start on its own and <code>/ask-matt</code> (M18) cannot.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><code>~/.agents/skills/resolving-merge-conflicts/SKILL.md</code> — front matter and body quoted verbatim (read 2026-09-13; file dated 2026-07-09; identical description upstream at <code>skills/engineering/resolving-merge-conflicts/SKILL.md</code>, checked the same day)</li>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/CLAUDE.md">Seed Repo <code>CLAUDE.md</code></a> — the Commands section step 4 followed (read 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/pull-request-merges">GitHub Docs: Pull request merges</a> — the repeated-conflict warning (fetched 2026-09-13)</li>
+      <li>PR #5 on <code>perro-ruidoso/flashcards-w3probe</code>: the skill was invoked in Claude Code with the merge stopped on two conflicts, 2026-09-13; every command and output on this page is from that run (<code>gh</code> 2.100.0, git 2.52.0, Python 3.14, the Seed's pinned ruff 0.16.7)</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M17, page 1</span>Where the Conflict Came From</a>
+    <a class="next" href="../m18-the-toolbelt/index.html"><span class="dir">Next · M18</span>Ask Matt First</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

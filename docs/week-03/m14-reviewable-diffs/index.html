@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What a Reviewable Diff Looks Like — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M14 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>What a Reviewable Diff Looks Like</h1>
+  <p class="lede">A diff is reviewable when a reviewer can hold the whole of it in their head, say in one sentence what it is for, and find nothing in it that the sentence does not cover. Three tests, in that order, applied to a real pull request.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M14 · Diff craft</span>
+      <span class="chip bloom">Bloom: Evaluate</span>
+      <span class="chip assessed">Assessed by: A3 (rubric); Quiz 1</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Judge whether a diff is reviewable — single purpose, bounded size, no drive-by changes — and split one that is not.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M14 pages</span>
+    <span class="here"><span class="num">1</span>What a Reviewable Diff Looks Like</span>
+    <a href="splitting-a-drive-by.html"><span class="num">2</span>Splitting a Drive-by</a>
+  </nav>
+
+  <h2>Why this is an agentic-coder skill</h2>
+  <p>When Claude Code implements a ticket, it produces a diff you did not type. You are its first reviewer, and you are the one who decides whether it goes to a second. The course's mission puts the bottleneck at "reviewing what comes back"; this objective is the eye you bring to that. There is no GitHub feature for it and no primary source — <code>RESOURCES.md</code> lists it as a course exercise "built on the cohort's own PRs." The nearest practitioner source is Google's engineering-practices guide on small changes, quoted here as ancillary material: "the right size for a CL is one self-contained change," which "makes a minimal change that addresses just one thing," and "100 lines is usually a reasonable size for a CL, and 1000 lines is usually too large, but it's up to the judgment of your reviewer."</p>
+
+  <h2>The three tests</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Test</th><th>Question to ask</th><th>How to check it from the terminal</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Single purpose</strong></td><td>Can you state what the diff does in one sentence that names the ticket, and does every hunk serve that sentence?</td><td><code>gh pr diff N --name-only</code> — every file should be one the ticket implies</td></tr>
+        <tr><td><strong>Bounded size</strong></td><td>Can a reviewer read it in one sitting, with the tests, and still have attention left for the arithmetic?</td><td><code>gh pr view N --json additions,deletions,changedFiles</code></td></tr>
+        <tr><td><strong>No drive-bys</strong></td><td>Is there a hunk a reviewer would have to ask about — a rename, a reformat, a doc edit — that the ticket did not ask for?</td><td><code>gh pr diff N</code>, read hunk by hunk against the ticket's acceptance criteria</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The order matters. Shape first (<code>--name-only</code>, the counts), then content. A seven-file diff for a one-field ticket fails before you have read a line, and page 2 is exactly that case. Note also that <code>gh pr diff</code> has no <code>--stat</code> — the flag was tried and rejected as <code>unknown flag: --stat</code> on 2.100.0; the size numbers come from <code>gh pr view --json</code>.</p>
+
+  <h2>A diff that passes: PR #4</h2>
+  <p>Ticket #1 on the throwaway Instance: add review state to <code>Card</code> — four defaulted fields, validated, nothing reads or writes them yet. Shape first:</p>
+
+  <pre><code><span class="prompt">$</span> gh pr diff 4 --name-only
+src/flashcards/domain/models.py
+tests/domain/test_models.py
+
+<span class="prompt">$</span> gh pr view 4 --json additions,deletions,changedFiles,files --jq '{additions, deletions, changedFiles, files: [.files[] | "\(.path) +\(.additions) -\(.deletions)"]}'
+{"additions":63,"changedFiles":2,"deletions":0,"files":["src/flashcards/domain/models.py +16 -0","tests/domain/test_models.py +47 -0"]}</code></pre>
+
+  <p>Two files, both implied by the ticket (the model, and the test file the ticket names); 63 lines added, none deleted. Now the content — the model half of <code>gh pr diff 4</code> in full:</p>
+
+  <pre><code>diff --git a/src/flashcards/domain/models.py b/src/flashcards/domain/models.py
+index a8ba90c..77dc1ac 100644
+--- a/src/flashcards/domain/models.py
++++ b/src/flashcards/domain/models.py
+@@ -9,6 +9,7 @@
+ from __future__ import annotations
+
+ from dataclasses import dataclass, field
++from datetime import date
+
+
+ @dataclass(frozen=True)
+@@ -19,15 +20,30 @@ class Card:
+         id: Stable identifier, unique within its deck.
+         front: The prompt shown to the learner.
+         back: The answer revealed after recall is attempted.
++        repetitions: Consecutive successful reviews so far (the Repetition count).
++        ease_factor: The per-card multiplier SM-2 applies to future intervals.
++        interval: Whole days until the card is next due.
++        due: The date the card is next due, or ``None`` if it has never been
++            reviewed.
+     """
+
+     id: str
+     front: str
+     back: str
++    repetitions: int = 0
++    ease_factor: float = 2.5
++    interval: int = 0
++    due: date | None = None
+
+     def __post_init__(self) -> None:
+         if not self.id:
+             raise ValueError("Card.id must not be empty")
++        if self.repetitions &lt; 0:
++            raise ValueError("Card.repetitions must not be negative")
++        if self.ease_factor &lt; 1.3:
++            raise ValueError("Card.ease_factor must be at least 1.3")
++        if self.interval &lt; 0:
++            raise ValueError("Card.interval must not be negative")</code></pre>
+
+  <p>Apply the sentence test: <em>"Adds four defaulted review-state fields to <code>Card</code> and validates them."</em> The import serves it, the docstring serves it, the fields serve it, the three checks serve it. Nothing else is in the file's diff. The test file adds four tests that pin the defaults, a populated card, <code>dataclasses.replace</code>, and the three rejections — each one answering an acceptance criterion in the ticket. A reviewer who has read the ticket can check the whole PR against it without asking a question, which is the standard M07 set for tickets and this objective sets for diffs.</p>
+
+  <div class="callout note">
+    <span class="label">Reviewable is not the same as small</span>
+    <p>PR #5 on the same Instance touched five files after its parent merged (M16 page 2 explains why) and three after a rebase. The three-file version is reviewable; the five-file version was the <em>same work</em> with another PR's changes mixed in by the merge base, and a reviewer would have had to re-read #4's hunks to find #5's. Size is a symptom; the disease is anything in the diff that the one sentence does not cover.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Do this on the PR you open for ticket A in Assignment A3, before you ask anyone to review it.</p>
+    <label class="check"><input type="checkbox"><span>Wrote the one sentence for my PR, naming the ticket, before looking at the diff.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh pr diff --name-only</code> and, for each file, said which acceptance criterion put it there; any file with no answer is a drive-by or a missing criterion.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh pr view --json additions,deletions,changedFiles</code> and compared the numbers with PR #4's (63 / 0 / 2) and #6's (50 / 10 / 7, page 2).</span></label>
+    <label class="check"><input type="checkbox"><span>Read every hunk against the sentence; removed or split out anything the sentence does not cover.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. Why does the page insist on <code>--name-only</code> and the size counts <em>before</em> reading the diff's content?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because GitHub rate-limits <code>gh pr diff</code> and the metadata queries are cheaper to repeat while you are still iterating on it</button></li>
+        <li><button data-opt="b">Because the content of a diff cannot be judged until CI has finished, and the counts are final only then</button></li>
+        <li><button data-opt="c">Because a file the ticket does not imply, or a size a reviewer cannot hold, fails the diff before any reading</button></li>
+        <li><button data-opt="d">Because <code>gh pr diff</code> prints in patch order, which hides which file each hunk belongs to unless the files are listed first</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Shape is a cheap, decisive first test: seven files for a one-field ticket is a verdict on its own. A and B invent constraints; D describes a readable format, not a reason.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Which claim about PR #4 is the evidence that it has a single purpose?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It adds 63 lines and deletes none, which shows the change is purely additive and therefore safe to merge</button></li>
+        <li><button data-opt="b">Every hunk in both files can be traced to one sentence naming ticket #1, and no hunk falls outside that sentence</button></li>
+        <li><button data-opt="c">It touches exactly two files, and two is well under the threshold the ancillary source gives for a reasonable change</button></li>
+        <li><button data-opt="d">It passed lint, tests, and <code>mypy</code>, which together prove the diff does one thing and does it correctly</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The test is the sentence, and every hunk serving it. Additive-only (A) and file counts (C) are shape, not purpose; a green CI (D) says nothing about scope — the drive-by PR on page 2 was green too.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. The page says a five-file PR #5 was "the same work" as the three-file version. What made the larger one less reviewable?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Another PR's already-merged hunks appeared in its diff, so a reviewer had to separate them from #5's own</button></li>
+        <li><button data-opt="b">Its author had added two unrelated files by mistake, which the rebase then removed from the branch</button></li>
+        <li><button data-opt="c">Five files exceeded the number the CI job could lint in one run, so the checks were split across two runs</button></li>
+        <li><button data-opt="d">The extra files were generated artifacts that GitHub's diff view renders slowly and reviewers tend to skip</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> After a squash-merged parent, the child's merge base moved and #4's changes showed up again (M16 page 2). Nothing was added by the author (B); CI (C) and rendering (D) are not the issue.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m14-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The three reviewability tests, in order?</div><div class="fc-back">Single purpose (one sentence covers every hunk), bounded size (one sitting), no drive-bys (nothing the ticket did not ask for).</div></div>
+      <div class="fc"><div class="fc-front">Two commands that show a diff's shape before its content?</div><div class="fc-back"><code>gh pr diff N --name-only</code> and <code>gh pr view N --json additions,deletions,changedFiles</code>.</div></div>
+      <div class="fc"><div class="fc-front">Does <code>gh pr diff</code> have <code>--stat</code>?</div><div class="fc-back">No — "unknown flag: --stat" on 2.100.0. It has <code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--web</code>.</div></div>
+      <div class="fc"><div class="fc-front">PR #4's shape?</div><div class="fc-back">2 files (model + its test file), +63 −0. Every hunk serves "adds four defaulted review-state fields to Card and validates them."</div></div>
+      <div class="fc"><div class="fc-front">The ancillary source's size guidance?</div><div class="fc-back">Google eng-practices: "100 lines is usually a reasonable size for a CL, and 1000 lines is usually too large, but it's up to the judgment of your reviewer."</div></div>
+      <div class="fc"><div class="fc-front">Why is "reviewable" not the same as "small"?</div><div class="fc-back">PR #5 grew to five files with another PR's merged hunks in it — same work, less reviewable. Size is a symptom; the test is the sentence.</div></div>
+      <div class="fc"><div class="fc-front">Who is the first reviewer of a diff Claude Code wrote?</div><div class="fc-back">You. The mission puts the bottleneck at "reviewing what comes back."</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Before opening your next PR, ask Claude Code: "list every file this branch changes against <code>main</code>, and for each one tell me which acceptance criterion in issue N required it." A file it cannot justify is a drive-by — ask it to move that change to a separate branch. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a><span class="why">"What is Small?", the 100/1000-line guidance, "Separate Out Refactorings," and the stacking and vertical-splitting strategies — practitioner material, marked as such; the mechanics on this page come from your own diffs.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a><span class="why">The four flags that exist (<code>--name-only</code>, <code>--patch</code>, <code>--exclude</code>, <code>--web</code>) and the one that does not.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_view">GitHub CLI manual: <code>gh pr view</code></a><span class="why"><code>--json additions,deletions,changedFiles,files</code> — the size numbers this page uses instead of <code>--stat</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-01/m03-the-merge-base/what-github-shows.html">M03 page 2: What GitHub Shows You</a><span class="why">Why a PR's diff is computed from the merge base — the reason the five-file version of #5 existed at all.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a> — quoted sentences on size and "just one thing" (fetched 2026-09-13; ancillary, not a Tier 1–4 source)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_diff">GitHub CLI manual: <code>gh pr diff</code></a> — flags (fetched 2026-09-13)</li>
+      <li>PR #4 on <code>perro-ruidoso/flashcards-w3probe</code>, a throwaway Instance: <code>gh pr diff 4</code>, <code>gh pr diff 4 --name-only</code>, and <code>gh pr view 4 --json …</code> captured 2026-09-13 with <code>gh</code> 2.100.0; the <code>--stat</code> error message is verbatim</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m13-branch-per-issue/naming-that-links.html"><span class="dir">Previous · M13</span>Naming That Links Twice</a>
+    <a class="next" href="splitting-a-drive-by.html"><span class="dir">Next · M14, page 2</span>Splitting a Drive-by</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

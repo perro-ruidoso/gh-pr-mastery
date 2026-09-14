@@ -82,7 +82,7 @@ SECTIONS = [
     ),
     (
         "Next",
-        "The recommended order. Weeks 1 and 2 are shipped and audited; "
+        "The recommended order. Weeks 1-3 are shipped (1-2 audited); "
         "the upstream repo is not needed until Week 5.",
         [
             ("DONE", "Week 2 -- M07 to M12",
@@ -92,8 +92,19 @@ SECTIONS = [
              "Instance; the two-parent sub-issue experiment and the accepted dependency "
              "cycle are on the M11 pages. M12's Linear UI steps are quoted from the docs "
              "and marked as not run live. Audited 2026-09-13 (see Done)."),
-            ("NEXT", "Weeks 3 to 6 -- M13 to M36",
-             "Four more vertical slices, ~24 Learning Pages, assignments A3-A6, two "
+            ("DONE", "Week 3 -- M13 to M18",
+             "Week 3 hub plus fourteen Learning Pages (two per objective, three for "
+             "M16), assignment A3 with its rubric, and check_a3.py. Built by doing the "
+             "week on a throwaway Instance (flashcards-w3probe, 2026-09-13): gh issue "
+             "develop branches, a stacked PR whose closing keyword was ignored until "
+             "retargeted, the diff growing after a squash and shrinking after a rebase, "
+             "a deliberate drive-by PR split into a clean one, a genuine two-file "
+             "conflict resolved by running /resolving-merge-conflicts, and two probes "
+             "showing --delete-branch closes a stacked child while the auto-delete "
+             "setting retargets it. Checker fault-injected 13/13; 42 pages render-tested "
+             "headless at 1200 and 400 px; 0 of 40 self-check questions flagged."),
+            ("NEXT", "Weeks 4 to 6 -- M19 to M36",
+             "Three more vertical slices, ~18 Learning Pages, assignments A4-A6, two "
              "graded concept quizzes, and the capstone."),
             ("TODO", "Upstream Repo: flashcards-upstream",
              "The shared repo students contribute to and take turns maintaining. Needed "
@@ -120,11 +131,17 @@ SECTIONS = [
              "Rulesets, merge queue configuration, and Linear settings -- the surfaces "
              "with no CLI equivalent. Stored under docs/assets/shots/ with visible "
              "capture dates, because they rot."),
-            ("TODO", "Delete the throwaway Instance flashcards-w2probe",
-             "Private, in the org, used for the M08/M11/M12 transcripts and the "
-             "2026-09-13 checker fault-injection. The build token lacks delete_repo: "
-             "`gh auth refresh -s delete_repo && gh repo delete "
-             "perro-ruidoso/flashcards-w2probe --yes`. Nothing on the pages needs it."),
+            ("TODO", "Delete the throwaway Instances flashcards-w2probe and flashcards-w3probe",
+             "Both private, in the org. w2probe carried the M08/M11/M12 transcripts and "
+             "the 2026-09-13 checker fault-injection; w3probe carried every Week 3 "
+             "transcript (issues #1-#3, PRs #4-#11) and the check_a3.py run. The build "
+             "token lacks delete_repo: `gh auth refresh -s delete_repo && gh repo "
+             "delete perro-ruidoso/flashcards-w2probe --yes` and the same for w3probe. "
+             "Nothing on the pages needs either."),
+            ("TODO", "Linear branch-name linking, live",
+             "M13 page 2 quotes Linear's rule that a branch name containing the issue "
+             "ID links the PR; not yet observed in a live workspace. Fold into the "
+             "Issues Sync live check."),
             ("TODO", "Student roster tooling",
              "handles.txt and a batch run of check_a1.py across the cohort."),
             ("DONE", "check_a1.py grades four labels and notes wontfix",

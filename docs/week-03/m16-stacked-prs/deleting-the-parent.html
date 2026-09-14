@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Deleting the Parent Does — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M16 · Page 3 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>What Deleting the Parent Does</h1>
+  <p class="lede">GitHub's docs promise that deleting a merged head branch retargets any PR stacked on it. Two live probes, ten minutes apart, on the same repository: through <code>gh pr merge --delete-branch</code> the child PR was <em>closed</em>; through the repository's <em>Automatically delete head branches</em> setting it was retargeted. Which path deleted the branch decides what happens to the stack.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M16 · Stacking</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Build a stacked PR on a dependent branch, set its base correctly, and retarget it after its parent merges.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M16 pages</span>
+    <a href="index.html"><span class="num">1</span>Stacking on a Branch That Is Not Main</a>
+    <a href="retargeting.html"><span class="num">2</span>Retarget, Then Look Again</a>
+    <span class="here"><span class="num">3</span>What Deleting the Parent Does</span>
+  </nav>
+
+  <h2>What the docs say</h2>
+  <p>GitHub's merging page, in a note: "If you delete a head branch after its pull request has been merged, GitHub checks for any open pull requests in the same repository that specify the deleted branch as their base branch. GitHub automatically updates any such pull requests, changing their base branch to the merged pull request's base branch." The same page's CLI tab gives the example <code>gh pr merge 523 --squash --body "my squash commit" --delete-branch</code> — the flag the manual describes as "Delete the local and remote branch after merge." Read together, they suggest that <code>--delete-branch</code> on a parent is safe for its children. It is not, and the difference took two probes to see.</p>
+
+  <h2>Probe 1: <code>gh pr merge --delete-branch</code></h2>
+  <p>Two throwaway branches with one-line README changes — <code>probe-parent</code> (PR #8, base <code>main</code>) and <code>probe-child</code> stacked on it (PR #9, base <code>probe-parent</code>):</p>
+
+  <pre><code><span class="prompt">$</span> gh pr view 9 --json baseRefName --jq .baseRefName
+probe-parent
+<span class="prompt">$</span> gh pr merge 8 --squash --delete-branch
+<span class="prompt">$</span> sleep 10
+<span class="prompt">$</span> gh pr view 9 --json baseRefName,state --jq '{base: .baseRefName, state}'
+{"base":"probe-parent","state":"CLOSED"}
+
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/issues/9/timeline --jq '.[] | "\(.created_at)  \(.event)  \(.actor.login // "")"'
+null  committed
+2026-09-13T17:13:34Z  base_ref_deleted  acatlin
+2026-09-13T17:13:35Z  closed  acatlin
+<span class="prompt">$</span> gh pr view 8 --json mergedAt --jq .mergedAt
+2026-09-13T17:13:33Z</code></pre>
+
+  <p>Merged at 17:13:33; the child's base branch deleted at 17:13:34 (<code>base_ref_deleted</code>); the child <strong>closed</strong> at 17:13:35, base still <code>probe-parent</code>, no base change event of any kind. The actor on both events is the user who ran the command, not GitHub. A stacked PR with an issue, a body, and a review on it would have been closed the same way — reopenable, and retargetable by hand afterwards, but closed.</p>
+
+  <h2>Probe 2: the repository setting</h2>
+  <p>Same shape, with <em>Automatically delete head branches</em> turned on (the docs: "On the 'General' settings page … Under 'Pull Requests', select or deselect Automatically delete head branches"; from the terminal it is the <code>delete_branch_on_merge</code> field) and a plain <code>gh pr merge --squash</code> with no flag:</p>
+
+  <pre><code><span class="prompt">$</span> gh api -X PATCH repos/perro-ruidoso/flashcards-w3probe -F delete_branch_on_merge=true --jq .delete_branch_on_merge
+true
+<span class="dim">… probe2-parent → PR #10 (base main); probe2-child → PR #11 (base probe2-parent) …</span>
+<span class="prompt">$</span> gh pr merge 10 --squash
+<span class="prompt">$</span> sleep 20
+<span class="prompt">$</span> gh pr view 11 --json baseRefName,state --jq '{base: .baseRefName, state}'
+{"base":"main","state":"OPEN"}
+
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/issues/11/timeline --jq '.[] | "\(.created_at)  \(.event)  \(.actor.login // "")"'
+null  committed
+null  committed
+2026-09-13T17:15:53Z  automatic_base_change_succeeded  acatlin
+<span class="prompt">$</span> gh pr view 10 --json mergedAt --jq .mergedAt
+2026-09-13T17:15:51Z</code></pre>
+
+  <span class="code-label">$ gh api graphql -f query='{ repository(owner:"perro-ruidoso", name:"flashcards-w3probe") { pullRequest(number:11) { timelineItems(itemTypes:[AUTOMATIC_BASE_CHANGE_SUCCEEDED_EVENT], first:10) { nodes { ... on AutomaticBaseChangeSucceededEvent { createdAt oldBase newBase } } } } } }' --jq '.data.repository.pullRequest.timelineItems.nodes[]'</span>
+  <pre><code>{"createdAt":"2026-09-13T17:15:53Z","newBase":"main","oldBase":"probe2-parent"}</code></pre>
+
+  <p>Merged at 17:15:51; the child retargeted to <code>main</code> at 17:15:53 by an <code>automatic_base_change_succeeded</code> event, still open. This is the behaviour the docs describe — and it is triggered by GitHub's own deletion of the branch after the merge, not by a client deleting the ref. <code>gh pr merge --delete-branch</code> deletes through the API after the merge completes, and GitHub treats that as any other branch deletion: the child's base is gone, so the child is closed.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>How the parent branch was deleted</th><th>Child PR afterwards</th><th>Timeline event on the child</th><th>Gap after merge</th></tr></thead>
+      <tbody>
+        <tr><td><code>gh pr merge --squash --delete-branch</code></td><td><code>CLOSED</code>, base unchanged</td><td><code>base_ref_deleted</code>, then <code>closed</code></td><td>1 s, 2 s</td></tr>
+        <tr><td>Repository setting <em>Automatically delete head branches</em>, plain <code>gh pr merge --squash</code></td><td><code>OPEN</code>, base <code>main</code></td><td><code>automatic_base_change_succeeded</code> (<code>oldBase</code> → <code>newBase</code>)</td><td>2 s</td></tr>
+        <tr><td>Not deleted; <code>gh pr edit --base main</code> by hand (page 2)</td><td><code>OPEN</code>, base <code>main</code></td><td><code>base_ref_changed</code> / <code>BaseRefChangedEvent</code></td><td>whenever you run it</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">The rule</span>
+    <p><strong>Never pass <code>--delete-branch</code> when merging a PR that another open PR is stacked on.</strong> Retarget the child first (page 2), then delete the parent branch if you want to. The automatic-deletion setting is safe for stacks — and the retargeted child still carries the parent's commits, so the rebase on page 2 is still needed before review. <code>check_a3.py</code> accepts either a <code>BaseRefChangedEvent</code> or an <code>AutomaticBaseChangeSucceededEvent</code> as the retarget; a child that was closed and reopened will show the manual event when you retarget it.</p>
+  </div>
+
+  <div class="callout note">
+    <span class="label">What the probes cost, and what they did not test</span>
+    <p>Four PRs and four branches on the throwaway, restored afterwards (<code>delete_branch_on_merge</code> back to <code>false</code>, #11 closed). Not tested: deleting the branch from the web UI's <em>Delete branch</em> button on a merged PR, or with <code>git push origin --delete</code>. The docs' sentence is worded for the first; the second is presumably the API path. If you try either, read the child's timeline afterwards and add the row.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>No assignment item depends on this page, but the rule does. Verify it once so you never learn it on a real stack.</p>
+    <label class="check"><input type="checkbox"><span>On two throwaway branches with one-line changes, reproduced probe 1 and saw the child close (<code>base_ref_deleted</code> → <code>closed</code>).</span></label>
+    <label class="check"><input type="checkbox"><span>Reopened the child with <code>gh pr reopen</code>, retargeted it with <code>gh pr edit --base main</code>, and saw a <code>BaseRefChangedEvent</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Decided whether to turn on <em>Automatically delete head branches</em> for my Instance, and can say what it does to a stack.</span></label>
+    <label class="check"><input type="checkbox"><span>Closed the probe PRs and deleted the probe branches.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. A parent PR is merged with <code>gh pr merge --squash --delete-branch</code>. What happens to the open child stacked on it?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It is retargeted to <code>main</code> by GitHub, as the merging page describes, with an automatic base-change event</button></li>
+        <li><button data-opt="b">It stays open with its base pointing at the deleted branch, and GitHub restores the branch when the child merges</button></li>
+        <li><button data-opt="c">It is closed within seconds, with a <code>base_ref_deleted</code> event followed by <code>closed</code>, and its base is unchanged</button></li>
+        <li><button data-opt="d">The merge is refused, because GitHub will not delete a branch that another open pull request uses as its base</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> Probe 1: 17:13:33 merged, 17:13:34 <code>base_ref_deleted</code>, 17:13:35 <code>closed</code>. The docs' retarget (A) is what probe 2 produced, through the repository setting. Nothing is refused (D) or restored (B).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. Under which condition did the child PR get an <code>automatic_base_change_succeeded</code> event?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">When the repository's <em>Automatically delete head branches</em> setting deleted the parent branch after a plain merge</button></li>
+        <li><button data-opt="b">When the parent was merged with a merge commit rather than a squash, so the child's commits were already reachable</button></li>
+        <li><button data-opt="c">When the child's body contained a closing keyword, which tells GitHub the PR should follow its issue to <code>main</code></button></li>
+        <li><button data-opt="d">When the parent's branch was deleted more than ten seconds after the merge, giving GitHub time to find the child</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> Probe 2 changed exactly one thing — <code>delete_branch_on_merge=true</code> and no <code>--delete-branch</code> flag — and the child was retargeted two seconds after the merge. Both probes used squash (B); the probe PRs had no keywords (C); timing (D) was similar in both.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">3. You have retargeted the child by hand and want the parent branch gone. What is the safe order?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Delete the parent branch first, so the child's base cannot be changed back to it by accident, then retarget the child</button></li>
+        <li><button data-opt="b">Retarget the child first, confirm its base is <code>main</code>, then delete the parent branch; the child no longer references it</button></li>
+        <li><button data-opt="c">Never delete the parent branch; GitHub needs it to compute the child's diff until the child has merged</button></li>
+        <li><button data-opt="d">Merge the child first, then delete both branches together with <code>--delete-branch</code> on the child's merge</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Once the child's base is <code>main</code>, the parent branch is not referenced by any open PR and deleting it affects nothing. A is the order that closes the child. The diff is computed from <code>main</code> after the retarget (C). D works but delays the cleanup for no reason.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m16-delete">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">What the docs promise when a merged head branch is deleted?</div><div class="fc-back">GitHub "automatically updates any such pull requests, changing their base branch to the merged pull request's base branch."</div></div>
+      <div class="fc"><div class="fc-front">What <code>gh pr merge --delete-branch</code> on a parent actually did to the child?</div><div class="fc-back">Closed it: <code>base_ref_deleted</code> 17:13:34, <code>closed</code> 17:13:35, base unchanged. No retarget.</div></div>
+      <div class="fc"><div class="fc-front">What the <em>Automatically delete head branches</em> setting did to the child?</div><div class="fc-back">Retargeted it: <code>automatic_base_change_succeeded</code> 17:15:53, <code>oldBase</code> probe2-parent → <code>newBase</code> main, still open.</div></div>
+      <div class="fc"><div class="fc-front">The rule for stacks?</div><div class="fc-back">Never <code>--delete-branch</code> a parent with an open child. Retarget the child first, then delete.</div></div>
+      <div class="fc"><div class="fc-front">Three ways a child's base can change, and their events?</div><div class="fc-back">By hand → <code>BaseRefChangedEvent</code>; GitHub's auto-deletion → <code>AutomaticBaseChangeSucceededEvent</code>; API deletion → no change, <code>base_ref_deleted</code> + <code>closed</code>.</div></div>
+      <div class="fc"><div class="fc-front">Field that turns the setting on from the terminal?</div><div class="fc-back"><code>gh api -X PATCH repos/O/R -F delete_branch_on_merge=true</code>.</div></div>
+      <div class="fc"><div class="fc-front">After an automatic retarget, is the rebase still needed?</div><div class="fc-back">Yes — the child still carries the parent's commits, so its diff includes the squash-merged work until you rebase.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Show Claude Code the two probe transcripts and the docs' sentence, and ask it to explain the discrepancy. Then ask it what it would have said <em>before</em> seeing the probes — most agents will confidently describe the docs' behaviour for the <code>--delete-branch</code> case. That gap is why this course runs things instead of describing them. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request">GitHub Docs: Merging a pull request</a><span class="why">The note promising the automatic retarget, and the CLI tab's <code>--delete-branch</code> example that sits three paragraphs from it.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches">GitHub Docs: Managing the automatic deletion of branches</a><span class="why">The setting probe 2 turned on, and the note that branch protection and rulesets can prevent the deletion.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_merge">GitHub CLI manual: <code>gh pr merge</code></a><span class="why"><code>--delete-branch</code>, <code>--squash</code>/<code>--merge</code>/<code>--rebase</code>, <code>--auto</code>, and the merge-queue behaviour Week 5 will use.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/using-the-rest-api/issue-event-types">GitHub Docs: Issue event types</a><span class="why">The REST names of every event on this page; <code>automatic_base_change_succeeded</code> is the one to search for.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request">GitHub Docs: Merging a pull request</a> — the retarget note and the CLI example (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-the-automatic-deletion-of-branches">GitHub Docs: Managing the automatic deletion of branches</a> — the settings path (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_merge">GitHub CLI manual: <code>gh pr merge</code></a> — <code>--delete-branch</code> description (fetched 2026-09-13)</li>
+      <li>PRs #8–#11 on <code>perro-ruidoso/flashcards-w3probe</code>: both probes run 2026-09-13 with <code>gh</code> 2.100.0; the timelines, GraphQL query, and <code>delete_branch_on_merge</code> PATCH are verbatim; the repository setting was restored afterwards</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="retargeting.html"><span class="dir">Previous · M16, page 2</span>Retarget, Then Look Again</a>
+    <a class="next" href="../m17-resolving-conflicts/index.html"><span class="dir">Next · M17</span>Where the Conflict Came From</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

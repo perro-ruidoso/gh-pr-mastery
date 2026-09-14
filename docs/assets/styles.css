@@ -816,9 +816,18 @@ th { background: var(--bg-inset); font-weight: 650; }
 .learnmore .tier.t2 { background: var(--info-soft); color: var(--info); }
 .learnmore .tier.t3 { background: var(--good-soft); color: var(--good); }
 .learnmore .tier.t4 { background: var(--warn-soft); color: var(--warn-ink); }
+.learnmore .tier.anc { background: var(--bg-inset); color: var(--muted); }
 .learnmore .why { display: block; font-size: 0.9rem; color: var(--ink-soft); }
 
 /* ---------- ask your teacher ---------- */
 
 .callout.ask { background: var(--accent-soft); border-color: transparent; }
 .callout.ask .label { color: var(--accent-ink); }
+
+blockquote {
+  margin: 1.25rem 0;
+  padding: 0.25rem 1rem;
+  border-left: 4px solid var(--accent);
+  color: var(--ink);
+}
+blockquote p { margin: 0.5rem 0; }

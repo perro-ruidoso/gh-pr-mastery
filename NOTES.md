@@ -577,6 +577,122 @@ nesting" quotation; this file's and the guide's statement that the teaching mach
 2.92.0 and needs a portable build (true when written, false now); `check_site.py` catches
 an empty flashcard face.
 
+### Week 3 — branches, stacked PRs, conflicts — verified 2026-09-13
+
+Everything below was **run**, not read, on a second throwaway Instance,
+`perro-ruidoso/flashcards-w3probe` (private, created from the template at 16:55 UTC), with
+`gh` 2.100.0 and git 2.52.0. Three tickets were filed (#1 review state on `Card`; #2 persist it,
+`--blocked-by 1`; #3 tag field, `--blocked-by 1`), then the week was done end to end: PRs #4–#7,
+plus two probe pairs #8–#11. The transcripts on the Week 3 pages are these runs verbatim.
+
+#### Sources — every URL fetched before writing
+
+Every Week 3 row already in `RESOURCES.md` answered 200 with no redirect. Five URLs new to the
+course redirected once each (301 → 200) and are recorded canonically: `addressing-merge-conflicts/
+about-merge-conflicts` → `pull-requests/reference/merge-conflicts`; `…/resolving-a-merge-conflict-
+using-the-command-line` and `…-on-github` → `pull-requests/how-tos/merge-and-close-pull-requests/…`;
+`proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request` →
+`how-tos/create-pull-requests/creating-a-pull-request`; `incorporating-changes-from-a-pull-request/
+about-pull-request-merges` → `pull-requests/reference/pull-request-merges`. Two guessed URLs were
+**404** and are not cited: `…/creating-a-pull-request-template` and `…/deleting-and-restoring-
+branches-in-a-pull-request` (both old and `how-tos/` spellings). The Linear page, the Pocock repo
+README, the Anthropic skills page, git-scm.com, and the Google eng-practices page all answered
+200 with no redirect.
+
+#### `gh issue develop` and linked branches
+
+| Fact | Evidence | Page |
+|---|---|---|
+| The default branch name is `<number>-<whole title slugified>` — 68 characters for #1. `--name` replaces it. | `gh issue develop 1 --checkout` → `1-add-review-state-to-card-repetitions-ease-factor-interval-due-date`. | M13 p1 |
+| The branch is created on GitHub first, from the default branch, then fetched; `--checkout` checks it out. | URL printed before the fetch lines; `git log -1` shows only the template's initial commit. | M13 p1 |
+| The link is stored server-side and readable by GraphQL `issue.linkedBranches`. | Query returned the branch name. | M13 p1 |
+| **`--list` goes empty the moment a PR is opened from the branch**, as the docs say ("the connection with that branch is removed and only the pull request is shown"). | `gh issue develop --list 1` → the branch; after `gh pr create`, nothing. | M13 p1 |
+| `--base B` starts the branch at B's tip **and** writes `branch.<name>.gh-merge-base = B`; `gh pr create` with no `--base` then targets B. | `git config --get branch.2-persist-review-state.gh-merge-base` → #1's branch; PR #5 opened against it with no flag. | M13 p1, M16 p1 |
+| One issue can have several linked branches; a second `gh issue develop 3 --name …` succeeded while #3 already had a branch with a (closed) PR. | #3: `3-tag-field-on-card` (PR #6) and `3-tag-field-on-card-clean` (PR #7). | M13 p1, M14 p2 |
+| Linear links a PR from a branch name containing the Linear issue ID; GitHub links by the stored relation. **Linear half not run live** (no workspace); quoted from the docs. | linear.app/docs/github, "Branch name" and FAQ. | M13 p2 |
+
+#### Closing keywords and `closingIssuesReferences`
+
+| Fact | Evidence | Page |
+|---|---|---|
+| `closingIssuesReferences` is **empty in the second the PR is created** and populates a moment later; the issue gets a `connected` timeline event. | PR #4 created 17:00:19: `closes: []` at once, `[1]` at 17:00:34; issue #1 `connected` 17:00:21. | M15 p2 |
+| The `closed` event on an issue closed by a PR-body keyword has `commit_id: null` (the docs say it is present when a *commit's* keyword closed it). | `…/issues/1/timeline`. | M15 p2 (learn more) |
+| A keyword on a PR whose base is another feature branch creates **no link, however long you wait**; retargeting to `main` creates it within a second. | PR #5: `closes: []` at +20 s, still `[]` after the parent merged; `gh pr edit 5 --base main` at 17:03:12 → `closes: [2]`, issue #2 `connected` 17:03:13. | M15 p2, M16 p2 |
+| Merge → issue closed as `COMPLETED` one second later, three times out of three. | #4/#1 17:02:47→48; #7/#3 17:09:14→15; #5/#2 17:12:47→48. | M15 p2 |
+| `gh issue view --json closedByPullRequestsReferences` lists only open or merged PRs; a closed-unmerged PR drops out of it while `gh pr list --json closingIssuesReferences` still shows the link on the PR side. | #3 → `[7]`; PR #6 (closed) still `closes=[3]`. | M14 p2, M15 p2 |
+| `gh pr diff` has no `--stat`. | `unknown flag: --stat` on 2.100.0; use `--name-only` or `gh pr view --json additions,deletions,changedFiles,files`. | M14 p1 |
+
+#### Stacked PRs, retargeting, and the squash
+
+| Fact | Evidence | Page |
+|---|---|---|
+| A stacked PR's diff shows only the child's work while its base is the parent branch. | PR #5: 3 files, +88 −6; `models.py` (changed by #1) absent. | M16 p1 |
+| GitHub does not update a child when its parent merges (the docs' "does not update the base branch's commit"). | PR #5 five seconds after #4 merged: base unchanged, `closes: []`, 3 files. | M16 p2 |
+| **After a squash-merged parent, retargeting makes the child's diff grow** to include the parent's changes — the merge base falls back to the initial commit — but it stays `MERGEABLE` (identical changes on both sides). | After `--base main`: 5 files, +151; `git merge-base origin/main HEAD` → `e474711`. | M16 p2 |
+| `git rebase origin/main` drops the already-squashed commit by itself: "warning: skipped previously applied commit 58cab2d"; the diff returns to the child's files. | Merge base → `0b9a901`; PR #5 back to 3 files, 1 commit `37d4731`, after `--force-with-lease`. | M16 p2 |
+| GraphQL `BaseRefChangedEvent` carries `previousRefName`/`currentRefName`; REST `base_ref_changed` carries only the time. | Both queried on PR #5 and on gh-pr-mastery #14. | M16 p2, `check_a3.py` |
+| Course repo #12 → #14, complete: #12 squash-merged 15:40:01 (`cf6d380`), #11 closed 15:40:03, #14 base changed 15:40:05 (`11-week1-pages-flashcards-learn-more` → `main`), #14 head force-pushed 15:42:45 (`32ac8c2` → `3af3c05` — the rebase onto the squash), #14 squash-merged 15:43:30 (`e28ce3d`), #13 closed 15:43:31. **Issue #13 has no `connected` event at all**; the second `closingIssuesReferences` populated is not on record. | GraphQL timeline of #14; `gh pr view 12/14`; `gh issue view 11/13`; REST timeline of #13. | M16 p2, M15 p2 |
+| **`gh pr merge --squash --delete-branch` on a parent CLOSES the stacked child**: `base_ref_deleted` one second after the merge, `closed` a second later, base unchanged, no retarget. The docs' sentence ("GitHub automatically updates any such pull requests, changing their base branch…") did not apply. | Probe 1: PR #8 merged 17:13:33; PR #9 `base_ref_deleted` 17:13:34, `closed` 17:13:35, actor the user. | M16 p3 |
+| **The repository setting *Automatically delete head branches* + a plain merge RETARGETS the child**: `automatic_base_change_succeeded`, `oldBase` → `newBase`, two seconds after the merge, PR still open. | Probe 2: `delete_branch_on_merge=true`; PR #10 merged 17:15:51; PR #11 event 17:15:53. Setting restored to `false`, #11 closed. | M16 p3 |
+| Not probed: deleting the branch from the web UI's *Delete branch* button, or `git push origin --delete`. | — | M16 p3 says so |
+
+#### Conflicts and the skill
+
+| Fact | Evidence | Page |
+|---|---|---|
+| Two frontier tickets with no edge between them (#2, #3) both touched `Card` — the docstring line after `due`, and the end of `tests/domain/test_models.py`. A genuine two-file conflict: #2's second commit added a `datetime` guard motivated by the file format; #3 added `tags`. | `git merge origin/main` → `CONFLICT (content)` ×2; `git status --short` → `UU` ×2, `CONTEXT.md` `M` (clean). | M17 p1 |
+| `mergeable` goes **`UNKNOWN` before `CONFLICTING`**: 20 s after the sibling merged it was `UNKNOWN`/`UNKNOWN`; 35 s after, `CONFLICTING`/`DIRTY`. | `gh pr view 5 --json mergeable,mergeStateStatus` ×3. | M17 p1 |
+| The `datetime` guard and `has_tag` landed in the same method without conflict — git's "non-overlapping … incorporated verbatim". | Combined diff, two `+` columns, no markers. | M17 p1 |
+| `/resolving-merge-conflicts` was invoked in Claude Code with the merge stopped; each of its five steps was executed and captured: state (`git status`, `git log --graph HEAD MERGE_HEAD`, `--diff-filter=U`); sources (commit `3b9501a`'s body, PR #7's body, issue #3's criteria); resolution keeping both sides (markers 0, nothing invented); checks (`pytest` 34 = 30 + 4, ruff, mypy clean); `git commit --no-edit` → two-parent `dd3293d`. | Transcripts on the page. | M17 p2 |
+| After the push, PR #5: `MERGEABLE`/`CLEAN`, 5 files, commits `37d4731 3b9501a dd3293d`; `GET /pulls/5/commits` shows `dd3293d` with 2 parents — the artifact `check_a3.py` reads. | Live. | M17 p2, `check_a3.py` |
+| A fixture-based conflict was tried first and rejected as dishonest: tagging a card in the shared `sample_deck` fixture breaks the storage round-trip test until tag persistence (T08) lands, so no careful T07 author would do it. The conflict was moved to the model docstring and the test file's tail, where both tickets had a real reason to be. | Local run; the branch was reset before anything was pushed. | — |
+
+#### Skills — installed versus upstream
+
+| Fact | Evidence | Page |
+|---|---|---|
+| The installed `~/.agents/skills/` copies are dated **2026-07-09**; 38 skills. | `ls -la`. | M18 p1 |
+| **`request-refactor-plan` no longer exists upstream**: removed by commit `c66bdee` (2026-08-05, "chore: remove six unused skills and the personal bucket"); raw URL 404 under every bucket. Still installed; M18 quotes the installed file and says so. | GitHub search API + raw fetch. | M18 p1, p2 |
+| Upstream buckets as of 2026-09-13: `engineering` (ask-matt, code-review, codebase-design, diagnosing-bugs, domain-modeling, grill-with-docs, implement, improve-codebase-architecture, prototype, research, resolving-merge-conflicts, setup-matt-pocock-skills, tdd, to-spec, to-tickets, triage, wayfinder, wizard), `productivity` (grill-me, grilling, handoff, teach, to-questionnaire, wait-what, writing-for-agents), `misc` (git-guardrails-claude-code, migrate-to-shoehorn, scaffold-exercises, setup-pre-commit), `in-progress` (claude-handoff, implement-spec, loop-me, retro, …), `deprecated` (empty by policy). | `GET /repos/mattpocock/skills/contents/skills/<bucket>`. | M18 |
+| Upstream front-matter descriptions of the seven surviving skills are word-for-word the installed ones except `wayfinder`, whose em-dashes became parentheses on 2026-08-19 ("Remove all em-dashes from the repo"). The README's one-line descriptions differ from the front matter (e.g. `resolving-merge-conflicts`: README "Work through an in-progress git merge or rebase conflict hunk by hunk…" vs front matter "Use when you need to resolve an in-progress git merge/rebase conflict."). Pages quote the front matter. | Raw `SKILL.md` fetches diffed against installed. | M18 p2 |
+| `grill-me`'s body is one line, "Run a `/grilling` session."; `disable-model-invocation: true` on ask-matt, wayfinder, grill-me, handoff; absent on resolving-merge-conflicts, request-refactor-plan, tdd, git-guardrails. | Files. | M18 |
+| `resolving-merge-conflicts` is therefore model-invocable — it can start on its own when a merge stops. | Front matter. | M17 p2, M18 p1 |
+
+#### Checker and site
+
+- `checkers/check_a3.py` (new) grades: ≥ 2 merged PRs linking issues; a blocking edge among
+  them; head branch starts with the linked issue's number; the four body headings; a closing
+  keyword in the body; linked issues `CLOSED`/`COMPLETED` within 30 s of the merge; a merged PR
+  with a base change onto the default branch (`BaseRefChangedEvent` **or**
+  `AutomaticBaseChangeSucceededEvent`), whose parent is a merged PR and whose issue is blocked
+  by the parent's; a two-parent commit on that PR; an issue with a closed-unmerged PR followed
+  by a smaller merged one; `a3-writeup.md` (≥ 200 words; mentions "conflict"; names ≥ 3 of the
+  six skills — notes). Against `flashcards-w3probe` it fails on exactly the write-up; against
+  `flashcards-seed` it stops at "0 merged PRs that link an issue"; a nonexistent handle fails
+  "Instance exists". **Fault-injected 13/13** by replaying a recorded snapshot of the live `gh`
+  responses with one mutation per rule (`fault_a3.py` in the session scratchpad).
+- `checkers/check_site.py`: Evaluate pages now also require a hands-on checklist (M14 is the
+  first Evaluate objective with pages); verified by injection. **42 pages, 462 internal links,
+  clean.**
+- Self-checks: 40 questions on the 14 Week 3 pages, written and then rebalanced with the
+  audit's option-form scan (correct option never uniquely longest, shortest, or the only one
+  with `<code>`): 25 flagged on the first pass, **0 after** four rounds of distractor edits.
+  Answer letters 12/10/8/10 across A–D.
+- Render: the Chrome extension was not connected this session, so the pages were driven in
+  **headless Chrome** (`--headless=new --virtual-time-budget`) from a same-origin iframe
+  harness at 1200 px and 400 px: 4 Mermaid diagrams drawn on 4 pages, 14 decks built and run to
+  "complete" with the list hidden, 40/40 self-checks mark wrong-then-right correctly with the
+  first-try tally at 0/N, no in-frame errors, **no horizontal overflow at either width**. One
+  page screenshotted at 1200 px and read by eye. The harness file was deleted before commit.
+- `docs/assets/styles.css`: a `.tier.anc` chip for the ancillary source on the M14/M16 pages,
+  and a `blockquote` rule (first use, M15 p2).
+
+**Left over for the instructor:** `perro-ruidoso/flashcards-w3probe` (private, 3 issues, PRs
+#4–#11, `delete_branch_on_merge` restored to false) joins `flashcards-w2probe` on the delete
+list; same `delete_repo` refresh, then `gh repo delete perro-ruidoso/flashcards-w3probe --yes`.
+Nothing on the pages depends on it surviving. Not done: the Linear branch-name link, live (M13
+p2 says so); the two untested branch-deletion paths (M16 p3 says so).
+
 ## Open questions
 
 - ~~Linear Free plan's Issues Sync availability~~ — **resolved 2026-09-13**, twice: the
@@ -619,6 +735,12 @@ an empty flashcard face.
   M06 now say so explicitly rather than implying six units of exemplary process that does
   not exist. Keep an eye on this as the history grows: M06's claim about what the
   repository demonstrates has to stay true.
+- **Linear branch-name linking, live.** M13 page 2 quotes Linear's rule and marks it as not
+  observed. Do it with the Issues Sync live check (same workspace, five minutes).
+- **`request-refactor-plan` is gone upstream** (2026-08-05). M18 names it because the
+  objective does; the page quotes the installed copy and says it was removed. Decide before
+  cohort 2 whether to keep it in M18 or swap in a surviving skill (`implement` or
+  `improve-codebase-architecture` are the nearest neighbours on `ask-matt`'s map).
 - Whether instructor's Pro subscription usage limits can absorb CI review volume for
   8–14 students, or whether Max is needed. Measure during the Week 5 dry run.
 
@@ -882,3 +1004,33 @@ an empty flashcard face.
   93 self-check questions gave the answer away by option length (all rewritten, 0 flagged).
   Not done: deleting `flashcards-w2probe` (no `delete_repo` scope; command in Part 10) and
   the Linear live walk, unchanged.
+
+- **2026-09-13** — **Week 3 built** (M13–M18): the hub, fourteen Learning Pages (two per
+  objective, three for M16), `assignments/a3.md` with its rubric, and `checkers/check_a3.py`.
+  Filed as an issue blocked by #13 (Week 2); built on a branch; PR to `main`. Every command on
+  every page was run on a throwaway Instance the same day — the week was *done*, not described:
+  three tickets with edges, `gh issue develop` for each branch, a stacked PR, its retarget after
+  a squash merge and the rebase that followed, a deliberately authored drive-by PR closed and
+  split, a genuine conflict resolved by invoking `/resolving-merge-conflicts` in Claude Code,
+  and two probes of what deleting a merged parent branch does to the child. Findings are in the
+  "Week 3" section above; the ones that changed what the pages teach:
+  - `Closes #n` on a stacked PR is ignored until the base is the default branch (the 2026-09-13
+    #14 finding, now shown with `connected` timestamps), and `closingIssuesReferences` is empty
+    for a second or two even on a `main`-based PR — read twice.
+  - A squash-merged parent makes the retargeted child's diff grow; `git rebase origin/main`
+    prints "skipped previously applied commit" and fixes it. The course repo's #14 did exactly
+    this (force-push at 15:42:45), which M06 had not previously explained.
+  - `gh pr merge --delete-branch` on a parent **closes** the stacked child; only GitHub's own
+    auto-deletion retargets it. The docs describe the second; a student following the CLI
+    example on the same page would hit the first.
+  - `mergeable` reads `UNKNOWN` for ~30 s after a sibling merges before it reads `CONFLICTING`.
+  - `request-refactor-plan` was removed upstream on 2026-08-05; the installed skills are a
+    2026-07-09 snapshot.
+  - M14 has no primary source; Google's eng-practices "Small CLs" is quoted as ancillary and
+    marked so on the page, with a new `.tier.anc` chip.
+  - `check_a3.py` grades evidence only and was fault-injected 13/13 against a recorded
+    snapshot; `check_site.py` now requires a checklist on Evaluate pages; the site is 42 pages,
+    462 links, clean; 40 new self-check questions, 0 flagged by the option-form scan; render
+    verified in headless Chrome at 1200 and 400 px (the extension was not connected).
+  - Left over: delete `flashcards-w3probe` (with `w2probe`); the Linear branch-name link is
+    documentary; two branch-deletion paths untested; the `request-refactor-plan` decision.

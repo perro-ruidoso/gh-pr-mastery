@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the Conflict Came From — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M17 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Where the Conflict Came From</h1>
+  <p class="lede">Two tickets were unblocked by the same parent, worked at the same time, and both touched the class the parent had just reshaped. One merged first. The other became <code>CONFLICTING</code>. Before resolving anything, this page reads the conflict as evidence about the backlog.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M17 · Conflicts</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Resolve a merge conflict on a stacked branch with <span class="skill">/resolving-merge-conflicts</span> and explain what caused it.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M17 pages</span>
+    <span class="here"><span class="num">1</span>Where the Conflict Came From</span>
+    <a href="running-the-skill.html"><span class="num">2</span>Running /resolving-merge-conflicts</a>
+  </nav>
+
+  <h2>The frontier after #1 merged</h2>
+  <p>Once #1 (review state on <code>Card</code>) merged, two tickets had every blocker closed: #2 (persist the state — the stacked PR #5, retargeted and rebased on <a href="../m16-stacked-prs/retargeting.html">M16 page 2</a>) and #3 (a tag field on <code>Card</code>). Week 2 called this the frontier: tickets a concurrent agent session could pick up. Both were picked up. Both, it turned out, needed to touch <code>models.py</code>:</p>
+  <ul>
+    <li>#2, while persisting <code>due</code>, found that a <code>datetime</code> passes the <code>date</code> annotation at runtime and would write a timestamp the loader rejects. It added a guard in <code>Card.__post_init__</code> and a sentence to the <code>due</code> docstring, plus a test — commit <code>3b9501a</code>, "Reject a datetime in Card.due."</li>
+    <li>#3 added <code>tags</code> to <code>Card</code>: a docstring line right after <code>due</code>'s, two checks in <code>__post_init__</code>, a <code>has_tag</code> method, and three tests at the end of the same test file — PR #7, squash-merged at 17:09:14.</li>
+  </ul>
+  <p>Same class, same docstring, same <code>__post_init__</code>, same end of the same test file. Neither ticket was wrong to touch them — <code>Card</code> is the domain model; every ticket on this frontier reshapes it. GitHub's merge-conflicts page: "Merge conflicts often happen when people make different changes to the same line of the same file."</p>
+
+  <h2>GitHub notices, slowly</h2>
+  <pre><code><span class="prompt">$</span> gh pr view 5 --json mergeable,mergeStateStatus --jq '{mergeable, mergeStateStatus}'   <span class="dim"># before #7 merges</span>
+{"mergeStateStatus":"CLEAN","mergeable":"MERGEABLE"}
+<span class="prompt">$</span> gh pr merge 7 --squash
+<span class="prompt">$</span> sleep 20
+<span class="prompt">$</span> gh pr view 5 --json mergeable,mergeStateStatus --jq '{mergeable, mergeStateStatus}'   <span class="dim"># after</span>
+{"mergeStateStatus":"UNKNOWN","mergeable":"UNKNOWN"}
+<span class="prompt">$</span> gh pr view 5 --json mergeable,mergeStateStatus --jq '{mergeable, mergeStateStatus}'   <span class="dim"># 35 s later</span>
+{"mergeStateStatus":"DIRTY","mergeable":"CONFLICTING"}</code></pre>
+  <p>Twenty seconds after #7 merged, GitHub had not yet recomputed #5's mergeability and answered <code>UNKNOWN</code>; fifteen seconds after that, <code>CONFLICTING</code> / <code>DIRTY</code>. A script that reads <code>mergeable</code> immediately after a merge to <code>main</code> must treat <code>UNKNOWN</code> as "ask again," not as either answer. The docs on what the state means: "Merge conflicts block merging because Git cannot safely choose which version of the conflicting content to keep. You must resolve all merge conflicts before you can merge a pull request on GitHub. If your pull request has a merge conflict between the compare branch and base branch, the Merge pull request button is deactivated until the conflicts are resolved."</p>
+
+  <h2>Reproducing it locally</h2>
+  <p>The docs give two routes: "Simple line conflicts can often be resolved on GitHub … More complex conflicts must be resolved in a local clone and pushed back to the pull request branch." The course uses the local route always, because the skill on page 2 needs the repository's history and its checks, and because the web editor's own warning applies: "Resolving conflicts on GitHub merges the entire base branch into the head branch." Locally, the same merge is explicit:</p>
+
+  <pre><code><span class="prompt">$</span> git branch --show-current
+2-persist-review-state
+<span class="prompt">$</span> git fetch origin main
+<span class="dim">   0b9a901..78e17a7  main       -> origin/main</span>
+<span class="prompt">$</span> git merge origin/main
+<span class="dim">Auto-merging src/flashcards/domain/models.py
+CONFLICT (content): Merge conflict in src/flashcards/domain/models.py
+Auto-merging tests/domain/test_models.py
+CONFLICT (content): Merge conflict in tests/domain/test_models.py
+Automatic merge failed; fix conflicts and then commit the result.</span>
+<span class="dim">(exit 1)</span>
+<span class="prompt">$</span> git status --short
+M  CONTEXT.md
+UU src/flashcards/domain/models.py
+UU tests/domain/test_models.py</code></pre>
+
+  <p>Three files came from <code>main</code>. <code>CONTEXT.md</code> merged cleanly (only #3 touched it) and is already staged — <code>M</code> in the first column. The other two are <code>UU</code>, "both modified," GitHub's docs' words for the status output. What git wrote into them:</p>
+
+  <pre><code>diff --cc src/flashcards/domain/models.py
+@@@ -24,8 -24,9 +24,14 @@@ class Card
+          ease_factor: The per-card multiplier SM-2 applies to future intervals.
+          interval: Whole days until the card is next due.
+          due: The date the card is next due, or ``None`` if it has never been
+++&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+ +            reviewed. A calendar date, never a datetime: the deck file stores it
+ +            as ``YYYY-MM-DD``.
+++=======
++             reviewed.
++         tags: Topic labels used to filter a review session; a tuple because a
++             frozen Card must stay hashable.
+++&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+      """
+@@@ -45,9 -51,11 +56,13 @@@
+              raise ValueError("Card.ease_factor must be at least 1.3")
+          if self.interval &lt; 0:
+              raise ValueError("Card.interval must not be negative")
+ +        if isinstance(self.due, datetime):
+ +            raise ValueError("Card.due must be a date, not a datetime")
+
++     def has_tag(self, tag: str) -> bool:
++         """Return whether the card carries ``tag`` (exact, case-sensitive)."""
++         return tag in self.tags</code></pre>
+
+  <p>Read the markers the way git-merge's manual describes them: "The area where a pair of conflicting changes happened is marked with markers <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>. The part before the <code>=======</code> is typically your side, and the part afterwards is typically their side." Here "your side" is <code>HEAD</code>, the stacked branch; "their side" is <code>origin/main</code>. The docstring hunk is a real conflict — both sides replaced the same line after "has never been." The second hunk in the same file is <em>not</em> a conflict: the <code>datetime</code> guard (ours, <code>+</code> in the first column) and <code>has_tag</code> (theirs, <code>+</code> in the second) landed in different places and git merged them itself. The manual again: "non-overlapping ones … are incorporated in the final result verbatim." The test-file conflict is the classic one — both branches appended tests at the end of the file, and git cannot know which order was meant.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  M0["main · 0b9a901<br/>#4 squashed"] --> B2a["37d4731<br/>persist review state"]
+  B2a --> B2b["3b9501a<br/>reject datetime in due<br/>(models.py, test_models.py)"]
+  M0 --> P7["PR #7 · tags on Card<br/>(models.py, test_models.py, CONTEXT.md)"]
+  P7 -->|"squash-merged 17:09:14"| M1["main · 78e17a7"]
+  M1 -.->|"git merge origin/main<br/>CONFLICT ×2"| B2b
+    </pre>
+    <span class="caption">Two branches off the same commit, each adding to the same class and the same test file. The dotted edge is the merge that stopped.</span>
+  </div>
+
+  <h2>What the conflict says about the backlog</h2>
+  <p>The objective asks you to explain what caused it, and "both touched <code>models.py</code>" is only half an answer. The other half is about edges. #2 and #3 had no edge between them, correctly: neither <em>needs</em> the other to start. But they share a surface — the domain model — and sharing a surface is not a dependency, it is a <strong>conflict risk</strong>, which a backlog cannot record and a stack cannot prevent. The honest explanation names the surface, says the edge was right to be absent, and says what would have avoided the collision: land the smaller model change first (#3 was three files) or, in one agent session, sequence the two tickets rather than parallelise them. That is the sentence Assignment A3's write-up asks for.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Item 5 of Assignment A3, up to the point where the skill takes over on page 2.</p>
+    <label class="check"><input type="checkbox"><span>Picked ticket C: unblocked once A merged, no edge to B, touching a file B touches. Branched it from <code>main</code>, implemented, merged.</span></label>
+    <label class="check"><input type="checkbox"><span>Read B's <code>mergeable</code> three times over a minute and saw <code>UNKNOWN</code> before <code>CONFLICTING</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>On B's branch, ran <code>git fetch origin main &amp;&amp; git merge origin/main</code> and got <code>CONFLICT (content)</code>; <code>git status --short</code> shows <code>UU</code> on the conflicting files.</span></label>
+    <label class="check"><input type="checkbox"><span>Read <code>git diff</code> and, for each hunk, said whether it is a conflict or a clean two-sided merge, and which side is HEAD.</span></label>
+    <label class="check"><input type="checkbox"><span>Wrote the write-up sentence: the shared surface, whether the missing edge was right, what would have avoided it.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. Twenty seconds after #7 merged, PR #5 reported <code>mergeable: UNKNOWN</code>. What should a script do with that value?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Treat it as <code>MERGEABLE</code>, since GitHub only reports <code>CONFLICTING</code> once it has actually found a real conflict</button></li>
+        <li><button data-opt="b">Ask again after a pause; GitHub recomputes mergeability lazily and <code>UNKNOWN</code> means it has not finished</button></li>
+        <li><button data-opt="c">Treat it as <code>CONFLICTING</code>, since a PR whose base has just moved is always dirty until it has been rebased</button></li>
+        <li><button data-opt="d">Fail the check, since <code>UNKNOWN</code> is only returned for PRs whose head branch has been deleted</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Fifteen seconds later the same query returned <code>CONFLICTING</code> / <code>DIRTY</code>. Neither guess (A, C) is safe; D is wrong about when the value appears.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. In the <code>models.py</code> conflict output, the <code>datetime</code> guard and <code>has_tag</code> appear near each other with <code>+</code> in different columns and no markers. What does that mean?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">They are a second conflict that git could not mark because the hunks are separated by a blank line</button></li>
+        <li><button data-opt="b">Git chose HEAD's version for both and discarded main's; the <code>+</code> columns show which side won each line</button></li>
+        <li><button data-opt="c">They must be resolved by deleting one of them, since two additions to the same method body cannot both be kept</button></li>
+        <li><button data-opt="d">They did not overlap, so git merged both sides itself; the columns show which side each added line came from</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> git-merge: non-overlapping changes "are incorporated in the final result verbatim." The combined diff's two columns mark origin; only marker-bounded regions are conflicts. A, B, and C misread the format.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Should the backlog have recorded #3 as blocked by #2 to prevent this conflict?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">No; an edge records that a ticket cannot start without another, and #3 could — a shared file is not a dependency</button></li>
+        <li><button data-opt="b">Yes; any two tickets that touch the same file must be ordered by an edge, or the second one will always conflict on merge</button></li>
+        <li><button data-opt="c">Yes; the conflict proves the edge was missing, and <code>waves_from_github.py</code> would have placed #3 in a later wave</button></li>
+        <li><button data-opt="d">No; conflicts only arise between a stacked child and its parent, so the edge from #1 was the only one that mattered</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> M10's edge test: "could this ticket be <em>started</em> without that one?" #3 could. Recording a false edge to avoid a merge conflict would hide parallelism the sequencer exercise exists to find (B, C). Conflicts arise between any two branches that touch the same lines (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m17-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Which two tickets conflicted on the throwaway, and on what?</div><div class="fc-back">#2 (stacked PR #5, datetime guard) and #3 (tags, PR #7): the <code>Card</code> docstring line after <code>due</code>, and the end of <code>tests/domain/test_models.py</code>.</div></div>
+      <div class="fc"><div class="fc-front">Values of <code>mergeable</code> seen over one minute after the sibling merged?</div><div class="fc-back"><code>MERGEABLE</code> → <code>UNKNOWN</code> (20 s) → <code>CONFLICTING</code> with <code>mergeStateStatus: DIRTY</code> (35 s). Ask again on UNKNOWN.</div></div>
+      <div class="fc"><div class="fc-front">GitHub's definition of a merge conflict's effect?</div><div class="fc-back">"Merge conflicts block merging because Git cannot safely choose which version of the conflicting content to keep."</div></div>
+      <div class="fc"><div class="fc-front">Which side is before <code>=======</code>?</div><div class="fc-back">"Typically your side" — HEAD, the branch you are on; after it, "their side" — what you merged in (<code>origin/main</code>).</div></div>
+      <div class="fc"><div class="fc-front"><code>git status --short</code> code for a conflicting file?</div><div class="fc-back"><code>UU</code> — both modified. A file merged cleanly from the other side shows <code>M</code>, already staged.</div></div>
+      <div class="fc"><div class="fc-front">Why did the <code>datetime</code> guard and <code>has_tag</code> not conflict?</div><div class="fc-back">They did not overlap; git incorporated non-overlapping changes "verbatim." Only marker-bounded regions are conflicts.</div></div>
+      <div class="fc"><div class="fc-front">Should a shared file be recorded as a blocking edge?</div><div class="fc-back">No. An edge means "cannot start without"; a shared surface is a conflict risk, not a dependency.</div></div>
+      <div class="fc"><div class="fc-front">Why resolve locally rather than in GitHub's editor?</div><div class="fc-back">The skill needs history and the project's checks; and the web editor "merges the entire base branch into the head branch" anyway.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Before resolving, ask Claude Code: "list every open ticket on my frontier and, for each pair, the files both are likely to touch." Then ask which pairs are conflict risks and which are dependencies, and make it defend the difference in M10's terms. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/merge-conflicts">GitHub Docs: Merge conflicts</a><span class="why">What blocks a merge, the two resolution routes, and the <code>git merge</code> failure output — short.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/resolving-a-merge-conflict-using-the-command-line">GitHub Docs: Resolving a merge conflict using the command line</a><span class="why">The <code>git status</code> "both modified" walk-through and the removed-file case this page does not cover.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-merge">git-merge</a><span class="why">"How conflicts are presented" and "How to resolve conflicts" — the authoritative description of the markers and of what git does with non-overlapping hunks.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging">Pro Git, 3.2: Basic Branching and Merging</a><span class="why">"Basic Merge Conflicts" with the three-way merge picture — the common ancestor is what git could not use here.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-02/m10-decomposing-into-tickets/index.html">M10 page 1: Tracer Bullets and Blocking Edges</a><span class="why">The "could it be started without" test, which is why the missing edge between #2 and #3 was right.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/merge-conflicts">GitHub Docs: Merge conflicts</a> — causes, blocking rule, two routes (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/resolving-a-merge-conflict-on-github">GitHub Docs: Resolving a merge conflict on GitHub</a> — "merges the entire base branch into the head branch" (fetched 2026-09-13)</li>
+      <li><a href="https://git-scm.com/docs/git-merge">git-merge</a> — marker description and non-overlapping rule (fetched 2026-09-13)</li>
+      <li>PRs #5 and #7, issues #2 and #3 on <code>perro-ruidoso/flashcards-w3probe</code>: <code>gh pr view --json mergeable</code> at three times, <code>git merge origin/main</code>, <code>git status --short</code>, <code>git diff</code> — captured 2026-09-13, <code>gh</code> 2.100.0, git 2.52.0</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m16-stacked-prs/deleting-the-parent.html"><span class="dir">Previous · M16</span>What Deleting the Parent Does</a>
+    <a class="next" href="running-the-skill.html"><span class="dir">Next · M17, page 2</span>Running /resolving-merge-conflicts</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

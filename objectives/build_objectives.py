@@ -198,6 +198,31 @@ PAGES = {
         ("week-02/m12-wiring-linear/index.html", "Linear Above GitHub"),
         ("week-02/m12-wiring-linear/verify-without-touching.html", "Verify Without Touching"),
     ],
+    "M13": [
+        ("week-03/m13-branch-per-issue/index.html", "A Branch Bound to an Issue"),
+        ("week-03/m13-branch-per-issue/naming-that-links.html", "Naming That Links Twice"),
+    ],
+    "M14": [
+        ("week-03/m14-reviewable-diffs/index.html", "What a Reviewable Diff Looks Like"),
+        ("week-03/m14-reviewable-diffs/splitting-a-drive-by.html", "Splitting a Drive-by"),
+    ],
+    "M15": [
+        ("week-03/m15-the-pr-body/index.html", "Intent, Scope, Verification, Risk"),
+        ("week-03/m15-the-pr-body/the-closing-keyword.html", "The Keyword and Its Two Conditions"),
+    ],
+    "M16": [
+        ("week-03/m16-stacked-prs/index.html", "Stacking on a Branch That Is Not Main"),
+        ("week-03/m16-stacked-prs/retargeting.html", "Retarget, Then Look Again"),
+        ("week-03/m16-stacked-prs/deleting-the-parent.html", "What Deleting the Parent Does"),
+    ],
+    "M17": [
+        ("week-03/m17-resolving-conflicts/index.html", "Where the Conflict Came From"),
+        ("week-03/m17-resolving-conflicts/running-the-skill.html", "Running /resolving-merge-conflicts"),
+    ],
+    "M18": [
+        ("week-03/m18-the-toolbelt/index.html", "Ask Matt First"),
+        ("week-03/m18-the-toolbelt/six-skills-six-situations.html", "Six Skills, Six Situations"),
+    ],
 }
 
 HEADERS = ["ID", "Week", "Unit", "Category", "Mastery Objective",

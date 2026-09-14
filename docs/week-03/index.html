@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 3 · Branches and the Shape of a Diff — GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb">Week 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>Week 3 — Branches and the Shape of a Diff</h1>
+  <p class="lede">A ticket becomes a branch, a branch becomes a pull request, and the pull request closes the ticket. This week you run that loop twice, stack the second run on the first, retarget it when the first lands, and resolve the conflict a third ticket causes on the way.</p>
+
+  <p>Week 2 gave your Instance a backlog with real blocking edges. Nothing has been built against it yet. This week two of those tickets — a pair that share an edge — go through <code>gh issue develop</code>, a diff you have read as a reviewer, a PR body that says what it did and how you know, and a merge that closes the issue without anyone touching it. The second ticket is <strong>stacked</strong> on the first, which is where the week's two hard facts live: a closing keyword is ignored until the PR targets <code>main</code>, and a squash-merged parent makes the child's diff grow until you rebase. A third ticket then collides with the second, and you resolve the conflict with <span class="skill">/resolving-merge-conflicts</span>, reading what it does at each step.</p>
+
+  <div class="callout note">
+    <span class="label">Suggested order</span>
+    <p>The objectives are the order of the work. <strong>M13</strong> creates the branch; <strong>M14</strong> is the reviewer's eye you apply to your own diff before anyone else sees it; <strong>M15</strong> is the PR body and the keyword; <strong>M16</strong> is the stack and the retarget, the idea of the week; <strong>M17</strong> is the conflict. <strong>M18</strong> is the rest of the skill toolbelt and can be read any time — do its flashcards twice, a few days apart. Every transcript on these pages was run on a throwaway Instance on 2026-09-13; the numbers on your Instance will differ, the shapes will not.</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Two things that surprised the course itself</span>
+    <p><strong>A stacked PR's <code>Closes #n</code> does nothing until the base is the default branch</strong> — the course repo's own PR #14 sat with an empty <code>closingIssuesReferences</code> for 33 minutes with the keyword in its body, and populated only after it was retargeted (on the throwaway, the link event landed one second after the retarget). And <strong><code>gh pr merge --delete-branch</code> on a parent closes the child PR outright</strong>; only GitHub's own <em>Automatically delete head branches</em> setting retargets it. Both are on the M16 pages with the timestamps.</p>
+  </div>
+
+  <h2>Objectives</h2>
+  <div class="table-wrap">
+    <table class="objtable">
+      <thead><tr><th>ID</th><th>Objective</th><th>Bloom</th><th>Assessed by</th></tr></thead>
+      <tbody>
+        <tr><td class="id">M13</td><td><a href="m13-branch-per-issue/index.html">Create a branch bound to an issue with <code>gh issue develop</code>, and follow a branch-naming convention that auto-links in both GitHub and Linear.</a></td><td class="bloom">Apply</td><td class="bloom">A3 (checker)</td></tr>
+        <tr><td class="id">M14</td><td><a href="m14-reviewable-diffs/index.html">Judge whether a diff is reviewable — single purpose, bounded size, no drive-by changes — and split one that is not.</a></td><td class="bloom">Evaluate</td><td class="bloom">A3 (rubric); Quiz 1</td></tr>
+        <tr><td class="id">M15</td><td><a href="m15-the-pr-body/index.html">Write a PR body that states intent, scope, verification, and risk, and closes its issue on merge with a linking keyword.</a></td><td class="bloom">Create</td><td class="bloom">A3 (checker + rubric)</td></tr>
+        <tr><td class="id">M16</td><td><a href="m16-stacked-prs/index.html">Build a stacked PR on a dependent branch, set its base correctly, and retarget it after its parent merges.</a></td><td class="bloom">Apply</td><td class="bloom">A3 (checker)</td></tr>
+        <tr><td class="id">M17</td><td><a href="m17-resolving-conflicts/index.html">Resolve a merge conflict on a stacked branch with <span class="skill">/resolving-merge-conflicts</span> and explain what caused it.</a></td><td class="bloom">Apply</td><td class="bloom">A3 (checker)</td></tr>
+        <tr><td class="id">M18</td><td><a href="m18-the-toolbelt/index.html">Choose the right skill for a situation using <span class="skill">/ask-matt</span>, and say what wayfinder, request-refactor-plan, grill-me, tdd, handoff, and git-guardrails each do.</a></td><td class="bloom">Understand</td><td class="bloom">Quiz 1; Self-Check</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Learning pages</h2>
+  <p>Each objective has an entry page (<code>index.html</code>) and one or two supporting pages. Every page ends with a self-check, a flashcard deck, and a where-to-learn-more list; the pager at the bottom of each page walks the whole week in order.</p>
+  <ul class="card-grid">
+    <li class="card">
+      <div class="meta"><span class="chip">M13</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m13-branch-per-issue/index.html">A Branch Bound to an Issue</a>
+      <p><code>gh issue develop</code>: the Development link, the default name, <code>--name</code>, <code>--base</code>, and the moment the branch disappears from <code>--list</code>.</p>
+      <p><a href="m13-branch-per-issue/naming-that-links.html">Naming That Links Twice</a> — GitHub links by relation, Linear links by name; one convention that satisfies both.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M14</span><span class="chip bloom">Evaluate</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m14-reviewable-diffs/index.html">What a Reviewable Diff Looks Like</a>
+      <p>Three tests — one purpose, bounded size, no drive-bys — applied to a real two-file PR, with the commands that show a diff's shape before its content.</p>
+      <p><a href="m14-reviewable-diffs/splitting-a-drive-by.html">Splitting a Drive-by</a> — a seven-file PR for a one-field ticket, hunk by hunk, and the split that leaves three.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M15</span><span class="chip bloom">Create</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m15-the-pr-body/index.html">Intent, Scope, Verification, Risk</a>
+      <p>The four sections, what each one is for, a real body that passed the checker, and why <code>--fill</code> is not a PR body.</p>
+      <p><a href="m15-the-pr-body/the-closing-keyword.html">The Keyword and Its Two Conditions</a> — the nine words, the default-branch rule, the one-second close, and the link that populates a second late.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M16</span><span class="chip bloom">Apply</span><span class="chip">3 pages</span></div>
+      <a class="title" href="m16-stacked-prs/index.html">Stacking on a Branch That Is Not Main</a>
+      <p>A work dependency expressed in code: <code>--base</code>, the base <code>gh pr create</code> picks by itself, and a diff that shows only the child's work.</p>
+      <p><a href="m16-stacked-prs/retargeting.html">Retarget, Then Look Again</a> — the base change, the link that appears, the diff that grows after a squash, and the rebase that shrinks it; the course repo's #12 → #14 as the second exhibit.</p>
+      <p><a href="m16-stacked-prs/deleting-the-parent.html">What Deleting the Parent Does</a> — two live probes: <code>--delete-branch</code> closes the child; the repository setting retargets it.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M17</span><span class="chip bloom">Apply</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m17-resolving-conflicts/index.html">Where the Conflict Came From</a>
+      <p>Two tickets on the same frontier, one shared file, <code>mergeable: CONFLICTING</code>, and what the markers actually say.</p>
+      <p><a href="m17-resolving-conflicts/running-the-skill.html">Running /resolving-merge-conflicts</a> — the five installed steps, each with the real output it produced, through to the merge that closed the issue.</p>
+    </li>
+    <li class="card">
+      <div class="meta"><span class="chip">M18</span><span class="chip bloom">Understand</span><span class="chip">2 pages</span></div>
+      <a class="title" href="m18-the-toolbelt/index.html">Ask Matt First</a>
+      <p>The router skill, the main flow it routes along, on-ramps, and the difference between a skill you invoke and one the agent reaches for.</p>
+      <p><a href="m18-the-toolbelt/six-skills-six-situations.html">Six Skills, Six Situations</a> — each installed description verbatim, one situation it fits, and one it does not.</p>
+    </li>
+  </ul>
+
+  <h2>Assignment A3</h2>
+  <p>Due before the Week 4 meeting. The full brief is in <a href="../../assignments/a3.md"><code>assignments/a3.md</code></a>; in short:</p>
+  <ol>
+    <li>Two tickets from your backlog that share a blocking edge; A's branch created with <code>gh issue develop</code>.</li>
+    <li>A shipped as a reviewable PR with a four-section body and <code>Closes #A</code>; the diff read as a reviewer first.</li>
+    <li>A merged; the issue closed itself within seconds.</li>
+    <li>B stacked on A's branch, retargeted to <code>main</code> after A merged, rebased after the squash.</li>
+    <li>A third ticket merged in between, the conflict on B resolved with <span class="skill">/resolving-merge-conflicts</span>, B merged.</li>
+    <li>A short write-up: what caused the conflict, what the drive-by was, and three situations matched to three skills.</li>
+  </ol>
+  <p>Items 1–5 leave evidence <code>checkers/check_a3.py</code> reads: branch names, PR headings, closing links, the base-change event, the two-parent merge commit, the close timestamps. Reviewability, the honesty of the bodies, and item 6 are graded by a human against the rubric.</p>
+
+  <h2>Assigned sources</h2>
+  <ul>
+    <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a> — short; the note about non-default branches is the week's most important sentence</li>
+    <li><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-base-branch-of-a-pull-request">GitHub Docs: Changing the base branch of a pull request</a> and <a href="https://docs.github.com/en/pull-requests/reference/pull-request-merges">Pull request merges</a> — especially "Squashing and merging a long-running branch"</li>
+    <li><a href="https://cli.github.com/manual/gh_issue_develop">GitHub CLI manual: <code>gh issue develop</code></a>, <a href="https://cli.github.com/manual/gh_pr_create"><code>gh pr create</code></a>, <a href="https://cli.github.com/manual/gh_pr_edit"><code>gh pr edit</code></a></li>
+    <li><a href="https://docs.github.com/en/pull-requests/reference/merge-conflicts">GitHub Docs: Merge conflicts</a> and <a href="https://git-scm.com/docs/git-merge">git-merge</a>, "How conflicts are presented"</li>
+    <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — the installed <code>ask-matt</code> and <code>resolving-merge-conflicts</code> <code>SKILL.md</code> files; both short</li>
+    <li><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a> — practitioner material, the only source M14 has beyond the cohort's own diffs</li>
+  </ul>
+  <p><strong>Time estimate:</strong> 4–5 hours including the assignment; the conflict is the variable part.</p>
+
+  <nav class="pager">
+    <a href="../week-02/index.html"><span class="dir">Previous</span>Week 2 hub</a>
+    <a class="next" href="m13-branch-per-issue/index.html"><span class="dir">Start · M13</span>A Branch Bound to an Issue</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 hub. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../assets/app.js"></script>
+</body>
+</html>

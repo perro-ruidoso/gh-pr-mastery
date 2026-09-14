@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intent, Scope, Verification, Risk — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M15 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Intent, Scope, Verification, Risk</h1>
+  <p class="lede">A PR body is the author's half of the review. It tells the reviewer what to expect before the diff, what <em>not</em> to look for, how the author knows it works, and what could go wrong. Four sections; a real one that passed the checker; and why <code>--fill</code> is not a substitute.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M15 · PR authoring</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A3 (checker + rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Write a PR body that states intent, scope, verification, and risk, and closes its issue on merge with a linking keyword.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M15 pages</span>
+    <span class="here"><span class="num">1</span>Intent, Scope, Verification, Risk</span>
+    <a href="the-closing-keyword.html"><span class="num">2</span>The Keyword and Its Two Conditions</a>
+  </nav>
+
+  <h2>What GitHub calls the body</h2>
+  <p>GitHub's linking page defines it in passing: the pull request description is "the summary text added by the author when they created the pull request." The creating-a-PR page says only "Type a title and description for your pull request." Nothing in the docs says what a description should contain — that is a team's convention, and this course's convention is four headings. The convention exists because the reviewer in Week 4 will be a peer with ten minutes, and the ticket in Week 2 already taught the shape: a document another person can act on without asking a question.</p>
+
+  <h2>The four sections</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Section</th><th>Answers</th><th>A good one…</th><th>A bad one…</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Intent</strong></td><td>Why does this PR exist? What will be true after it merges?</td><td>names the ticket's purpose and the next thing it unblocks</td><td>restates the title, or the diff</td></tr>
+        <tr><td><strong>Scope</strong></td><td>Which files, and — just as important — which files <em>not</em>?</td><td>lists what was touched and says what was deliberately left alone</td><td>"see diff"</td></tr>
+        <tr><td><strong>Verification</strong></td><td>How does the author know it works?</td><td>quotes the commands and the numbers they printed</td><td>"tests pass"</td></tr>
+        <tr><td><strong>Risk</strong></td><td>What could this break, and how would we know?</td><td>names a concrete failure mode and what mitigates it</td><td>"Low." with no reason</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Then the closing keyword on its own line — <a href="the-closing-keyword.html">page 2</a> is about what it does and when it does nothing.</p>
+
+  <h2>A body that passed: PR #4</h2>
+  <p>The PR from M14 page 1, written to a file and passed with <code>--body-file</code>. This is the text verbatim:</p>
+
+  <div class="exhibit">
+    <span class="label">pr1.md — the body of PR #4, <code>perro-ruidoso/flashcards-w3probe</code>, 2026-09-13</span>
+    <pre><code>## Intent
+Give `Card` the four pieces of review state SM-2 needs — repetitions, ease factor, interval, due date — so the scheduler (T03) and the deck file (T02) have something to read and write.
+
+## Scope
+- `src/flashcards/domain/models.py`: four defaulted fields on `Card`, validated in `__post_init__`.
+- `tests/domain/test_models.py`: defaults, a populated card, `dataclasses.replace`, and the three rejections.
+
+Nothing else. Persistence is #2; the scheduler is a later ticket.
+
+## Verification
+- `pytest`: 26 passed (20 before).
+- `ruff check .`, `ruff format --check .`, `mypy` (strict): clean.
+- `flashcards list --deck decks/starter.json` output unchanged — the fields have defaults, so no caller changes.
+
+## Risk
+Low. Additive fields with defaults; every existing constructor call still works. The ease-factor floor of 1.3 is SM-2's own rule (`docs/adr/0001`), enforced here so a bad file cannot smuggle in a lower value once #2 lands.
+
+Closes #1</code></pre>
+  </div>
+
+  <p>Read it against the table. Intent names what the fields are <em>for</em> (two later tickets). Scope says "Nothing else" and names the two tickets that own what was left out — a reviewer who wonders where persistence is has the answer before asking. Verification has numbers: 26 tests, up from 20, and the one manual check that proves the CLI is untouched. Risk says "Low" and then earns it: additive, defaulted, and one deliberate guard with the rule it enforces. Nothing in the body is a restatement of the diff; everything is something the diff cannot say about itself.</p>
+
+  <div class="callout warn">
+    <span class="label">Why not <code>--fill</code></span>
+    <p>The <code>gh pr create</code> manual: "use <code>--fill</code> to autofill these values from git commits," with <code>--fill-first</code> and <code>--fill-verbose</code> variants. A commit message is written for the history; a PR body is written for a reviewer. The commit behind #4 says "Four defaulted, validated fields: repetitions, ease_factor, interval, due. Nothing reads or writes them yet" — true, and missing three of the four sections. <code>--fill</code> is fine for a one-line fix; for a ticket, write the file. (<code>--body-file -</code> reads standard input, if you would rather pipe it from a heredoc.)</p>
+  </div>
+
+  <h2>The commands</h2>
+  <pre><code><span class="prompt">$</span> gh pr create --title "Add review state to Card" --body-file pr1.md
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w3probe/pull/4</span>
+
+<span class="dim"># fix the body after the fact — the keyword included:</span>
+<span class="prompt">$</span> gh pr edit 4 --body-file pr1.md
+
+<span class="dim"># see what would be created without creating it:</span>
+<span class="prompt">$</span> gh pr create --title "…" --body-file pr1.md --dry-run</code></pre>
+  <p>From the manual: <code>--dry-run</code> "Print details instead of creating the PR. May still push git changes"; <code>--template &lt;file&gt;</code> uses "Template file to use as starting body text"; and on <code>gh pr edit</code>, "Without an argument, the pull request that belongs to the current branch is selected." A repository can also ship a pull-request template so that the four headings appear in every new body — that is a Week 5 configuration item for your Instance, not a requirement now.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>For the PR you open for ticket A in Assignment A3. <code>check_a3.py</code> reads the four headings and the keyword; the rubric reads what is under them.</p>
+    <label class="check"><input type="checkbox"><span>Wrote <code>pr-a.md</code> with <code>## Intent</code>, <code>## Scope</code>, <code>## Verification</code>, <code>## Risk</code>, and <code>Closes #A</code> on its own line at the end.</span></label>
+    <label class="check"><input type="checkbox"><span>Scope names at least one thing that was deliberately <em>not</em> touched and which ticket owns it.</span></label>
+    <label class="check"><input type="checkbox"><span>Verification quotes the real test count before and after, and the lint/type commands by name.</span></label>
+    <label class="check"><input type="checkbox"><span>Risk names one concrete failure mode, not an adjective.</span></label>
+    <label class="check"><input type="checkbox"><span>Opened the PR with <code>--body-file</code>, then read it back with <code>gh pr view --json body --jq .body</code> to confirm the headings survived.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. The Scope section of PR #4 says "Nothing else. Persistence is #2; the scheduler is a later ticket." What is that sentence doing for the reviewer?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Padding the section so the checker's heading rule is met, since a heading with one bullet under it would fail the length check</button></li>
+        <li><button data-opt="b">Answering the question "where is the rest?" before it is asked, by naming what was left out and which ticket owns it</button></li>
+        <li><button data-opt="c">Warning the reviewer that #2 must be reviewed at the same time, since the two PRs cannot be understood separately</button></li>
+        <li><button data-opt="d">Recording a dependency edge, since GitHub reads "#2" in a PR body and adds a blocked-by relation to the issue</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> Scope's second job is to say what was deliberately not touched. There is no length check (A); #2 is a separate review by design (C); a bare <code>#2</code> creates a cross-reference, not a dependency edge (D — dependencies are Week 2's flags).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">2. Why does the page say a body produced by <code>--fill</code> is not a PR body, even when the commit message is accurate?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because <code>--fill</code> takes the body from the first commit only, and a multi-commit branch loses everything written after that commit</button></li>
+        <li><button data-opt="b">Because <code>--fill</code> strips Markdown headings, so the four sections cannot survive the round trip through git</button></li>
+        <li><button data-opt="c">Because a commit message is written for the history and a PR body for a reviewer — it lacks scope, verification, and risk</button></li>
+        <li><button data-opt="d">Because <code>--fill</code> cannot be combined with <code>--title</code>, so the PR title is always the first commit's subject line</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The audiences differ. <code>--fill-first</code> is the first-commit variant (A is not <code>--fill</code>); nothing strips headings (B); the manual says <code>--title</code> alongside <code>--fill</code> takes precedence (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Which Risk section would the rubric mark "Excellent"?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">"Low–medium. Every existing deck file lacks the new keys and is read through the default path, which the old-file test pins."</button></li>
+        <li><button data-opt="b">"Low. This change is small, additive, and was tested carefully, so I do not anticipate any problems after merging it."</button></li>
+        <li><button data-opt="c">"None. All tests pass, lint is clean, and mypy reports no issues, which together mean the change cannot break anything at all."</button></li>
+        <li><button data-opt="d">"Medium. As with any change to storage, there is some risk, and reviewers should look at the storage layer with care."</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> It names a concrete failure mode (old files without the keys), the path that handles it, and the test that pins it. B and D are adjectives; C confuses correctness with risk — green checks did not catch the drive-by PR either.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m15-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The four PR-body sections, and the question each answers?</div><div class="fc-back">Intent (why; what becomes true), Scope (what, and what not), Verification (how you know), Risk (what could break and how you would know).</div></div>
+      <div class="fc"><div class="fc-front">What does Scope say that the diff cannot?</div><div class="fc-back">What was deliberately left out, and which ticket owns it — "Nothing else. Persistence is #2."</div></div>
+      <div class="fc"><div class="fc-front">What makes a Verification section good?</div><div class="fc-back">Numbers and command names: "pytest: 26 passed (20 before); ruff check, ruff format --check, mypy: clean."</div></div>
+      <div class="fc"><div class="fc-front">Why not <code>gh pr create --fill</code> for a ticket PR?</div><div class="fc-back">It copies commit messages, written for the history; a body is for a reviewer and needs scope, verification, risk.</div></div>
+      <div class="fc"><div class="fc-front">How do you fix a body after opening the PR?</div><div class="fc-back"><code>gh pr edit N --body-file file.md</code>; with no argument it edits the current branch's PR.</div></div>
+      <div class="fc"><div class="fc-front">What does <code>--dry-run</code> do on <code>gh pr create</code>?</div><div class="fc-back">"Print details instead of creating the PR. May still push git changes."</div></div>
+      <div class="fc"><div class="fc-front">Where does GitHub define "pull request description"?</div><div class="fc-back">The linking page: "the summary text added by the author when they created the pull request."</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>After Claude Code implements a ticket, ask it to draft the four-section body — then check its Verification section against the terminal: did it actually run the commands it quotes, with those numbers? An agent will happily write "tests pass" from memory. Make it paste the output. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_create">GitHub CLI manual: <code>gh pr create</code></a><span class="why"><code>--body-file</code>, <code>--fill</code> and its variants, <code>--dry-run</code>, <code>--template</code>, and the precedence rule when <code>--title</code> meets <code>--fill</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_edit">GitHub CLI manual: <code>gh pr edit</code></a><span class="why"><code>--body-file</code> after the fact, and <code>--base</code>, which M16 uses.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request">GitHub Docs: Creating a pull request</a><span class="why">The CLI tab shows <code>gh pr create</code> with <code>--base</code>/<code>--head</code>, <code>--title</code>/<code>--body</code>, <code>--draft</code>, <code>--reviewer</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-02/m07-issues-an-agent-can-execute/index.html">M07 page 1: The Ticket as a Contract</a><span class="why">The same standard from the other end: a document a reader can act on without asking a question.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a> — definition of the description (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request">GitHub Docs: Creating a pull request</a> — "Type a title and description" (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_create">GitHub CLI manual: <code>gh pr create</code></a> and <a href="https://cli.github.com/manual/gh_pr_edit"><code>gh pr edit</code></a> — flag descriptions quoted (fetched 2026-09-13)</li>
+      <li>PR #4 on <code>perro-ruidoso/flashcards-w3probe</code>: body file and <code>gh pr create</code> output, 2026-09-13, <code>gh</code> 2.100.0</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m14-reviewable-diffs/splitting-a-drive-by.html"><span class="dir">Previous · M14</span>Splitting a Drive-by</a>
+    <a class="next" href="the-closing-keyword.html"><span class="dir">Next · M15, page 2</span>The Keyword and Its Two Conditions</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

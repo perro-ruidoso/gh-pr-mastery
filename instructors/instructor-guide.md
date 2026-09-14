@@ -1039,7 +1039,7 @@ and every Linear UI step (5.2).
 
 ---
 
-## Part 10 — Before you teach Week 2
+## Part 10 — Before you teach Weeks 2 and 3
 
 1. **Do the live Issues Sync check** left from decision 0.3(c) — Settings → Integrations →
    GitHub in your Free workspace, five minutes — and date it in `NOTES.md`.
@@ -1064,6 +1064,35 @@ and every Linear UI step (5.2).
    pages depends on it surviving. Every student's Instance starts with **zero issues**; A2
    has them build their own backlog with `/to-spec` and `/to-tickets`, and the Seed Repo's
    fifteen tickets are the exhibit they compare against.
+6. **Week 3 is built** (M13–M18, fourteen Learning Pages under `docs/week-03/`,
+   `assignments/a3.md`, `checkers/check_a3.py`; 2026-09-13). It was built by *doing* the week
+   on a second throwaway, `perro-ruidoso/flashcards-w3probe` (private): three tickets, PRs
+   #4–#7, two probe pairs #8–#11. Delete it with the second throwaway once the pages are
+   stable — `gh repo delete perro-ruidoso/flashcards-w3probe --yes` after the
+   `delete_repo` refresh above. Nothing on the pages depends on it surviving; every
+   command's output is printed on the page. Before teaching:
+   - **Live demo the retarget.** Merge a parent PR with `--squash`, then on the child run
+     `gh pr view --json closingIssuesReferences,changedFiles` before and after
+     `gh pr edit --base main`. The link appears and the diff grows; then `git rebase
+     origin/main` shows "skipped previously applied commit" and the diff shrinks. Ten
+     minutes; the M16 pages have the exact sequence. Do **not** use `--delete-branch` on the
+     parent in the demo unless you want to show the child being closed (M16 page 3).
+   - **Let the conflict happen in front of them.** Merge a sibling ticket that touches the
+     same class, wait for `mergeable` to go `UNKNOWN` then `CONFLICTING` (about 35 s), run
+     `git merge origin/main`, and invoke `/resolving-merge-conflicts`. Watch whether it does
+     step 2 — reading the commit, PR, and ticket behind each side — before touching a hunk.
+   - **`check_a3.py` needs `gh` 2.94.0+** (it reads `blockedBy`) and uses GraphQL for the
+     base-change events, which the token already covers. Against the throwaway it passes every
+     rule except the write-up; against `flashcards-seed` it stops at "no merged PRs that link
+     an issue"; against a nonexistent handle it fails "Instance exists".
+   - **A3's rubric depends on the write-up naming the conflict's shared surface** and judging
+     whether the missing edge between the two tickets was right. The M17 page 1 argument
+     (a shared file is a conflict risk, not a dependency) is the model answer; expect students
+     to argue for adding the edge, and make them defend it against M10's "could it be started"
+     test.
+   - **M13 page 2's Linear half is documentary**, like M12: the branch-name linking rule is
+     quoted from Linear's docs and has not been observed in a live workspace. Fold it into
+     the Issues Sync live check in item 1.
 
 ---
 
