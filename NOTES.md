@@ -1007,7 +1007,10 @@ p2 says so); the two untested branch-deletion paths (M16 p3 says so).
 
 - **2026-09-13** — **Week 3 built** (M13–M18): the hub, fourteen Learning Pages (two per
   objective, three for M16), `assignments/a3.md` with its rubric, and `checkers/check_a3.py`.
-  Filed as an issue blocked by #13 (Week 2); built on a branch; PR to `main`. Every command on
+  Filed as **#17**, blocked by #13 (Week 2); branch `17-week3-pages` made with `gh issue develop 17
+  --base 15-audit-weeks-1-2`; **PR #18 stacked on the audit branch** (#16 was still open and the
+  pages need its checker and CSS fixes) — retarget to `main` after #16 merges, at which point
+  `Closes #17` takes effect; it read `closes: []` at creation, as M16 page 2 predicts. Every command on
   every page was run on a throwaway Instance the same day — the week was *done*, not described:
   three tickets with edges, `gh issue develop` for each branch, a stacked PR, its retarget after
   a squash merge and the rebase that followed, a deliberately authored drive-by PR closed and
