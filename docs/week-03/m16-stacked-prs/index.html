@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stacking on a Branch That Is Not Main — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M16 · Page 1 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>Stacking on a Branch That Is Not Main</h1>
+  <p class="lede">Ticket #2 is blocked by #1. If you wait for #1 to merge before starting #2, the edge costs you a day. If you branch #2 from #1's branch and open its PR against that branch, the edge is expressed in code, both PRs can be reviewed, and #2's diff shows only #2's work. That is a stacked PR.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M16 · Stacking</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Build a stacked PR on a dependent branch, set its base correctly, and retarget it after its parent merges.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M16 pages</span>
+    <span class="here"><span class="num">1</span>Stacking on a Branch That Is Not Main</span>
+    <a href="retargeting.html"><span class="num">2</span>Retarget, Then Look Again</a>
+    <a href="deleting-the-parent.html"><span class="num">3</span>What Deleting the Parent Does</a>
+  </nav>
+
+  <h2>The definition, and why the base is the whole trick</h2>
+  <p><code>CONTEXT.md</code>: a Stacked PR is "a pull request whose base is another open PR's head branch, expressing a work dependency in code. Needs retargeting when its parent merges." Recall M02: a PR is a request to merge a head ref into a base ref, and GitHub's Files-changed view is the three-dot diff from the merge base of those two refs (M03). If #2's branch starts at #1's tip and its PR's base is #1's branch, the merge base is #1's tip, and the diff is exactly what #2 added. Set the base to <code>main</code> instead and the diff is #1's work plus #2's — reviewable by nobody. The base is not a detail; it is what makes the second PR readable.</p>
+
+  <p>The Week 2 backlog's blocking edges are what tell you when a stack is warranted: an edge from #1 to #2 means #2 cannot <em>start</em> without #1, so #2's branch has to contain #1's commits, so #2's PR has to base on #1's branch until #1 merges. A ticket with no incoming edge branches from <code>main</code> like any other — #3 on the throwaway did, on <a href="../m17-resolving-conflicts/index.html">M17 page 1</a>, and that is where the conflict came from.</p>
+
+  <h2>Building the stack</h2>
+  <p>M13 page 1 already showed the branch: <code>gh issue develop 2 --name 2-persist-review-state --base 1-add-review-state-… --checkout</code>, which started the branch at #1's commit and wrote <code>branch.2-persist-review-state.gh-merge-base</code> into git config. After implementing #2 and pushing, the PR was opened with <strong>no <code>--base</code> flag</strong>:</p>
+
+  <pre><code><span class="prompt">$</span> git push -u origin HEAD
+<span class="dim">   58cab2d..aa8afb6  HEAD -> 2-persist-review-state</span>
+<span class="prompt">$</span> gh pr create --title "Persist review state in the deck file" --body-file pr2.md
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w3probe/pull/5</span>
+
+<span class="prompt">$</span> gh pr view 5 --json number,baseRefName,headRefName,closingIssuesReferences,changedFiles,additions,deletions --jq '{number, base: .baseRefName, head: .headRefName, closes: [.closingIssuesReferences[].number], changedFiles, additions, deletions}'
+{"additions":88,"base":"1-add-review-state-to-card-repetitions-ease-factor-interval-due-date","changedFiles":3,"closes":[],"deletions":6,"head":"2-persist-review-state","number":5}
+
+<span class="prompt">$</span> gh pr diff 5 --name-only
+src/flashcards/storage/json_store.py
+tests/conftest.py
+tests/storage/test_json_store.py</code></pre>
+
+  <p>Three things to read off that output. <strong>The base is #1's branch</strong>, chosen by <code>gh pr create</code> from the config entry <code>--base</code> wrote — the manual: "If not provided, the value of <code>gh-merge-base</code> git branch config will be used." <strong>The diff is three files</strong>, all storage-side: <code>models.py</code>, which #1 changed, is not in it, because it is on both sides of the merge base. And <strong><code>closes</code> is empty</strong>, twenty seconds after creation, with <code>Closes #2</code> in the body — the M15 page 2 rule, seen from the stacked side: the keyword is ignored on a non-default base. Page 2 shows what changes when the base does.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  M0["main<br/>e474711"] --> B1["1-add-review-state-…<br/>58cab2d"]
+  B1 --> B2["2-persist-review-state<br/>aa8afb6"]
+  B1 -.->|"PR #4 · base main"| M0
+  B2 -.->|"PR #5 · base 1-add-review-state-…<br/>diff = 3 files · closes []"| B1
+    </pre>
+    <span class="caption">The stack at 17:02, before anything merged. PR #5's diff is the difference between its head and #1's branch — nothing #1 did shows up in it.</span>
+  </div>
+
+  <div class="callout note">
+    <span class="label">The PR body says it is stacked</span>
+    <p>PR #5's Intent section opens: "Stacked on #4 (branch <code>1-add-review-state-…</code>), which adds the fields this PR persists." The course repo's PR #14 did the same: "Stacked on #12 … Merge #12 first, then retarget this PR to <code>main</code>." A reviewer who lands on the child should be told where the parent is and what will happen to the base — GitHub's UI shows the base branch name, but not why.</p>
+  </div>
+
+  <h2>Both PRs are reviewable at once</h2>
+  <p>This is the payoff. #4 and #5 were open together; CI ran on both (each got <code>lint</code> and <code>test</code> green); a reviewer could read #4's two files and #5's three files as two separate units, in either order. The ancillary source for M14 calls this "stacking multiple changes on top of each other": "write one small CL, send it off for review, and then immediately start writing another CL based on the first CL." The Week 2 edge said #2 could not start without #1 — but "start" meant the code, not the review.</p>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Item 4 of Assignment A3; do it before merging A if you want the realistic order.</p>
+    <label class="check"><input type="checkbox"><span>Confirmed with <code>gh issue view B --json blockedBy</code> that B is recorded as blocked by A — the edge is the reason to stack.</span></label>
+    <label class="check"><input type="checkbox"><span>Created B's branch with <code>gh issue develop B --name … --base &lt;A-branch&gt; --checkout</code> and saw A's commit at its tip in <code>git log</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Opened B's PR without <code>--base</code> and confirmed <code>baseRefName</code> is A's branch; <code>gh pr diff --name-only</code> shows only B's files.</span></label>
+    <label class="check"><input type="checkbox"><span>Read <code>closingIssuesReferences</code> on B's PR: empty, and I can say why.</span></label>
+    <label class="check"><input type="checkbox"><span>B's body says it is stacked on A's PR and names the branch.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. PR #5's diff lists three storage files and not <code>models.py</code>, which #1 changed. Why?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because <code>gh pr diff --name-only</code> hides files whose changes were committed on a different branch than the head</button></li>
+        <li><button data-opt="b">Because the base is #1's branch, so the merge base is #1's tip and #1's changes are on both sides of the comparison</button></li>
+        <li><button data-opt="c">Because GitHub excludes from a stacked PR's diff any file that an open parent PR also touches, to avoid double review</button></li>
+        <li><button data-opt="d">Because #2's branch was rebased onto #1's before the PR was opened, which removed #1's commits from the branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The three-dot diff from M03: changes since the merge base of head and base. With base = #1's branch, #1's work is not "since." No flag hides files (A), GitHub has no parent-aware exclusion (C), and the branch still contains #1's commit (D — <code>git log</code> showed it).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. <code>gh pr create</code> was run with no <code>--base</code> and produced a PR against #1's branch. Where did the base come from?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">From the branch's upstream tracking ref, since the branch was pushed with <code>-u</code> and tracks #1's branch on origin</button></li>
+        <li><button data-opt="b">From GitHub, which infers a stacked PR's base by finding the open PR whose head is the new branch's ancestor</button></li>
+        <li><button data-opt="c">From the PR body, which names #4's branch in its Intent section and which <code>gh</code> parses for a base</button></li>
+        <li><button data-opt="d">From <code>branch.2-persist-review-state.gh-merge-base</code>, the git config entry <code>gh issue develop --base</code> wrote</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The manual's resolution order: <code>--base</code>, then the <code>gh-merge-base</code> config, then the default branch. The upstream (A) is the same-named remote branch, not the parent; GitHub infers nothing (B); the body is never parsed for a base (C).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. A ticket has no incoming blocking edge. Should its branch be stacked on the branch of the ticket you happen to be working on?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">No; with no edge it branches from <code>main</code>; stacking would invent a dependency and bloat its diff on retarget</button></li>
+        <li><button data-opt="b">Yes; stacking every branch on the previous one keeps the history linear and makes each retarget a one-line <code>gh pr edit</code></button></li>
+        <li><button data-opt="c">Yes, if the other ticket touches the same files, since a stack is how git avoids conflicts between concurrent branches</button></li>
+        <li><button data-opt="d">No, because GitHub allows only one open PR to base on a branch, and the other PR is using it</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The stack expresses a recorded work dependency; without one it is false structure, and page 2 shows the cost on retarget. Linear history (B) is a merge-method question (Week 5). Shared files (C) are a reason to expect a conflict, not to stack — M17. GitHub has no one-child limit (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m16-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Definition of a Stacked PR (CONTEXT.md)?</div><div class="fc-back">"A pull request whose base is another open PR's head branch, expressing a work dependency in code. Needs retargeting when its parent merges."</div></div>
+      <div class="fc"><div class="fc-front">Why does the child's diff show only the child's work?</div><div class="fc-back">The base is the parent branch, so the merge base is the parent's tip; the parent's changes are on both sides.</div></div>
+      <div class="fc"><div class="fc-front">Two commands that build a stack?</div><div class="fc-back"><code>gh issue develop B --base &lt;A-branch&gt; --checkout</code>, then <code>gh pr create</code> with no <code>--base</code> (it reads <code>gh-merge-base</code>).</div></div>
+      <div class="fc"><div class="fc-front">PR #5's state at creation?</div><div class="fc-back">base = #1's branch, 3 files, +88 −6, <code>closes: []</code> despite <code>Closes #2</code> in the body.</div></div>
+      <div class="fc"><div class="fc-front">When is a stack warranted?</div><div class="fc-back">When the tracker records B as blocked by A — B's branch must contain A's commits. No edge, no stack.</div></div>
+      <div class="fc"><div class="fc-front">What can happen while both PRs are open?</div><div class="fc-back">CI runs on both; each is reviewed as its own unit. The edge blocks the code, not the review.</div></div>
+      <div class="fc"><div class="fc-front">What should the child PR's body say?</div><div class="fc-back">That it is stacked, on which PR and branch, and what happens to the base when the parent merges.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code to explain, with <code>git merge-base</code> on your own two branches, why PR B's diff excludes A's changes — and then to predict what the diff will contain after A is squash-merged and B is retargeted, before you read page 2. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_develop">GitHub CLI manual: <code>gh issue develop</code></a><span class="why">"When using the <code>--base</code> flag … The new branch will be configured as the base branch for pull requests created using <code>gh pr create</code>."</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_create">GitHub CLI manual: <code>gh pr create</code></a><span class="why">The base-resolution order, and <code>git config branch.{current}.gh-merge-base {base}</code> to set it on a branch you made without <code>gh issue develop</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-01/m03-the-merge-base/index.html">M03 page 1: The Merge Base</a><span class="why">The three-dot diff — the reason a stacked PR's diff is clean, and the reason it stops being clean on page 2.</span></li>
+      <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a><span class="why">"Stacking Multiple Changes on Top of Each Other" — the practitioner's reason for the pattern, in three sentences.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://github.com/perro-ruidoso/gh-pr-mastery/blob/main/CONTEXT.md">course repo: <code>CONTEXT.md</code></a> — Stacked PR entry (read 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_create">GitHub CLI manual: <code>gh pr create</code></a> — base resolution (fetched 2026-09-13)</li>
+      <li><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a> — the stacking paragraph (fetched 2026-09-13; ancillary)</li>
+      <li>PRs #4 and #5 on <code>perro-ruidoso/flashcards-w3probe</code>: <code>gh pr create</code>, <code>gh pr view --json</code>, <code>gh pr diff --name-only</code>, captured 2026-09-13 with <code>gh</code> 2.100.0</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../m15-the-pr-body/the-closing-keyword.html"><span class="dir">Previous · M15</span>The Keyword and Its Two Conditions</a>
+    <a class="next" href="retargeting.html"><span class="dir">Next · M16, page 2</span>Retarget, Then Look Again</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

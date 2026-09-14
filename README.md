@@ -14,7 +14,7 @@ through GitHub pull requests while directing Claude Code as the implementer.
 | [`docs/`](docs/) | The student-facing site — Course Home, Week Hubs, Learning Pages (one folder per objective), shared assets |
 | [`assignments/`](assignments/) | Assignment briefs and rubrics |
 | [`instructors/`](instructors/) | Instructor guide (course + Week 1 setup, teaching notes, grading) and the student setup handout |
-| [`checkers/`](checkers/) | `check_a1.py` and `check_a2.py` (grade repo state) and `check_site.py` (validates the site) |
+| [`checkers/`](checkers/) | `check_a1.py`, `check_a2.py`, and `check_a3.py` (grade repo state) and `check_site.py` (validates the site) |
 | [`seed/SPEC.md`](seed/SPEC.md) | Build spec for `flashcards-seed` — layout, SM-2, the 15-issue backlog, planted bugs |
 | [`seed/tools/`](seed/tools/) | `backlog.py` (the 15 tickets + topological check), `file_backlog.py` (files them as issues with dependency edges), and `waves_from_github.py` (reads the graph back from any repo and prints its waves or a Mermaid diagram) |
 | [`roadmap/`](roadmap/) | `roadmap.docx` — what is built, what is not, what has to be decided — and the script that generates it |
@@ -58,11 +58,12 @@ outputs** — a hand-edit to the `.xlsx` or the `.docx` is silently discarded by
 python checkers/check_site.py                      # links, assets, lesson structure, answer keys
 python checkers/check_a1.py --org ORG --handle H   # one student's A1 repo state
 python checkers/check_a2.py --org ORG --handle H   # A2: labels, template, spec, ticket graph (needs gh 2.94.0+)
+python checkers/check_a3.py --org ORG --handle H   # A3: branch names, PR bodies, closing links, the retarget, the merge commit
 ```
 
 ## Status
 
-Backbone, **Weeks 1 and 2**, and the **Seed Repo** are complete and validated:
+Backbone, **Weeks 1–3**, and the **Seed Repo** are complete and validated:
 Course Home, the Week 1 hub, thirteen Learning Pages across M01–M06 (each objective is a
 folder under `docs/week-01/` with an `index.html` entry page and one or two supporting
 pages), assignment A1 with its rubric, and two checkers. Every page ends with a Self-Check,
@@ -104,7 +105,23 @@ example) closed unmerged the same morning, M06's snapshot of this repository had
 one quoted GitHub Docs sentence had been rewritten upstream, a checker regex accepted an empty
 flashcard face, and 81 of 93 self-check questions gave the answer away by option length.
 
-Not yet built: Weeks 3–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
+**Week 3** (M13–M18) adds fourteen Learning Pages under `docs/week-03/`, `assignments/a3.md`,
+and `checkers/check_a3.py`. Every transcript comes from actually doing the week on a throwaway
+Instance (`perro-ruidoso/flashcards-w3probe`, private, 2026-09-13): two tickets with a blocking
+edge, branches from `gh issue develop`, a stacked PR whose `Closes #n` stayed empty until it was
+retargeted to `main`, a diff that grew after the parent's squash merge and shrank after a
+rebase, a deliberately authored drive-by PR that was closed and split, a genuine two-file
+conflict resolved by running `/resolving-merge-conflicts` (its five steps are quoted and each
+step's real output shown), and issues that closed themselves one second after each merge. Two
+probes settled a question the docs leave ambiguous: `gh pr merge --delete-branch` on a parent
+**closes** the stacked child, while the repository's *Automatically delete head branches*
+setting **retargets** it. The course repo's own #12 → #14 stack is the second exhibit, with
+timestamps. `check_a3.py` grades the evidence (branch named from its issue, four PR headings, the
+`BaseRefChangedEvent`, a two-parent commit, the one-second close) and was fault-injected 13/13.
+M18 quotes each installed skill's description verbatim and records that `request-refactor-plan`
+was removed upstream on 2026-08-05.
+
+Not yet built: Weeks 4–6, the Upstream Repo, the Week 4 planted-bug diff (it has to be
 authored on an Instance where T03 has landed, not against the template), the
 merge-strategy simulator widget (Week 5), and the UI captures.
 

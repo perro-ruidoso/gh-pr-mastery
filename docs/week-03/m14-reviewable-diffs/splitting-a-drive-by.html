@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Splitting a Drive-by — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M14 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Splitting a Drive-by</h1>
+  <p class="lede">Ticket #3 asked for one field on <code>Card</code>. The first PR for it touched seven files. This page reads that diff hunk by hunk, decides which hunks belong to #3, and shows the split: close the PR with a comment, open a clean one from a second linked branch, and let the evidence stand.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M14 · Diff craft</span>
+      <span class="chip bloom">Bloom: Evaluate</span>
+      <span class="chip assessed">Assessed by: A3 (rubric); Quiz 1</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Judge whether a diff is reviewable — single purpose, bounded size, no drive-by changes — and split one that is not.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M14 pages</span>
+    <a href="index.html"><span class="num">1</span>What a Reviewable Diff Looks Like</a>
+    <span class="here"><span class="num">2</span>Splitting a Drive-by</span>
+  </nav>
+
+  <h2>The ticket, and the shape of the first PR</h2>
+  <p>Issue #3, <em>Tag field on Card</em>: <code>tags: tuple[str, ...] = ()</code>, two rejections in <code>__post_init__</code>, a <code>has_tag</code> method, tests, and a <strong>Tag</strong> entry in <code>CONTEXT.md</code> (the Seed's <code>CLAUDE.md</code> requires a new domain term to land in the same PR). Out of scope by name: persistence, every CLI command, <code>flashcards list</code>'s output. The first PR was deliberately authored the way a tired afternoon produces them — the ticket's work plus three things noticed on the way:</p>
+
+  <pre><code><span class="prompt">$</span> gh pr diff 6 --name-only
+CONTEXT.md
+README.md
+src/flashcards/cli/main.py
+src/flashcards/domain/models.py
+src/flashcards/storage/json_store.py
+tests/cli/test_main.py
+tests/domain/test_models.py
+
+<span class="prompt">$</span> gh pr view 6 --json changedFiles,additions,deletions,files --jq '"\(.changedFiles) files, +\(.additions) -\(.deletions)", (.files[] | "  \(.path)  +\(.additions) -\(.deletions)")'
+7 files, +50 -10
+  CONTEXT.md  +5 -0
+  README.md  +4 -0
+  src/flashcards/cli/main.py  +3 -3
+  src/flashcards/domain/models.py  +11 -0
+  src/flashcards/storage/json_store.py  +2 -2
+  tests/cli/test_main.py  +5 -5
+  tests/domain/test_models.py  +20 -0</code></pre>
+
+  <p>Shape test, before reading a line: the ticket implies <code>models.py</code>, its test file, and <code>CONTEXT.md</code>. Four of the seven files are in layers the ticket named as out of scope. The PR body admitted it — "While I was in there: <code>format_deck</code> → <code>render_deck</code> (better name), a README roadmap section, and a tidier <code>json_store</code> docstring" — which is honest and still wrong. The sentence for this PR cannot be written without an "and."</p>
+
+  <h2>Reading the hunks</h2>
+  <p>The four files outside the ticket, from <code>gh pr diff 6</code>:</p>
+
+  <pre><code>diff --git a/README.md b/README.md
+@@ -58,3 +58,7 @@ tickets that could be worked at the same time. Reading that graph — rather tha
+ numbers, which mislead — is part of the course.
+
+ Start with the issues that nothing blocks.
++
++## Roadmap
++
++Tags, review sessions, stats, and CSV import/export are in the issue backlog.
+diff --git a/src/flashcards/cli/main.py b/src/flashcards/cli/main.py
+@@ -22,7 +22,7 @@
+ def build_parser() -> argparse.ArgumentParser:
+     """Build the argument parser for every subcommand."""
+     parser = argparse.ArgumentParser(
+-        prog=PROGRAM, description="A spaced-repetition flashcard CLI."
++        prog=PROGRAM, description="A spaced-repetition flashcard CLI (SM-2)."
+     )
+@@ -53,11 +53,11 @@ def cmd_list(args: argparse.Namespace) -> int:
+-    print(format_deck(deck))
++    print(render_deck(deck))
+     return 0
+
+
+-def format_deck(deck: Deck) -> str:
++def render_deck(deck: Deck) -> str:
+     """Render a deck as the block of text ``flashcards list`` prints."""
+diff --git a/src/flashcards/storage/json_store.py b/src/flashcards/storage/json_store.py
+@@ -1,7 +1,7 @@
+ """Load and save a Deck as a JSON file.
+
+-The on-disk shape is deliberately boring, because tickets in the backlog will add
+-fields to it and a reviewer needs to be able to see exactly what changed:
++The on-disk shape is deliberately boring. Tickets in the backlog will add fields
++to it, and a reviewer needs to be able to see exactly what changed:
+diff --git a/tests/cli/test_main.py b/tests/cli/test_main.py
+@@ -6,7 +6,7 @@
+-from flashcards.cli.main import format_deck, main
++from flashcards.cli.main import main, render_deck
+@@ -33,10 +33,10 @@ def test_no_subcommand_is_a_usage_error() -> None:
+-def test_format_deck_pluralises_a_single_card() -> None:
++def test_render_deck_pluralises_a_single_card() -> None:</code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Hunk</th><th>Which criterion in #3 asked for it?</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td><code>models.py</code>: field, two checks, <code>has_tag</code></td><td>Criteria 1–3</td><td>The ticket</td></tr>
+        <tr><td><code>tests/domain/test_models.py</code>: four tests</td><td>Criterion 5</td><td>The ticket</td></tr>
+        <tr><td><code>CONTEXT.md</code>: Tag entry</td><td>Criterion 4</td><td>The ticket</td></tr>
+        <tr><td><code>cli/main.py</code> + <code>tests/cli/test_main.py</code>: rename <code>format_deck</code> → <code>render_deck</code>, new description string</td><td>None; the CLI is named out of scope</td><td>Drive-by — and a rename a reviewer must check in every call site, in a PR about the domain model</td></tr>
+        <tr><td><code>README.md</code>: a Roadmap section</td><td>None</td><td>Drive-by; harmless, still not this ticket</td></tr>
+        <tr><td><code>json_store.py</code>: docstring rephrased</td><td>None; storage is named out of scope</td><td>Drive-by; two lines of pure taste that will conflict with the next storage ticket for no reason</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Three of six hunk groups belong. The rename is the expensive one: a reviewer of #3 now has to confirm every caller of <code>format_deck</code> was updated, in files they had no reason to open, to approve a change about tags. That is what "drive-by" costs — not the lines, the attention.</p>
+
+  <h2>The split</h2>
+  <p>Closing with a comment that says what is being split out, then a second linked branch for the same issue with only the ticket's commit on it:</p>
+
+  <pre><code><span class="prompt">$</span> gh pr close 6 --comment "Splitting: the rename, the README section, and the docstring tidy are not #3. Reopening the ticket work alone as a new PR; the rename can be its own issue if anyone wants it."
+<span class="dim">✓ Closed pull request perro-ruidoso/flashcards-w3probe#6 (Tag field on Card)</span>
+<span class="prompt">$</span> gh issue develop 3 --name 3-tag-field-on-card-clean --checkout
+<span class="dim">github.com/perro-ruidoso/flashcards-w3probe/tree/3-tag-field-on-card-clean</span>
+<span class="prompt">$</span> git reset --hard clean-3-snapshot
+<span class="dim">HEAD is now at d1327d9 Tag field on Card</span>
+<span class="prompt">$</span> git log --oneline origin/main..HEAD
+d1327d9 Tag field on Card
+<span class="prompt">$</span> git push -u origin HEAD
+<span class="prompt">$</span> gh pr create --title "Tag field on Card" --body-file pr3-clean.md
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w3probe/pull/7</span>
+<span class="prompt">$</span> gh pr diff 7 --name-only
+CONTEXT.md
+src/flashcards/domain/models.py
+tests/domain/test_models.py</code></pre>
+
+  <p>(<code>clean-3-snapshot</code> was a local branch pointing at the ticket-only commit, kept before the drive-bys were added; in your case the equivalent is <code>git rebase -i</code> to drop the extra commit, or <code>git checkout main -- &lt;file&gt;</code> for each drive-by file, then a new commit.) Three files, all implied by the ticket. #7 was merged; #6 stays closed. The issue records both:</p>
+
+  <pre><code><span class="prompt">$</span> gh issue view 3 --json state,closedByPullRequestsReferences --jq '{state, prs: [.closedByPullRequestsReferences[].number]}'
+{"prs":[7],"state":"OPEN"}      <span class="dim"># before #7 merged; #6 is closed and not listed</span>
+
+<span class="prompt">$</span> gh pr list --state all --json number,state,changedFiles,closingIssuesReferences --jq '.[] | select(.closingIssuesReferences[].number == 3) | "#\(.number) \(.state) files=\(.changedFiles)"'
+#7 MERGED files=3
+#6 CLOSED files=7</code></pre>
+
+  <p>That last listing is what <code>check_a3.py</code> reads for M14: one issue, an earlier PR closed unmerged with more files than a later merged one. The checker records that a split happened; whether the split was <em>right</em> — whether the rename deserved its own issue, whether the README line was worth anything — is the rubric's question, and yours.</p>
+
+  <div class="callout note">
+    <span class="label">The drive-by was green</span>
+    <p>PR #6 passed lint, tests, and <code>mypy</code>. Nothing automated objected to it. That is the point of an Evaluate objective: the machine can tell you a diff is <em>correct</em>; only a reader can tell you it is <em>one thing</em>.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>The exercise for A3. Do it on your own PR for ticket A, or reproduce it deliberately as the throwaway did.</p>
+    <label class="check"><input type="checkbox"><span>Read my PR's diff with the ticket open beside it and filled in the three-column table above for every hunk.</span></label>
+    <label class="check"><input type="checkbox"><span>For each drive-by, decided one of: drop it, or file it as its own issue with <code>gh issue create</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>If the drive-by was already in a PR: closed it with a comment naming what is split out, made a second <code>gh issue develop --name</code> branch for the same issue, and opened the clean PR.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed with <code>gh pr list --state all --json number,state,changedFiles,closingIssuesReferences</code> that the issue now shows the closed-unmerged PR and the smaller merged one.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">1. Of PR #6's seven files, which set belongs to ticket #3 and why?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a"><code>models.py</code> and its tests only; <code>CONTEXT.md</code> is documentation, never part of a ticket's diff</button></li>
+        <li><button data-opt="b">All seven; each hunk improves the codebase and the out-of-scope list is advice for the author, not a rule</button></li>
+        <li><button data-opt="c"><code>models.py</code>, its tests, and <code>cli/main.py</code>, because tags will eventually be filtered from the CLI</button></li>
+        <li><button data-opt="d"><code>models.py</code>, its tests, and <code>CONTEXT.md</code>; each maps to an acceptance criterion and the other four map to none</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Criterion 4 in #3 explicitly requires the <code>CONTEXT.md</code> entry (A is wrong about that). "Eventually" (C) is a different ticket, by definition. Out-of-scope is the fence M07 taught, not advice (B).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. Why is the <code>format_deck</code> → <code>render_deck</code> rename the most expensive of the three drive-bys?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because renaming a public function is a breaking change for every user of the package and needs a version bump</button></li>
+        <li><button data-opt="b">Because a reviewer must now verify every call site in files unrelated to tags before approving a change about tags</button></li>
+        <li><button data-opt="c">Because it changed more lines than the other two drive-bys combined and pushed the PR past the size guidance</button></li>
+        <li><button data-opt="d">Because the new name is worse than the old one, so the reviewer would have to argue about taste instead of correctness</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> The cost is attention: correctness of a rename is checked at its call sites, which live in the CLI and its tests, not in the model. Line count (C) was small; the name's merit (D) is beside the point; the package is not published (A).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. What does <code>check_a3.py</code> actually verify about the split, and what does it leave to the rubric?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It verifies that one issue has an earlier closed-unmerged PR with more files than a later merged one; the rubric judges the split</button></li>
+        <li><button data-opt="b">It verifies that the closing comment on the abandoned PR uses the word "split"; the file counts are left to the rubric to compare</button></li>
+        <li><button data-opt="c">It verifies that the merged PR touches at most three files; whether an earlier PR existed at all is left to the rubric</button></li>
+        <li><button data-opt="d">It verifies nothing about M14, since reviewability is a judgement; the whole objective is graded by the rubric alone</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The checker grades evidence — the pair of PRs and their sizes — and never judgement. It does not read comments (B) or impose a file limit (C); and there is evidence to read (D).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m14-driveby">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">PR #6's shape versus ticket #3's implied files?</div><div class="fc-back">7 files, +50 −10; the ticket implies 3 (model, its tests, CONTEXT.md). Four files were in layers the ticket named out of scope.</div></div>
+      <div class="fc"><div class="fc-front">The three drive-bys in PR #6?</div><div class="fc-back">A CLI rename (<code>format_deck</code> → <code>render_deck</code>) with its tests, a README Roadmap section, a rephrased <code>json_store</code> docstring.</div></div>
+      <div class="fc"><div class="fc-front">What does a drive-by cost a reviewer?</div><div class="fc-back">Attention, not lines: the rename had to be checked at call sites in files unrelated to the ticket.</div></div>
+      <div class="fc"><div class="fc-front">The three-step split?</div><div class="fc-back"><code>gh pr close N --comment "Splitting: …"</code>; <code>gh issue develop &lt;issue&gt; --name &lt;clean&gt;</code>; commit only the ticket's work and open a new PR.</div></div>
+      <div class="fc"><div class="fc-front">What evidence of the split survives on GitHub?</div><div class="fc-back">Two PRs referencing one issue: #6 CLOSED with 7 files, #7 MERGED with 3. <code>closedByPullRequestsReferences</code> lists only #7.</div></div>
+      <div class="fc"><div class="fc-front">Did CI catch the drive-by?</div><div class="fc-back">No — #6 was green. Correctness is the machine's; "one thing" is the reader's.</div></div>
+      <div class="fc"><div class="fc-front">Two ways to remove a drive-by from a branch?</div><div class="fc-back"><code>git rebase -i</code> to drop its commit, or <code>git checkout main -- &lt;file&gt;</code> per file and recommit.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Give Claude Code the seven-file listing from this page and ticket #3's body, and ask it to produce the three-column table itself before you show it the one here. Where it disagrees with the page, ask it to argue the case — <code>CONTEXT.md</code> is the one people get wrong in both directions. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier anc">Ancillary</span><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a><span class="why">"Separate Out Refactorings": "moving and renaming a class should be in a different CL from fixing a bug in that class" — the rename on this page, in their words.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_close">GitHub CLI manual: <code>gh pr close</code></a><span class="why"><code>--comment</code> and <code>--delete-branch</code>; the comment is where the split is explained for the next reader.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue">GitHub Docs: Creating a branch to work on an issue</a><span class="why">"You can link multiple branches for an issue" — the permission for the second branch.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-02/m07-issues-an-agent-can-execute/acceptance-criteria.html">M07 page 2: Criteria That Can Fail</a><span class="why">Out-of-scope as a fence — the section of the ticket that decides which hunks are drive-bys.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li>PRs #6 and #7 and issue #3 on <code>perro-ruidoso/flashcards-w3probe</code>, a throwaway Instance: <code>gh pr diff</code>, <code>gh pr view --json</code>, <code>gh pr close</code>, <code>gh issue develop</code>, <code>gh issue view --json</code>, <code>gh pr list --json</code>, captured 2026-09-13 with <code>gh</code> 2.100.0. The drive-by PR was authored deliberately for this page and closed the same minute</li>
+      <li><a href="https://google.github.io/eng-practices/review/developer/small-cls.html">Google eng-practices: Small CLs</a> — "Separate Out Refactorings" (fetched 2026-09-13; ancillary)</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue">GitHub Docs: Creating a branch to work on an issue</a> — multiple branches per issue (fetched 2026-09-13)</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M14, page 1</span>What a Reviewable Diff Looks Like</a>
+    <a class="next" href="../m15-the-pr-body/index.html"><span class="dir">Next · M15</span>Intent, Scope, Verification, Risk</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

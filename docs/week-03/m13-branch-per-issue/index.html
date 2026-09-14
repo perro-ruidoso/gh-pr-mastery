@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Branch Bound to an Issue — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M13 · Page 1 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>A Branch Bound to an Issue</h1>
+  <p class="lede">A branch created with <code>gh issue develop</code> is not just named after its issue — GitHub records the relation, shows it in the issue's Development section, and hands it to the pull request you open from it. One command replaces three habits.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M13 · Branching</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Create a branch bound to an issue with <code>gh issue develop</code>, and follow a branch-naming convention that auto-links in both GitHub and Linear.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M13 pages</span>
+    <span class="here"><span class="num">1</span>A Branch Bound to an Issue</span>
+    <a href="naming-that-links.html"><span class="num">2</span>Naming That Links Twice</a>
+  </nav>
+
+  <h2>What GitHub means by a linked branch</h2>
+  <p>GitHub's page on creating a branch for an issue puts the whole feature in three sentences: "Branches connected to an issue are shown under the 'Development' section in the sidebar of an issue. When you create a pull request for one of these branches, it is automatically linked to the issue. The connection with that branch is removed and only the pull request is shown in the 'Development' section." Two more facts from the same page matter for this week: "You can link multiple branches for an issue," and "By default, the new branch is created in the current repository, and from the default branch."</p>
+  <p>The page describes clicking <em>Create a branch</em> in the sidebar. <code>gh issue develop</code> is the same operation from the terminal — the manual's one-line summary is "Manage linked branches for an issue." Everything below was run on a throwaway Instance created from the template that afternoon, <code>gh</code> 2.100.0, 2026-09-13.</p>
+
+  <h2>The first branch</h2>
+  <p>The Instance had three freshly filed tickets: #1 (review state on <code>Card</code>), #2 (persist it — blocked by #1), and #3 (a tag field — blocked by #1). Before anything, the issue had no linked branch:</p>
+
+  <pre><code><span class="prompt">$</span> gh issue develop --list 1
+<span class="dim">(no output, exit 0)</span>
+
+<span class="prompt">$</span> gh issue develop 1 --checkout
+<span class="dim">github.com/perro-ruidoso/flashcards-w3probe/tree/1-add-review-state-to-card-repetitions-ease-factor-interval-due-date
+From https://github.com/perro-ruidoso/flashcards-w3probe
+ * [new branch]      1-add-review-state-to-card-repetitions-ease-factor-interval-due-date -> origin/1-add-review-state-to-card-repetitions-ease-factor-interval-due-date</span>
+
+<span class="prompt">$</span> git branch --show-current
+1-add-review-state-to-card-repetitions-ease-factor-interval-due-date
+<span class="prompt">$</span> git log --oneline -1
+e474711 Initial commit
+
+<span class="prompt">$</span> gh issue develop --list 1
+1-add-review-state-to-card-repetitions-ease-factor-interval-due-date	https://github.com/perro-ruidoso/flashcards-w3probe/tree/1-add-review-state-to-card-repetitions-ease-factor-interval-due-date</code></pre>
+
+  <p>Read what happened. The branch was created <strong>on GitHub first</strong> (the URL is printed before anything local happens), from the default branch (<code>git log</code> shows only the template's initial commit), then fetched and checked out because of <code>--checkout</code>. The default name is the issue number followed by the whole title, slugified — 68 characters here. And <code>--list</code> now returns the branch, which means the relation is stored on GitHub's side, not inferred from the name. The same relation is readable through GraphQL, which is how a checker or a script sees it:</p>
+
+  <span class="code-label">$ gh api graphql -f query='{ repository(owner:"perro-ruidoso", name:"flashcards-w3probe") { issue(number:1) { linkedBranches(first:10) { nodes { ref { name } } } } } }' --jq '.data.repository.issue.linkedBranches.nodes[].ref.name'</span>
+  <pre><code>1-add-review-state-to-card-repetitions-ease-factor-interval-due-date</code></pre>
+
+  <h2><code>--name</code> and <code>--base</code></h2>
+  <p>Two flags change the defaults, and both were used for the second ticket. <code>--name</code> replaces the slugified title; <code>--base</code> — "Name of the remote branch you want to make your new branch from" — creates the branch from something other than the default branch. The manual adds a sentence that <a href="../m16-stacked-prs/index.html">M16</a> depends on: "The new branch will be configured as the base branch for pull requests created using <code>gh pr create</code>."</p>
+
+  <pre><code><span class="prompt">$</span> gh issue develop 2 --name 2-persist-review-state --base 1-add-review-state-to-card-repetitions-ease-factor-interval-due-date --checkout
+<span class="dim">github.com/perro-ruidoso/flashcards-w3probe/tree/2-persist-review-state
+From https://github.com/perro-ruidoso/flashcards-w3probe
+ * [new branch]      2-persist-review-state -> origin/2-persist-review-state</span>
+<span class="prompt">$</span> git log --oneline -2
+58cab2d Add review state to Card
+e474711 Initial commit
+<span class="prompt">$</span> git config --get branch.2-persist-review-state.gh-merge-base
+1-add-review-state-to-card-repetitions-ease-factor-interval-due-date</code></pre>
+
+  <p>The new branch starts at #1's commit, not at <code>main</code>, and <code>gh</code> wrote a git config entry — <code>branch.&lt;name&gt;.gh-merge-base</code> — naming the parent. The <code>gh pr create</code> manual documents exactly this lookup: "The base branch for the created PR can be specified using the <code>--base</code> flag. If not provided, the value of <code>gh-merge-base</code> git branch config will be used. If not configured, the repository's default branch will be used." That is why, on M16 page 1, <code>gh pr create</code> opens the second PR against the first branch with no flag at all.</p>
+
+  <h2>The moment the branch stops being listed</h2>
+  <p>The docs said the branch connection "is removed and only the pull request is shown" once a PR exists. Observed, seconds after <code>gh pr create</code> on the first branch:</p>
+
+  <pre><code><span class="prompt">$</span> gh pr create --title "Add review state to Card" --body-file pr1.md
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w3probe/pull/4</span>
+<span class="prompt">$</span> gh issue develop --list 1
+<span class="dim">(no output)</span></code></pre>
+
+  <p>So <code>--list</code> is a view of <em>branches without a PR yet</em>. Once you have opened the PR, the place to read the relation is the PR (<code>gh pr view --json closingIssuesReferences</code>) or the issue (<code>gh issue view --json closedByPullRequestsReferences</code>); M15 page 2 shows both. A grader cannot use <code>linkedBranches</code> to check that you used <code>gh issue develop</code> — by the time the work is merged, the link has moved to the PR. What survives is the <strong>name</strong>, which is why the convention on page 2 matters and why <code>check_a3.py</code> reads <code>headRefName</code>.</p>
+
+  <div class="callout note">
+    <span class="label">More than one branch per issue</span>
+    <p>"You can link multiple branches for an issue." On <a href="../m14-reviewable-diffs/splitting-a-drive-by.html">M14 page 2</a> the first branch for #3 produced a PR that was closed as a drive-by, and a second <code>gh issue develop 3 --name 3-tag-field-on-card-clean</code> created the branch the clean PR came from. Both branches were linked to #3; both PRs reference it; only the merged one appears in <code>closedByPullRequestsReferences</code>.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Do this on your Instance, on the ticket you will ship as A in Assignment A3.</p>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh issue develop --list &lt;A&gt;</code> and saw nothing, then <code>gh issue develop &lt;A&gt; --checkout</code>, then <code>--list</code> again and saw the branch.</span></label>
+    <label class="check"><input type="checkbox"><span>Confirmed with <code>git log --oneline -1</code> that the branch starts at <code>main</code>'s tip, and with <code>git branch --show-current</code> that its name starts with the issue number.</span></label>
+    <label class="check"><input type="checkbox"><span>Read the linked branch back through the GraphQL query above, substituting my repository.</span></label>
+    <label class="check"><input type="checkbox"><span>Know, without looking, which two things <code>--base</code> does (starts the branch there; records <code>gh-merge-base</code> for <code>gh pr create</code>).</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">1. After <code>gh pr create</code> on a branch made with <code>gh issue develop</code>, <code>gh issue develop --list</code> prints nothing. What happened?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The branch was deleted on GitHub when the PR was opened, and only the local copy remains until the PR is merged</button></li>
+        <li><button data-opt="b">The branch link moved to the PR; the Development section now shows the pull request instead of the branch</button></li>
+        <li><button data-opt="c">The list needs <code>--repo</code> once a PR exists, because the PR may live in a different repository than the issue</button></li>
+        <li><button data-opt="d">Nothing happened; <code>--list</code> is cached for a few minutes and will show the branch again after the next fetch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> GitHub's docs: "The connection with that branch is removed and only the pull request is shown in the 'Development' section." The branch still exists (A); no flag changes the view (C); nothing is cached (D) — the relation genuinely moved.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">2. <code>gh issue develop 2 --base 1-add-review-state… --checkout</code> was run. Which pair of facts is true afterwards?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The branch starts at <code>main</code>'s tip, and <code>gh pr create</code> will default its base to <code>main</code> like any branch</button></li>
+        <li><button data-opt="b">The branch starts at #1's branch, and #1's issue is now recorded as blocking #2 on GitHub</button></li>
+        <li><button data-opt="c">The branch starts at <code>main</code>'s tip, and a git config entry records #1's branch as the PR base</button></li>
+        <li><button data-opt="d">The branch starts at #1's branch, and a git config entry records #1's branch as the PR base</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> <code>git log</code> showed #1's commit at the tip, and <code>git config --get branch.2-persist-review-state.gh-merge-base</code> printed #1's branch name. <code>--base</code> says nothing to the issue tracker (B) — the blocking edge was recorded separately in Week 2.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">3. Why does <code>check_a3.py</code> read a merged PR's <code>headRefName</code> rather than the issue's <code>linkedBranches</code> to confirm you branched from the issue?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Because the branch link is removed once a PR exists, so after the merge only the name still carries the issue number</button></li>
+        <li><button data-opt="b">Because <code>linkedBranches</code> is a GraphQL-only field and the checker is written against the REST API for portability</button></li>
+        <li><button data-opt="c">Because a merged PR's head branch is renamed by GitHub to include the issue number, whichever name it was first created with</button></li>
+        <li><button data-opt="d">Because <code>linkedBranches</code> lists branches in every repository the issue is linked from, which the checker cannot filter</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The page showed <code>--list</code> going empty the moment PR #4 existed. The checker already uses GraphQL elsewhere (B is not the reason); GitHub never renames branches (C); the cross-repository case (D) is real but not why.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m13-index">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">What does <code>gh issue develop N</code> do, in GitHub's terms?</div><div class="fc-back">Creates a branch linked to issue N (shown in the issue's Development section), from the default branch unless <code>--base</code> says otherwise.</div></div>
+      <div class="fc"><div class="fc-front">Default branch name from <code>gh issue develop</code>?</div><div class="fc-back"><code>&lt;number&gt;-&lt;title slugified&gt;</code> — 68 characters for #1. <code>--name</code> replaces it.</div></div>
+      <div class="fc"><div class="fc-front">Two effects of <code>gh issue develop N --base B</code>?</div><div class="fc-back">The branch starts at B's tip, and <code>branch.&lt;name&gt;.gh-merge-base</code> is set to B so <code>gh pr create</code> targets B by default.</div></div>
+      <div class="fc"><div class="fc-front">When does a branch stop appearing in <code>gh issue develop --list</code>?</div><div class="fc-back">As soon as a PR is opened from it — "the connection with that branch is removed and only the pull request is shown."</div></div>
+      <div class="fc"><div class="fc-front">Where does <code>gh pr create</code> look for its base when no <code>--base</code> is given?</div><div class="fc-back">The <code>gh-merge-base</code> git branch config; if unset, the repository's default branch.</div></div>
+      <div class="fc"><div class="fc-front">Can one issue have several linked branches?</div><div class="fc-back">Yes — "You can link multiple branches for an issue." #3 had two on the throwaway: the drive-by branch and the clean one.</div></div>
+      <div class="fc"><div class="fc-front">Which flag checks the new branch out locally?</div><div class="fc-back"><code>--checkout</code> (or <code>-c</code>); <code>--worktree &lt;path&gt;</code> checks it out into a worktree instead.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code, inside your Instance: "create a branch for issue N with <code>gh issue develop</code>, then show me three different ways to confirm the branch is linked to the issue, and tell me which of them will stop working once I open a PR." If it reaches for the branch name as proof, ask it what the name proves and what the Development section proves. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_issue_develop">GitHub CLI manual: <code>gh issue develop</code></a><span class="why">All six flags — <code>--base</code>, <code>--branch-repo</code>, <code>--checkout</code>, <code>--list</code>, <code>--name</code>, <code>--worktree</code> — and the sentence about <code>gh pr create</code> that M16 relies on.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue">GitHub Docs: Creating a branch to work on an issue</a><span class="why">The web-UI version of the same feature, and the three sentences that define what a linked branch is and when its link moves to the PR.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_create">GitHub CLI manual: <code>gh pr create</code></a><span class="why">The base-resolution order (<code>--base</code>, then <code>gh-merge-base</code>, then the default branch) and the <code>git config branch.{current}.gh-merge-base</code> command to set it by hand.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/CLAUDE.md">Seed Repo: <code>CLAUDE.md</code></a><span class="why">The Working-here rule your Instance already carries: "One ticket, one branch, one pull request. The branch name carries the issue number."</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue">GitHub Docs: Creating a branch to work on an issue</a> — linked-branch definition, multiple branches, default source branch (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_issue_develop">GitHub CLI manual: <code>gh issue develop</code></a> — flag descriptions and the <code>--base</code> paragraph (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_create">GitHub CLI manual: <code>gh pr create</code></a> — base-branch resolution (fetched 2026-09-13)</li>
+      <li>Every transcript was run on 2026-09-13 with <code>gh</code> 2.100.0 against <code>perro-ruidoso/flashcards-w3probe</code>, a throwaway Instance created from the template that afternoon</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="../index.html"><span class="dir">Previous</span>Week 3 hub</a>
+    <a class="next" href="naming-that-links.html"><span class="dir">Next · M13, page 2</span>Naming That Links Twice</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

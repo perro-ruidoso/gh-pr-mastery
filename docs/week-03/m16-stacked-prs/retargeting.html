@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retarget, Then Look Again — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M16 · Page 2 of 3</span>
+  </div>
+</header>
+
+<main>
+  <h1>Retarget, Then Look Again</h1>
+  <p class="lede">The parent merges. The child's base still names a branch that is now behind <code>main</code>. One command changes the base; then three things happen at once — the closing link appears, the diff grows, and the timeline records the change — and one of them needs fixing before review.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M16 · Stacking</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Build a stacked PR on a dependent branch, set its base correctly, and retarget it after its parent merges.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M16 pages</span>
+    <a href="index.html"><span class="num">1</span>Stacking on a Branch That Is Not Main</a>
+    <span class="here"><span class="num">2</span>Retarget, Then Look Again</span>
+    <a href="deleting-the-parent.html"><span class="num">3</span>What Deleting the Parent Does</a>
+  </nav>
+
+  <h2>Before: the parent merges, the child does not notice</h2>
+  <p>PR #4 was squash-merged at 17:02:47 (without <code>--delete-branch</code> — page 3 is about why). Five seconds later, the child:</p>
+  <pre><code><span class="prompt">$</span> gh pr view 5 --json baseRefName,closingIssuesReferences,changedFiles --jq '{base: .baseRefName, closes: [.closingIssuesReferences[].number], changedFiles}'
+{"base":"1-add-review-state-to-card-repetitions-ease-factor-interval-due-date","closes":[],"changedFiles":3}</code></pre>
+  <p>Nothing changed. GitHub's base-branch page states it: "When you open a pull request, GitHub sets the base to the commit that branch references. If the branch is updated in the future, GitHub does not update the base branch's commit." The parent branch still exists, still points at 58cab2d, and #5 is still a request to merge into it. Left alone, merging #5 would put #2's work onto a branch nobody will ever merge again.</p>
+
+  <h2>The retarget</h2>
+  <p>The docs describe the web flow — "Next to the pull request title, click Edit title … In the base branch drop-down menu, select the base branch … click Change base" — with a warning worth reading first: "When you change the base branch of your pull request, some commits may be removed from the timeline. Review comments may also become outdated because the line of code that the comment referenced may no longer be part of the changes in the pull request." From the terminal, <code>gh pr edit --base</code> — "Change the base branch for this pull request":</p>
+
+  <pre><code><span class="prompt">$</span> gh pr edit 5 --base main
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w3probe/pull/5</span>
+
+<span class="dim">…fifteen seconds later:</span>
+<span class="prompt">$</span> gh pr view 5 --json baseRefName,closingIssuesReferences,changedFiles,additions,deletions,mergeable --jq '{base: .baseRefName, closes: [.closingIssuesReferences[].number], changedFiles, additions, deletions, mergeable}'
+{"additions":151,"base":"main","changedFiles":5,"closes":[2],"deletions":6,"mergeable":"MERGEABLE"}
+
+<span class="prompt">$</span> gh pr diff 5 --name-only
+src/flashcards/domain/models.py
+src/flashcards/storage/json_store.py
+tests/conftest.py
+tests/domain/test_models.py
+tests/storage/test_json_store.py</code></pre>
+
+  <p>Three things happened.</p>
+  <ol>
+    <li><strong>The link appeared.</strong> <code>closes</code> went from <code>[]</code> to <code>[2]</code>; issue #2's timeline gained a <code>connected</code> event at 17:03:13, one second after the base change. The keyword had been in the body for three minutes; it took effect when condition one (M15 page 2) was met.</li>
+    <li><strong>The diff grew</strong> — from 3 files and +88 to 5 files and +151. The two new files are <code>models.py</code> and <code>tests/domain/test_models.py</code>: PR #4's work, which is already on <code>main</code>.</li>
+    <li><strong>The timeline recorded it.</strong> The event is what <code>check_a3.py</code> reads:</li>
+  </ol>
+
+  <span class="code-label">$ gh api graphql -f query='{ repository(owner:"perro-ruidoso", name:"flashcards-w3probe") { pullRequest(number:5) { timelineItems(itemTypes:[BASE_REF_CHANGED_EVENT], first:10) { nodes { ... on BaseRefChangedEvent { createdAt previousRefName currentRefName } } } } } }' --jq '.data.repository.pullRequest.timelineItems.nodes[]'</span>
+  <pre><code>{"createdAt":"2026-09-13T17:03:12Z","currentRefName":"main","previousRefName":"1-add-review-state-to-card-repetitions-ease-factor-interval-due-date"}</code></pre>
+  <p>The REST timeline shows the same moment as <code>base_ref_changed</code> — the event-types reference: "The base reference branch of the pull request changed" — but without the branch names; GraphQL's <code>BaseRefChangedEvent</code> carries <code>previousRefName</code> and <code>currentRefName</code>, which is what lets a checker confirm the base went from a feature branch to <code>main</code> and not the other way.</p>
+
+  <h2>Why the diff grew: the squash</h2>
+  <p>PR #4 was squash-merged. GitHub's merge-methods page: "the pull request's commits are squashed into a single commit … merged into the default branch." That single commit, <code>0b9a901</code>, has the same <em>content</em> as #1's branch commit <code>58cab2d</code> but is a different commit. #5's branch contains <code>58cab2d</code>; <code>main</code> contains <code>0b9a901</code>; their merge base is the template's initial commit. The three-dot diff from there includes #1's changes. The same page says so under "Squashing and merging a long-running branch": "If you keep working on the same head branch after a squash merge, later pull requests can include commits that were already squashed into the base branch. This can make merge conflicts more likely and can force you to resolve the same conflicts more than once."</p>
+
+  <p>It was still <code>MERGEABLE</code> — git can merge identical changes made on both sides. The git-merge manual's conflict section lists exactly this among the hunks that resolve cleanly: lines "cleanly resolved because both sides changed the same way." But a reviewer of #5 would now have to read #4's hunks again to find #5's. The fix is a rebase:</p>
+
+  <pre><code><span class="prompt">$</span> git fetch origin main
+<span class="prompt">$</span> git log --oneline origin/main..HEAD
+aa8afb6 Persist review state in the deck file
+58cab2d Add review state to Card
+<span class="prompt">$</span> git merge-base origin/main HEAD
+e474711
+
+<span class="prompt">$</span> git rebase origin/main
+<span class="dim">warning: skipped previously applied commit 58cab2d
+hint: use --reapply-cherry-picks to include skipped commits
+Successfully rebased and updated refs/heads/2-persist-review-state.</span>
+<span class="prompt">$</span> git log --oneline origin/main..HEAD
+37d4731 Persist review state in the deck file
+<span class="prompt">$</span> git merge-base origin/main HEAD
+0b9a901
+
+<span class="prompt">$</span> git push --force-with-lease
+<span class="dim"> + aa8afb6...37d4731 2-persist-review-state -> 2-persist-review-state (forced update)</span>
+
+<span class="prompt">$</span> gh pr view 5 --json baseRefName,closingIssuesReferences,changedFiles,additions,deletions,commits --jq '{base: .baseRefName, closes: [.closingIssuesReferences[].number], changedFiles, additions, deletions, commits: [.commits[].oid[0:7]]}'
+{"additions":88,"base":"main","changedFiles":3,"closes":[2],"commits":["37d4731"],"deletions":6}</code></pre>
+
+  <p>Git noticed on its own that <code>58cab2d</code>'s patch was already upstream — "skipped previously applied commit" — and replayed only #2's commit onto <code>main</code>. The merge base moved from <code>e474711</code> to <code>0b9a901</code>, the diff is back to three files and +88, the link is intact, and the PR now has one commit. <code>--force-with-lease</code> rather than <code>--force</code>: it refuses if someone else pushed to the branch since your last fetch.</p>
+
+  <div class="callout warn">
+    <span class="label">The order is: retarget, check the link, rebase, force-push</span>
+    <p>Retargeting first means the PR keeps its number, its review history, and its CI runs. Rebasing first and pushing to a PR whose base is still the parent branch gives a diff of <em>everything since the parent branch diverged from main</em> — worse, not better. And never rebase a branch someone else has checked out without telling them; the force-push rewrites the commits they have.</p>
+  </div>
+
+  <h2>The second exhibit: the course repo's #12 → #14</h2>
+  <p>The same sequence, on a repository every student can read, from the day Week 2 was built. PR #14 (Week 2 pages) was opened at 15:06:47 against the Week 1 branch, with <code>Closes #13</code> in its body and this sentence: "Merge #12 first, then retarget this PR to <code>main</code> (Settings → Edit → base). That is the M16 move, done on the course repo before students do it in Week 3."</p>
+
+  <span class="code-label">$ gh api graphql -f query='{ repository(owner:"perro-ruidoso", name:"gh-pr-mastery") { pullRequest(number:14) { timelineItems(itemTypes:[BASE_REF_CHANGED_EVENT, HEAD_REF_FORCE_PUSHED_EVENT, MERGED_EVENT], first:20) { nodes { __typename ... on BaseRefChangedEvent { createdAt previousRefName currentRefName } ... on HeadRefForcePushedEvent { createdAt beforeCommit { abbreviatedOid } afterCommit { abbreviatedOid } } ... on MergedEvent { createdAt } } } } } }' --jq '.data.repository.pullRequest.timelineItems.nodes[]'</span>
+  <pre><code>{"__typename":"BaseRefChangedEvent","createdAt":"2026-09-13T15:40:05Z","currentRefName":"main","previousRefName":"11-week1-pages-flashcards-learn-more"}
+{"__typename":"HeadRefForcePushedEvent","afterCommit":{"abbreviatedOid":"3af3c05"},"beforeCommit":{"abbreviatedOid":"32ac8c2"},"createdAt":"2026-09-13T15:42:45Z"}
+{"__typename":"MergedEvent","createdAt":"2026-09-13T15:43:30Z"}</code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Time (UTC, 2026-09-13)</th><th>Event</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>15:06:47</td><td>PR #14 opened, base <code>11-week1-pages-flashcards-learn-more</code>, body <code>Closes #13</code></td><td><code>gh pr view 14 --json createdAt</code>; body</td></tr>
+        <tr><td>15:40:01</td><td>PR #12 (parent) squash-merged as <code>cf6d380</code></td><td><code>gh pr view 12 --json mergedAt,mergeCommit</code></td></tr>
+        <tr><td>15:40:03</td><td>Issue #11 closed by #12's keyword</td><td><code>gh issue view 11 --json closedAt</code></td></tr>
+        <tr><td>15:40:05</td><td>#14's base changed to <code>main</code></td><td><code>BaseRefChangedEvent</code> above</td></tr>
+        <tr><td>15:42:45</td><td>#14's head force-pushed, <code>32ac8c2</code> → <code>3af3c05</code> — the rebase onto the squash commit</td><td><code>HeadRefForcePushedEvent</code> above</td></tr>
+        <tr><td>15:43:30</td><td>#14 squash-merged as <code>e28ce3d</code></td><td><code>MergedEvent</code>; <code>gh pr view 14 --json mergeCommit</code></td></tr>
+        <tr><td>15:43:31</td><td>Issue #13 closed, <code>COMPLETED</code></td><td><code>gh issue view 13 --json closedAt,stateReason</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Read it against the throwaway: parent merged, base changed four seconds later, branch rebased and force-pushed two and a half minutes after that, child merged, issue closed one second later. One difference: on issue #13 GitHub recorded <strong>no <code>connected</code> event at all</strong> — its timeline has the <code>blocked_by_added</code> from Week 2, three cross-references, and the close. <code>closingIssuesReferences</code> on #14 lists #13 today, and was recorded as empty on the day while it targeted the Week 1 branch; the exact second it populated is not on record. The throwaway's <code>connected</code> at 17:03:13 is the timed evidence; the course repo's is the outcome.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  P12["PR #12<br/>base main"] -->|"squash-merged 15:40:01<br/>cf6d380"| M["main"]
+  P12 -.->|"closes #11 · 15:40:03"| I11["#11 closed"]
+  P14["PR #14<br/>base 11-week1-… → main"] -.->|"base changed 15:40:05"| M
+  P14 -.->|"force-pushed 15:42:45<br/>32ac8c2 → 3af3c05"| P14
+  P14 -->|"squash-merged 15:43:30<br/>e28ce3d"| M
+  P14 -.->|"closes #13 · 15:43:31"| I13["#13 closed"]
+    </pre>
+    <span class="caption">The course repo's own stack, every timestamp from the commands printed above. The self-loop is the rebase.</span>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <p>Item 4 of Assignment A3, after A has merged.</p>
+    <label class="check"><input type="checkbox"><span>Read B's PR after A merged and saw the base unchanged and <code>closes</code> still empty.</span></label>
+    <label class="check"><input type="checkbox"><span>Ran <code>gh pr edit B --base main</code>; read <code>baseRefName</code>, <code>closingIssuesReferences</code> (now B's issue), and <code>changedFiles</code> (grown).</span></label>
+    <label class="check"><input type="checkbox"><span>Ran the <code>BaseRefChangedEvent</code> GraphQL query on my PR and saw <code>previousRefName</code> = A's branch, <code>currentRefName</code> = <code>main</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Rebased onto <code>origin/main</code>, saw "skipped previously applied commit," force-pushed with <code>--force-with-lease</code>, and watched <code>changedFiles</code> drop back to B's files.</span></label>
+    <label class="check"><input type="checkbox"><span>Can explain, without notes, why a squash merge made the diff grow and why a rebase fixed it.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. After <code>gh pr edit 5 --base main</code>, the diff grew from 3 files to 5 and was still <code>MERGEABLE</code>. What is the correct reading?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The retarget failed part-way and left the PR comparing against both branches, so it shows both sets</button></li>
+        <li><button data-opt="b">#2's branch picked up unrelated changes from <code>main</code> during the retarget, and the two extra files are someone else's unrelated work</button></li>
+        <li><button data-opt="c">The parent was squash-merged, so the merge base moved back to before #1; #1's changes appear again but merge cleanly</button></li>
+        <li><button data-opt="d">GitHub is showing the parent's diff for context until the PR is merged, and the two extra files are marked as already reviewed</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The merge base went from #1's tip to the initial commit (<code>git merge-base</code> printed <code>e474711</code>), so #1's changes are "since" again; git resolves "both sides changed the same way" without conflict. Nothing failed (A), nothing foreign arrived (B), GitHub adds no context files (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="b">
+      <p class="q-text">2. <code>git rebase origin/main</code> printed "skipped previously applied commit 58cab2d." What did git do and why is it right?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">It dropped #2's commit because its patch matched the squash commit, and #2's work now needs re-applying by hand</button></li>
+        <li><button data-opt="b">It recognised #1's commit as a patch already present on <code>main</code> (the squash) and replayed only #2's commit on top of it</button></li>
+        <li><button data-opt="c">It skipped the commit because of a conflict it could not resolve, which is why the following push needed <code>--force-with-lease</code></button></li>
+        <li><button data-opt="d">It refused to reapply a commit authored on another branch, a rule that <code>--reapply-cherry-picks</code> exists to override</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>B.</strong> <code>git log origin/main..HEAD</code> afterwards showed only #2's commit (as <code>37d4731</code>), and the PR diff returned to three files. The force-push is needed because the commit was rewritten, not because of a conflict (C). A and D misread the message.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which sequence of the course repo's #12 → #14 timestamps shows the retarget happened <em>after</em> the parent merged and <em>before</em> the child did?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">15:06:47 #14 opened → 15:43:31 #13 closed, since a PR opened before its issue closed must have been retargeted</button></li>
+        <li><button data-opt="b">15:40:03 #11 closed → 15:40:05 base changed, since an issue closing triggers GitHub to retarget PRs stacked on its branch</button></li>
+        <li><button data-opt="c">15:42:45 force-push → 15:43:30 merged, since a force-push is only accepted on a PR whose base was already changed</button></li>
+        <li><button data-opt="d">15:40:01 #12 merged → 15:40:05 base changed → 15:43:30 #14 merged, the three events in order on two PRs' timelines</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> Parent's <code>mergedAt</code>, child's <code>BaseRefChangedEvent</code>, child's <code>MergedEvent</code> — the same three facts <code>check_a3.py</code> orders. B invents a trigger (page 3 shows the only automatic retarget, and it is branch deletion, not issue closure); A and C reason from things that do not imply the order.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m16-retarget">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">Does GitHub update a stacked PR when its parent merges?</div><div class="fc-back">No. "If the branch is updated in the future, GitHub does not update the base branch's commit." PR #5 was unchanged five seconds after #4 merged.</div></div>
+      <div class="fc"><div class="fc-front">The retarget command?</div><div class="fc-back"><code>gh pr edit N --base main</code> — "Change the base branch for this pull request."</div></div>
+      <div class="fc"><div class="fc-front">Three things that changed on PR #5 after the retarget?</div><div class="fc-back"><code>closes</code> [] → [2] (<code>connected</code> 17:03:13); diff 3 → 5 files; a <code>BaseRefChangedEvent</code> at 17:03:12 with previous/current ref names.</div></div>
+      <div class="fc"><div class="fc-front">Why did the diff grow?</div><div class="fc-back">The parent was squash-merged: a new commit with #1's content. The merge base fell back to the initial commit, so #1's changes were "since" again.</div></div>
+      <div class="fc"><div class="fc-front">Why was it still MERGEABLE?</div><div class="fc-back">git-merge: hunks "cleanly resolved because both sides changed the same way."</div></div>
+      <div class="fc"><div class="fc-front">The fix, and what git printed?</div><div class="fc-back"><code>git rebase origin/main</code> → "skipped previously applied commit 58cab2d"; then <code>git push --force-with-lease</code>. Diff back to 3 files.</div></div>
+      <div class="fc"><div class="fc-front">Course repo #12 → #14: merge, retarget, rebase, merge, close?</div><div class="fc-back">15:40:01 · 15:40:05 · 15:42:45 (force-push 32ac8c2 → 3af3c05) · 15:43:30 · 15:43:31.</div></div>
+      <div class="fc"><div class="fc-front">Which timeline event has the branch names, REST or GraphQL?</div><div class="fc-back">GraphQL's <code>BaseRefChangedEvent</code> (<code>previousRefName</code>, <code>currentRefName</code>); REST's <code>base_ref_changed</code> has only the time.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code, on your Instance: "run <code>git merge-base origin/main HEAD</code> on my stacked branch before and after <code>git rebase origin/main</code>, and explain what each SHA is." Then ask it to predict what would have happened if A had been merged with a merge commit instead of a squash, and test that prediction on two throwaway branches. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-base-branch-of-a-pull-request">GitHub Docs: Changing the base branch of a pull request</a><span class="why">The warning about commits leaving the timeline and comments going stale, the web steps, and the tip that GitHub never moves a base on its own.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/pull-requests/reference/pull-request-merges">GitHub Docs: Pull request merges</a><span class="why">"Squashing and merging a long-running branch" — the sentence that predicts the diff growth; the rest is Week 5's M28.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://cli.github.com/manual/gh_pr_edit">GitHub CLI manual: <code>gh pr edit</code></a><span class="why"><code>--base</code>, and the rule that with no argument the current branch's PR is edited.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://git-scm.com/docs/git-merge">git-merge</a><span class="why">"How conflicts are presented" — including the hunks that are <em>not</em> conflicts: unchanged, one-sided, or "both sides changed the same way."</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-01/m06-reading-the-exhibit/index.html">M06 page 1: Reading the Exhibit</a><span class="why">The #12 → #14 stack was added there as the second worked example during the Week 1–2 audit; this page adds the force-push and the GraphQL ref names.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/changing-the-base-branch-of-a-pull-request">GitHub Docs: Changing the base branch of a pull request</a> — warning, steps, and tip quoted verbatim (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/pull-requests/reference/pull-request-merges">GitHub Docs: Pull request merges</a> — squash definition and the long-running-branch paragraph (fetched 2026-09-13)</li>
+      <li><a href="https://git-scm.com/docs/git-merge">git-merge</a> — "How conflicts are presented" (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/rest/using-the-rest-api/issue-event-types">GitHub Docs: Issue event types</a> — <code>base_ref_changed</code> (fetched 2026-09-13)</li>
+      <li><a href="https://cli.github.com/manual/gh_pr_edit">GitHub CLI manual: <code>gh pr edit</code></a> — <code>--base</code> (fetched 2026-09-13)</li>
+      <li>PR #5 on <code>perro-ruidoso/flashcards-w3probe</code>: every <code>gh</code>, <code>git</code>, and GraphQL command captured 2026-09-13, <code>gh</code> 2.100.0, git 2.52.0</li>
+      <li>PRs #12 and #14, issues #11 and #13 on <code>perro-ruidoso/gh-pr-mastery</code>: GraphQL timeline, <code>gh pr view --json</code>, <code>gh issue view --json</code>, and the issue #13 REST timeline, read 2026-09-13</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M16, page 1</span>Stacking on a Branch That Is Not Main</a>
+    <a class="next" href="deleting-the-parent.html"><span class="dir">Next · M16, page 3</span>What Deleting the Parent Does</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

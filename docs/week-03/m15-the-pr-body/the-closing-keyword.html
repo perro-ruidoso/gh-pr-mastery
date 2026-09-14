@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Keyword and Its Two Conditions — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M15 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>The Keyword and Its Two Conditions</h1>
+  <p class="lede"><code>Closes #1</code> in a PR body makes GitHub do two things: link the PR to the issue now, and close the issue when the PR merges. Both happen only if the PR targets the default branch. This page shows the link appearing a second late, the close arriving a second after the merge, and the case where neither happens at all.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M15 · PR authoring</span>
+      <span class="chip bloom">Bloom: Create</span>
+      <span class="chip assessed">Assessed by: A3 (checker + rubric)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Write a PR body that states intent, scope, verification, and risk, and closes its issue on merge with a linking keyword.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M15 pages</span>
+    <a href="index.html"><span class="num">1</span>Intent, Scope, Verification, Risk</a>
+    <span class="here"><span class="num">2</span>The Keyword and Its Two Conditions</span>
+  </nav>
+
+  <h2>The nine words and the syntax</h2>
+  <p>GitHub's linking page lists the keywords — <code>close</code>, <code>closes</code>, <code>closed</code>, <code>fix</code>, <code>fixes</code>, <code>fixed</code>, <code>resolve</code>, <code>resolves</code>, <code>resolved</code> — and the syntax by case:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Linked issue</th><th>Syntax</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Issue in the same repository</td><td><code>KEYWORD #ISSUE-NUMBER</code></td><td><code>Closes #10</code></td></tr>
+        <tr><td>Issue in a different repository</td><td><code>KEYWORD OWNER/REPOSITORY#ISSUE-NUMBER</code></td><td><code>Fixes octo-org/octo-repo#100</code></td></tr>
+        <tr><td>Multiple issues</td><td>Use full syntax for each issue</td><td><code>Resolves #10, resolves #123, resolves octo-org/octo-repo#100</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>"The keywords can be followed by colons or in uppercase. For example: <code>Closes: #10</code>, <code>CLOSES #10</code>, or <code>CLOSES: #10</code>." And on unlinking: "To unlink an issue that you linked using a keyword, you must edit the pull request description to remove the keyword." The keyword also works in a commit message — "The issue will be closed when you merge the commit into the default branch, but the pull request that contains the commit will not be listed as a linked pull request" — which is why the course puts it in the body: the link is the point, not only the close.</p>
+
+  <h2>Condition one: the PR targets the default branch</h2>
+  <p>The sentence this week turns on, from the same page:</p>
+  <blockquote><p>"The special keywords in a pull request description are interpreted only when the pull request targets the repository's default branch. If the pull request targets any other branch, then these keywords are ignored, no links are created, and merging the PR has no effect on the issues."</p></blockquote>
+  <p>Observed twice. On the throwaway, PR #5 was opened with <code>Closes #2</code> in its body against the branch of PR #4, not <code>main</code>:</p>
+  <pre><code><span class="prompt">$</span> gh pr view 5 --json number,baseRefName,closingIssuesReferences --jq '{number, base: .baseRefName, closes: [.closingIssuesReferences[].number]}'
+{"base":"1-add-review-state-to-card-repetitions-ease-factor-interval-due-date","closes":[],"number":5}</code></pre>
+  <p>Empty, 20 seconds after creation, and still empty after the parent merged. It populated the moment the base was changed to <code>main</code> — <a href="../m16-stacked-prs/retargeting.html">M16 page 2</a> has that transcript. The course repository's own PR #14 did the same: opened at 15:06:47 with <code>Closes #13</code> against the Week 1 branch, <code>closingIssuesReferences</code> empty until the retarget at 15:40:05, merged at 15:43:30 closing #13 at 15:43:31.</p>
+
+  <h2>Condition two: the PR merges — and what "link" looks like meanwhile</h2>
+  <p>On a PR that <em>does</em> target the default branch, the link is created when the body is saved, not when the PR merges — but not in the same second. PR #4, created at 17:00:19:</p>
+  <pre><code><span class="prompt">$</span> gh pr create --title "Add review state to Card" --body-file pr1.md
+<span class="dim">https://github.com/perro-ruidoso/flashcards-w3probe/pull/4</span>
+<span class="prompt">$</span> gh pr view 4 --json number,baseRefName,closingIssuesReferences --jq '{number, base: .baseRefName, closes: [.closingIssuesReferences[].number]}'
+{"base":"main","closes":[],"number":4}
+
+<span class="dim">…fifteen seconds later:</span>
+<span class="prompt">$</span> gh pr view 4 --json closingIssuesReferences,createdAt --jq '{createdAt, closes: [.closingIssuesReferences[].number]}'
+{"closes":[1],"createdAt":"2026-09-13T17:00:19Z"}
+
+<span class="prompt">$</span> gh api repos/perro-ruidoso/flashcards-w3probe/issues/1/timeline --jq '.[] | select(.event=="connected" or .event=="closed") | "\(.created_at)  \(.event)"'
+2026-09-13T17:00:21Z  connected
+2026-09-13T17:02:48Z  closed</code></pre>
+  <p>The issue's timeline records a <code>connected</code> event — GitHub's event-types reference: "The issue or pull request was linked to another issue or pull request" — at 17:00:21, two seconds after the PR was created. A script that reads <code>closingIssuesReferences</code> in the same second as <code>gh pr create</code> sees <code>[]</code>; <code>check_a3.py</code> is run long after, so it does not care, but your own verification should ask twice.</p>
+
+  <p>Then the merge, and the close:</p>
+  <pre><code><span class="prompt">$</span> gh pr merge 4 --squash
+<span class="prompt">$</span> gh pr view 4 --json state,mergedAt,mergeCommit --jq '{state, mergedAt, mergeCommit: .mergeCommit.oid[0:7]}'
+{"mergeCommit":"0b9a901","mergedAt":"2026-09-13T17:02:47Z","state":"MERGED"}
+<span class="prompt">$</span> gh issue view 1 --json state,stateReason,closedAt
+{"closedAt":"2026-09-13T17:02:48Z","state":"CLOSED","stateReason":"COMPLETED"}</code></pre>
+  <p>Merged at 17:02:47, closed at 17:02:48, <code>stateReason: COMPLETED</code>. The same one-second gap M06 built its worked example on, now produced by your own PR. The other two tickets on the throwaway closed the same way — #3 at 17:09:15 after a 17:09:14 merge, #2 at 17:12:48 after a 17:12:47 merge — and <code>check_a3.py</code> reads exactly this: a <code>closedAt</code> within seconds of the linking PR's <code>mergedAt</code>, with reason <code>COMPLETED</code>. An issue closed by hand with <code>gh issue close</code> has a gap of minutes, or a close before the merge, and fails the rule.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+graph LR
+  I1["Issue #1"] --> B1["branch 1-add-review-state-…<br/>gh issue develop"]
+  B1 --> P4["PR #4 · base: main<br/>body: Closes #1<br/>created 17:00:19"]
+  P4 -.->|"connected 17:00:21"| I1
+  P4 -->|"merged 17:02:47"| M["main"]
+  P4 -.->|"closed 17:02:48<br/>COMPLETED"| C1["#1 closed"]
+    </pre>
+    <span class="caption">Two dotted edges, two conditions: the link (default-branch base + keyword) and the close (link + merge). Every timestamp is from a command on this page.</span>
+  </div>
+
+  <div class="callout note">
+    <span class="label">Reading the link from either end</span>
+    <p>From the PR: <code>gh pr view N --json closingIssuesReferences</code> — an array of <code>{id, number, repository, url}</code>. From the issue: <code>gh issue view N --json closedByPullRequestsReferences</code> — same shape, and it lists only PRs that are open or merged; the closed-unmerged drive-by on M14 page 2 dropped out of it while <code>gh pr list --json closingIssuesReferences</code> still showed the keyword link on the PR side.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <label class="check"><input type="checkbox"><span>After <code>gh pr create</code> for ticket A, ran <code>gh pr view --json closingIssuesReferences</code> twice — once immediately (saw <code>[]</code> or the number) and once a few seconds later (saw the number).</span></label>
+    <label class="check"><input type="checkbox"><span>Read the <code>connected</code> event off the issue's timeline with the <code>gh api …/issues/A/timeline</code> command above.</span></label>
+    <label class="check"><input type="checkbox"><span>After merging, captured <code>mergedAt</code> and the issue's <code>closedAt</code> and <code>stateReason</code>; the gap is seconds and the reason is <code>COMPLETED</code>.</span></label>
+    <label class="check"><input type="checkbox"><span>Can state both conditions from memory: default-branch base for the link; merge for the close.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. A PR with <code>Closes #2</code> in its body targets another feature branch. What happens to #2 when the PR merges into that branch?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">#2 closes, because the keyword is evaluated when the body is saved and the merge target does not matter</button></li>
+        <li><button data-opt="b">#2 is linked but stays open until the feature branch itself is merged into the default branch at a later date</button></li>
+        <li><button data-opt="c">Nothing; the keyword is ignored on a non-default base, so no link exists and the merge has no effect on #2</button></li>
+        <li><button data-opt="d">#2 closes as "not planned," since GitHub treats a merge into a non-default branch as an abandoned change</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> The docs: "these keywords are ignored, no links are created, and merging the PR has no effect on the issues." PR #5 showed <code>closes: []</code> for as long as its base was #4's branch. B describes what people expect; it is not what happens.</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. <code>gh pr view 4 --json closingIssuesReferences</code> printed <code>[]</code> right after creation and <code>[1]</code> fifteen seconds later. What should a verification script conclude?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">The link is created asynchronously a moment after the body is saved; read it again before deciding the keyword failed</button></li>
+        <li><button data-opt="b">The first read hit a stale cache in <code>gh</code>; passing <code>--cache 0</code> to the command would have returned the number at once</button></li>
+        <li><button data-opt="c">The link only exists once CI has run, because GitHub waits for the required checks before connecting a PR to an issue</button></li>
+        <li><button data-opt="d">The keyword was mistyped the first time and then silently corrected by GitHub's Markdown renderer on the second read</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> The issue's timeline shows <code>connected</code> at 17:00:21, two seconds after the 17:00:19 creation — server-side latency, not a client cache (B) and not CI (C). The body did not change (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. Which pair of timestamps is the evidence that a keyword, not a person, closed issue #1?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">PR created 17:00:19 and <code>connected</code> at 17:00:21 — the two-second gap shows an automated process was involved</button></li>
+        <li><button data-opt="b">PR merged 17:02:47 and the merge commit <code>0b9a901</code> — the commit SHA proves the merge and hence the close</button></li>
+        <li><button data-opt="c">Issue created 16:58 and closed 17:02:48 — a four-minute lifetime is too short for any human to have read and resolved it</button></li>
+        <li><button data-opt="d">PR merged 17:02:47 and issue closed 17:02:48 with <code>stateReason: COMPLETED</code> — one second, and the reason a keyword sets</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The M06 argument: a one-second gap between merge and close, with reason <code>COMPLETED</code>, is what the keyword produces and what a human cannot. A is evidence of the <em>link</em>, not the close; B and C prove nothing about who closed it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m15-keyword">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">The nine closing keywords?</div><div class="fc-back">close, closes, closed, fix, fixes, fixed, resolve, resolves, resolved — colons and uppercase allowed.</div></div>
+      <div class="fc"><div class="fc-front">The two conditions for a keyword to close an issue?</div><div class="fc-back">1. The PR targets the default branch (otherwise "ignored, no links are created"). 2. The PR merges.</div></div>
+      <div class="fc"><div class="fc-front">How long after <code>gh pr create</code> did <code>closingIssuesReferences</code> populate for PR #4?</div><div class="fc-back">Not in the same second; <code>connected</code> landed at 17:00:21 for a 17:00:19 creation. Read twice.</div></div>
+      <div class="fc"><div class="fc-front">Merge-to-close gap on the throwaway's three tickets?</div><div class="fc-back">One second each: 17:02:47→48, 17:09:14→15, 17:12:47→48, all <code>COMPLETED</code>.</div></div>
+      <div class="fc"><div class="fc-front">Keyword in a commit message instead of the body — difference?</div><div class="fc-back">Closes the issue on merge to the default branch, but "the pull request that contains the commit will not be listed as a linked pull request."</div></div>
+      <div class="fc"><div class="fc-front">Syntax for an issue in another repository?</div><div class="fc-back"><code>KEYWORD OWNER/REPOSITORY#ISSUE-NUMBER</code>, e.g. <code>Fixes octo-org/octo-repo#100</code>.</div></div>
+      <div class="fc"><div class="fc-front">How do you unlink a keyword-linked issue?</div><div class="fc-back">Edit the PR description and remove the keyword; only manually linked PRs can be manually unlinked.</div></div>
+      <div class="fc"><div class="fc-front">Field on the issue side that mirrors <code>closingIssuesReferences</code>?</div><div class="fc-back"><code>gh issue view N --json closedByPullRequestsReferences</code> — open or merged PRs only.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code: "open a draft PR against a throwaway branch with <code>Closes #N</code> in the body, show me <code>closingIssuesReferences</code>, retarget it to main with <code>gh pr edit --base</code>, show it again, then close the PR unmerged." Watch whether it waits before reading the field, and whether it knows why the first read was empty. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a><span class="why">The keyword list, the syntax table, the default-branch note, unlinking, and the commit-message variant — the page this whole objective is built on.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests">GitHub Docs: Using keywords in issues and pull requests</a><span class="why">The same nine words plus "Duplicate of" — the other keyword GitHub reads in a body.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/rest/using-the-rest-api/issue-event-types">GitHub Docs: Issue event types</a><span class="why"><code>connected</code>, <code>closed</code> (the docs say <code>commit_id</code> is present when a commit's keyword closed it; a PR-body keyword left it <code>null</code> on the throwaway), <code>base_ref_changed</code>, <code>merged</code> — the vocabulary of the timelines quoted this week.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-01/m06-reading-the-exhibit/index.html">M06 page 1: Reading the Exhibit</a><span class="why">The original one-second-gap argument, on <code>cli/cli</code> and on the course repo; this page reproduces it on a PR you can write yourself.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a> — keywords, syntax table, default-branch note, unlinking, commit-message behaviour, all quoted verbatim (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/rest/using-the-rest-api/issue-event-types">GitHub Docs: Issue event types</a> — <code>connected</code> definition (fetched 2026-09-13)</li>
+      <li>PRs #4 and #5 and issues #1–#3 on <code>perro-ruidoso/flashcards-w3probe</code>: every command and timestamp captured 2026-09-13 with <code>gh</code> 2.100.0</li>
+      <li>PR #14 / issue #13 on <code>perro-ruidoso/gh-pr-mastery</code>: <code>createdAt</code>, base-change and merge events, <code>closedAt</code> read 2026-09-13 (M06 page 1 and M16 page 2 print the commands)</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M15, page 1</span>Intent, Scope, Verification, Risk</a>
+    <a class="next" href="../m16-stacked-prs/index.html"><span class="dir">Next · M16</span>Stacking on a Branch That Is Not Main</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/mermaid.min.js"></script>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naming That Links Twice — Week 3 · GitHub Pull Requests for Agentic Coders</title>
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="course" href="../../index.html">GitHub Pull Requests for Agentic Coders</a>
+    <span class="crumb"><a href="../index.html">Week 3</a> · Objective M13 · Page 2 of 2</span>
+  </div>
+</header>
+
+<main>
+  <h1>Naming That Links Twice</h1>
+  <p class="lede">GitHub links a branch to an issue by a stored relation; Linear links a pull request to an issue by reading the branch name. A branch that satisfies both carries two identifiers — the GitHub number and the Linear ID — and <code>--name</code> is where you put them.</p>
+
+  <div class="obj-banner">
+    <div class="chips">
+      <span class="chip">M13 · Branching</span>
+      <span class="chip bloom">Bloom: Apply</span>
+      <span class="chip assessed">Assessed by: A3 (checker)</span>
+    </div>
+    <p class="statement"><em>Objective:</em> Create a branch bound to an issue with <code>gh issue develop</code>, and follow a branch-naming convention that auto-links in both GitHub and Linear.</p>
+  </div>
+
+  <nav class="pagemap" aria-label="Pages for this objective">
+    <span class="lbl">M13 pages</span>
+    <a href="index.html"><span class="num">1</span>A Branch Bound to an Issue</a>
+    <span class="here"><span class="num">2</span>Naming That Links Twice</span>
+  </nav>
+
+  <h2>Two systems, two linking rules</h2>
+  <div class="compare">
+    <div class="side yes">
+      <h3>GitHub — links by relation</h3>
+      <p>The link is created by the act of creating the branch from the issue (<code>gh issue develop</code> or the sidebar button), then carried by the PR. The branch's <em>name</em> plays no part: <code>--name anything-at-all</code> is linked just the same. The number in the default name is for humans, for <code>CLAUDE.md</code>'s rule, and for the checker.</p>
+    </div>
+    <div class="side yes">
+      <h3>Linear — links by name</h3>
+      <p>"Include issue ID in the branch name." And in the FAQ: "If your branch name includes a Linear issue ID, Linear will automatically link the pull request to that issue. Even if you manually unlink it, the connection can return when you push new commits or when the PR is merged." The ID is the <code>KEY-n</code> you saw in Week 2 — not the GitHub number.</p>
+    </div>
+  </div>
+
+  <p>Those are different mechanisms with different keys. Your Instance has both, because Week 2 wired Issues Sync: every GitHub issue created since then has a synced twin in Linear with its own identifier (<code>FLA-7</code>, say, for GitHub <code>#7</code>). A branch named only with the GitHub number links on GitHub and is invisible to Linear; a branch named only with the Linear ID links in Linear and — if you created it with <code>gh issue develop</code> — still links on GitHub, but the number is gone from the name and the <code>CLAUDE.md</code> rule is broken.</p>
+
+  <h2>The convention</h2>
+  <p>Put both in, GitHub's number first so the branch sorts with its issue:</p>
+  <pre><code><span class="prompt">$</span> gh issue develop 7 --name 7-fla-7-persist-review-state --checkout</code></pre>
+  <p>Read it as <code>&lt;github-number&gt;-&lt;linear-id&gt;-&lt;slug&gt;</code>. Linear's own <em>Copy git branch name</em> action produces a branch name in whatever format the workspace's <strong>Branch format</strong> setting selects — the docs say: "Select the branch format you want to use when copying the branch name using Cmd + Shift + . from a Linear issue and pasting it into your branch name." Copy that, prepend the GitHub number, and hand the result to <code>--name</code>. The checker only reads the leading number; the Linear ID is for Linear.</p>
+
+  <div class="callout warn">
+    <span class="label">Not run live</span>
+    <p>The GitHub half of this page was run on the throwaway Instance and its output is on <a href="index.html">page 1</a>. The Linear half is quoted from Linear's documentation, fetched 2026-09-13, and has <strong>not</strong> been observed in a live workspace — the same standing as M12's UI steps. When you run it on your Instance, the check is the one M12 taught: open the synced Linear issue after pushing the branch and look for the PR in its attachments, without touching anything.</p>
+  </div>
+
+  <h2>Titles and magic words are a second channel</h2>
+  <p>Linear also links from the PR itself: "Include the Linear issue ID (e.g. ID-123) in the title when creating pull requests," or "use a magic word + issue ID in the PR description or title (for example, Fixes ENG-123 …)". Its closing words overlap GitHub's — "close, closes, closed, closing, fix, fixes, fixed, fixing, resolve, resolves, resolved, resolving, complete, completes, completed, completing, implement, implements, implemented, implementing, linear issue" — but the <em>reference</em> differs: GitHub wants <code>Closes #7</code>, Linear wants <code>Closes FLA-7</code>. A PR body for a synced issue can carry both lines, and <a href="../m15-the-pr-body/the-closing-keyword.html">M15 page 2</a> is about what the GitHub one does. Linear's non-closing words ("ref, refs, references, part of, contributes to, toward, towards") move the issue through statuses without closing it; GitHub has no such distinction.</p>
+
+  <div class="callout note">
+    <span class="label">One thing squash-merging does to Linear</span>
+    <p>Linear's FAQ: "If you have already merged multiple PRs into a single branch and you want to merge that branch into a new branch, we will not auto-detect any Linear issues that were linked in the previous PRs. You will need to link each issue anew." A stack of PRs where each is merged into its parent branch, and then the parent into <code>main</code>, loses Linear's links at the last step. The course's stacking method — retarget each child to <code>main</code> and merge it there (<a href="../m16-stacked-prs/retargeting.html">M16 page 2</a>) — avoids the case entirely.</p>
+  </div>
+
+  <section class="handson">
+    <h2>Hands-on checklist</h2>
+    <label class="check"><input type="checkbox"><span>Opened one synced ticket in Linear and copied its identifier (<code>KEY-n</code>); can say which GitHub number it corresponds to.</span></label>
+    <label class="check"><input type="checkbox"><span>Created the branch with <code>gh issue develop &lt;n&gt; --name &lt;n&gt;-&lt;key-n&gt;-&lt;slug&gt; --checkout</code>, pushed one commit, and looked at the Linear issue for the branch or PR attachment — without changing anything there.</span></label>
+    <label class="check"><input type="checkbox"><span>Can state the two linking rules in one sentence each: GitHub by relation from <code>gh issue develop</code>; Linear by the ID in the name.</span></label>
+    <label class="check"><input type="checkbox"><span>Wrote the branch-name convention into my Instance's <code>CLAUDE.md</code> "Working here" section, next to the rule that is already there.</span></label>
+  </section>
+
+  <section class="selfcheck">
+    <h2>Self-check</h2>
+
+    <div class="q" data-answer="c">
+      <p class="q-text">1. A branch is created with <code>gh issue develop 7 --name persist-review-state</code>. What is linked where?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Linked on GitHub and in Linear, because Issues Sync copies the Development link across with the issue</button></li>
+        <li><button data-opt="b">Linked in Linear only, because GitHub requires the issue number in the branch name to keep the link</button></li>
+        <li><button data-opt="c">Linked on GitHub only, because the relation was created by the command; Linear sees no ID in the name</button></li>
+        <li><button data-opt="d">Linked nowhere, because <code>--name</code> without the number breaks the link on both sides at creation</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>C.</strong> GitHub's link is the stored relation, name-independent. Linear reads the name and finds no <code>KEY-n</code>. Sync copies issue properties (title, description, status, …), not the Development link (A).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="a">
+      <p class="q-text">2. Which PR body line closes the GitHub issue on merge <em>and</em> moves the synced Linear issue to its merged status?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Two lines: <code>Closes #7</code> for GitHub and <code>Closes FLA-7</code> for Linear, since each reads only its own reference form</button></li>
+        <li><button data-opt="b">One line, <code>Closes #7</code>, because Linear resolves a GitHub number to the synced issue through two-way Issues Sync</button></li>
+        <li><button data-opt="c">One line, <code>Closes FLA-7</code>, because GitHub resolves a Linear identifier through the installed app</button></li>
+        <li><button data-opt="d">Neither; closing on merge is driven by the branch name on both systems, and the PR body plays no part in it</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>A.</strong> GitHub's syntax is <code>KEYWORD #ISSUE-NUMBER</code>; Linear's is a magic word plus <code>ID-123</code>. Neither documents resolving the other's reference (B, C). The branch name links in Linear, but closing on merge is the keyword's job on GitHub (D).</p>
+      </div>
+    </div>
+
+    <div class="q" data-answer="d">
+      <p class="q-text">3. The Linear docs warn about merging "multiple PRs into a single branch" and then that branch onward. Which course practice sidesteps it?</p>
+      <ol class="q-opts" type="A">
+        <li><button data-opt="a">Squash-merging every PR, so each Linear link is carried in the squash commit's message</button></li>
+        <li><button data-opt="b">Putting the Linear ID in every commit message, so that commit linking survives whatever merge order is used</button></li>
+        <li><button data-opt="c">Never stacking PRs at all; every ticket branch is created from <code>main</code> and merged straight back into it</button></li>
+        <li><button data-opt="d">Retargeting each stacked child to <code>main</code> after its parent merges, so no PR merges into another PR's branch</button></li>
+      </ol>
+      <div class="q-why" hidden>
+        <p><strong>D.</strong> The warned case is PR → parent branch → main. The M16 method merges every PR into <code>main</code> directly, retargeting the child first. Squashing (A) does not help — the FAQ is in the "squash merging" question. Stacking itself is fine (C).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="flashcards" data-deck="w3-m13-naming">
+    <h2>Flashcards</h2>
+    <p class="fc-hint">Say the answer out loud before you flip. "Again" puts the card back in the queue; "Got it" retires it. Keyboard: <kbd>Space</kbd> flips, <kbd>1</kbd> again, <kbd>2</kbd> got it.</p>
+    <div class="fc-deck">
+      <div class="fc"><div class="fc-front">How does GitHub link a branch to an issue?</div><div class="fc-back">By a stored relation created when the branch is made from the issue (<code>gh issue develop</code> / sidebar). The name is irrelevant to it.</div></div>
+      <div class="fc"><div class="fc-front">How does Linear link a PR to an issue from the branch?</div><div class="fc-back">"If your branch name includes a Linear issue ID, Linear will automatically link the pull request to that issue."</div></div>
+      <div class="fc"><div class="fc-front">The course branch-name convention for a synced ticket?</div><div class="fc-back"><code>&lt;github-number&gt;-&lt;linear-id&gt;-&lt;slug&gt;</code>, e.g. <code>7-fla-7-persist-review-state</code>, given to <code>gh issue develop --name</code>.</div></div>
+      <div class="fc"><div class="fc-front">GitHub closing reference vs Linear closing reference?</div><div class="fc-back">GitHub: <code>Closes #7</code>. Linear: <code>Closes FLA-7</code>. Two lines if you want both.</div></div>
+      <div class="fc"><div class="fc-front">Name three of Linear's non-closing magic words.</div><div class="fc-back">ref, refs, references, part of, contributes to, toward, towards — they move status without applying the merged status.</div></div>
+      <div class="fc"><div class="fc-front">What does Linear's Branch format setting control?</div><div class="fc-back">The shape of the name produced by <em>Copy git branch name</em> (Cmd/Ctrl + Shift + .).</div></div>
+      <div class="fc"><div class="fc-front">Which half of this page was not run live?</div><div class="fc-back">The Linear half — quoted from the docs, fetched 2026-09-13; verify on your own workspace without touching anything.</div></div>
+    </div>
+  </section>
+
+  <div class="callout ask">
+    <span class="label">Ask your teacher</span>
+    <p>Ask Claude Code: "given that GitHub links branches by relation and Linear links by the ID in the name, write me a one-line shell alias that takes a GitHub issue number and a Linear ID and creates the branch with <code>gh issue develop</code> under our convention." Then ask it what would break if the Linear ID were omitted, and check its answer against this page. Bring anything still unclear to the weekly meeting.</p>
+  </div>
+
+  <section class="learnmore">
+    <h2>Where to learn more</h2>
+    <ul>
+      <li><span class="tier t4">Tier 4</span><a href="https://linear.app/docs/github">Linear Docs: GitHub</a><span class="why">"Link through pull requests" — branch name, PR title, magic words (closing, non-closing, relation) — and the FAQ entries on squash merging and on unlinking when the branch name carries the ID.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue">GitHub Docs: Creating a branch to work on an issue</a><span class="why">The relation-based link, with "Optionally, in the 'Branch name' field, type a branch name" — the web equivalent of <code>--name</code>.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a><span class="why">The GitHub keyword syntax the Linear line sits next to; read for M15 anyway.</span></li>
+      <li><span class="tier t1">Tier 1</span><a href="../../week-02/m12-wiring-linear/verify-without-touching.html">M12 page 2: Verify Without Touching</a><span class="why">The protocol for checking that something appeared in Linear without editing it there — reuse it for the branch and PR attachments.</span></li>
+    </ul>
+  </section>
+
+  <section class="sources">
+    <h2>Sources for this page</h2>
+    <ul>
+      <li><a href="https://linear.app/docs/github">Linear Docs: GitHub</a> — branch-name linking, Branch format setting, PR-title and magic-word linking, the magic-word lists, the squash-merge FAQ, the unlink FAQ (fetched 2026-09-13; not run in a live workspace)</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-a-branch-for-an-issue">GitHub Docs: Creating a branch to work on an issue</a> — the relation-based link (fetched 2026-09-13)</li>
+      <li><a href="https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue">GitHub Docs: Linking a pull request to an issue</a> — <code>KEYWORD #ISSUE-NUMBER</code> syntax (fetched 2026-09-13)</li>
+      <li><a href="https://github.com/perro-ruidoso/flashcards-seed/blob/main/CLAUDE.md">Seed Repo <code>CLAUDE.md</code></a> — "The branch name carries the issue number" (read 2026-09-13)</li>
+    </ul>
+  </section>
+
+  <nav class="pager">
+    <a href="index.html"><span class="dir">Previous · M13, page 1</span>A Branch Bound to an Issue</a>
+    <a class="next" href="../m14-reviewable-diffs/index.html"><span class="dir">Next · M14</span>What a Reviewable Diff Looks Like</a>
+  </nav>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">GitHub Pull Requests for Agentic Coders — Week 3 learning pages. Source links verified 2026-09-13.</div>
+</footer>
+<script src="../../assets/app.js"></script>
+<script src="../../assets/flashcards.js"></script>
+</body>
+</html>
